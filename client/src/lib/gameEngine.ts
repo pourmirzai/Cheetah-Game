@@ -373,23 +373,18 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     spotlight.fillStyle(0xffff00, 0.3);
     spotlight.fillTriangle(x, y + 30, x - 50, y + 120, x + 50, y + 120);
     
-    scene.tweens.add({
-      targets: spotlight,
-      y: scene.scale.height + 150,
-      duration: 5000 / (scene.gameSpeed / 200),
-      onComplete: () => spotlight.destroy()
-    });
+    scene.physics.world.enable(spotlight);
+    const spotlightBody = spotlight.body as Phaser.Physics.Arcade.Body;
+    spotlightBody.setVelocityY(scene.gameSpeed);
+    spotlight.setData('isMoving', true);
   }
   
-  // Move obstacle down
-  scene.tweens.add({
-    targets: obstacle,
-    y: scene.scale.height + 50,
-    duration: 5000 / (scene.gameSpeed / 200),
-    onComplete: () => {
-      obstacle.destroy();
-    }
-  });
+  // Set initial velocity for obstacle (will be updated in updateGame)
+  const body = obstacle.body as Phaser.Physics.Arcade.Body;
+  body.setVelocityY(scene.gameSpeed);
+  
+  // Remove obstacle when it goes off screen
+  obstacle.setData('isMoving', true);
 
   // Collision detection
   scene.physics.add.overlap(scene.motherCheetah!, obstacle, () => {
@@ -424,24 +419,21 @@ function spawnRoad(scene: GameScene, y: number) {
   const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 40, 0x333333);
   scene.physics.world.enable(road);
   
-  // Add road markings
+  // Add road markings with physics
   for (let i = 0; i < scene.scale.width; i += 80) {
     const marking = scene.add.rectangle(i, y, 40, 4, 0xffffff);
-    scene.tweens.add({
-      targets: marking,
-      y: scene.scale.height + 50,
-      duration: 5000 / (scene.gameSpeed / 200),
-      onComplete: () => marking.destroy()
-    });
+    scene.physics.world.enable(marking);
+    const markingBody = marking.body as Phaser.Physics.Arcade.Body;
+    markingBody.setVelocityY(scene.gameSpeed);
+    marking.setData('isMoving', true);
   }
   
-  // Move road down
-  scene.tweens.add({
-    targets: road,
-    y: scene.scale.height + 50,
-    duration: 5000 / (scene.gameSpeed / 200),
-    onComplete: () => road.destroy()
-  });
+  // Set initial velocity for road (will be updated in updateGame)
+  const body = road.body as Phaser.Physics.Arcade.Body;
+  body.setVelocityY(scene.gameSpeed);
+  
+  // Remove road when it goes off screen
+  road.setData('isMoving', true);
 
   // 50% chance to spawn cars on the road
   if (Math.random() < 0.5) {
@@ -461,14 +453,13 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     scene.obstacles.add(car);
     scene.physics.world.enable(car);
     
-    // Move car horizontally and down
-    scene.tweens.add({
-      targets: car,
-      x: carX + Phaser.Math.Between(-100, 100),
-      y: scene.scale.height + 50,
-      duration: 3000 / (scene.gameSpeed / 200),
-      onComplete: () => car.destroy()
-    });
+    // Set initial velocity for car (will be updated in updateGame)
+    const body = car.body as Phaser.Physics.Arcade.Body;
+    body.setVelocityY(scene.gameSpeed);
+    body.setVelocityX(Phaser.Math.Between(-50, 50)); // Slight horizontal movement
+    
+    // Remove car when it goes off screen
+    car.setData('isMoving', true);
 
     // Car collision detection
     scene.physics.add.overlap(scene.motherCheetah!, car, () => {
@@ -511,15 +502,12 @@ function spawnResource(scene: GameScene, x: number, y: number) {
   scene.resources.add(resource);
   scene.physics.world.enable(resource);
   
-  // Move resource down
-  scene.tweens.add({
-    targets: resource,
-    y: scene.scale.height + 50,
-    duration: 5000 / (scene.gameSpeed / 200),
-    onComplete: () => {
-      resource.destroy();
-    }
-  });
+  // Set initial velocity for resource (will be updated in updateGame)
+  const body = resource.body as Phaser.Physics.Arcade.Body;
+  body.setVelocityY(scene.gameSpeed);
+  
+  // Remove resource when it goes off screen
+  resource.setData('isMoving', true);
 
   // Collection detection
   scene.physics.add.overlap(scene.motherCheetah!, resource, () => {
@@ -653,6 +641,27 @@ export function updateGame(scene: GameScene) {
       scene.lastLaneChange = currentTime;
     }
   }
+
+  // Update velocities of all moving objects based on current speed
+  scene.obstacles.children.entries.forEach((obstacle: any) => {
+    if (obstacle.getData('isMoving') && obstacle.body) {
+      obstacle.body.setVelocityY(scene.gameSpeed);
+      // Remove if off screen
+      if (obstacle.y > scene.scale.height + 100) {
+        obstacle.destroy();
+      }
+    }
+  });
+
+  scene.resources.children.entries.forEach((resource: any) => {
+    if (resource.getData('isMoving') && resource.body) {
+      resource.body.setVelocityY(scene.gameSpeed);
+      // Remove if off screen
+      if (resource.y > scene.scale.height + 100) {
+        resource.destroy();
+      }
+    }
+  });
 
   // Scroll background with parallax effect
   if (scene.background) {
