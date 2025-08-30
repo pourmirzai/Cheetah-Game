@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import { GameData, GameResults } from "@/types/game";
-import { initializeGame } from "@/lib/gameEngine";
+import { initializeGame, updateGame } from "@/lib/gameEngine";
 
 interface PhaserGameProps {
   gameData: GameData;
@@ -38,6 +38,7 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
         },
         update: function() {
           // Game update logic handled in gameEngine
+          updateGame(this);
         }
       },
       scale: {

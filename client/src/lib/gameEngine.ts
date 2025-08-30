@@ -468,6 +468,32 @@ function endGame(scene: GameScene, cause: string) {
 
 // Update scene every frame
 export function updateGame(scene: GameScene) {
+  // Process keyboard input
+  if (scene.cursors) {
+    // Left arrow key - move left
+    if (scene.cursors.left?.isDown && scene.currentLane > 0) {
+      // Prevent rapid lane switching
+      if (Date.now() - scene.lastSpeedBurst > 200) {
+        changeLane(scene, scene.currentLane - 1);
+        scene.lastSpeedBurst = Date.now();
+      }
+    }
+    
+    // Right arrow key - move right  
+    if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1) {
+      // Prevent rapid lane switching
+      if (Date.now() - scene.lastSpeedBurst > 200) {
+        changeLane(scene, scene.currentLane + 1);
+        scene.lastSpeedBurst = Date.now();
+      }
+    }
+    
+    // Space key - speed burst
+    if (scene.cursors.space?.isDown) {
+      triggerSpeedBurst(scene);
+    }
+  }
+
   // Scroll background
   if (scene.background) {
     scene.background.tilePositionY -= scene.gameSpeed / 60;
