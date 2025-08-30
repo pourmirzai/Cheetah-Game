@@ -5,7 +5,7 @@ import {
   type GameStats, type InsertGameStats
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, gte, count, avg, sql } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -145,7 +145,7 @@ export class DatabaseStorage implements IStorage {
       .from(gameSessions)
       .where(and(
         gte(gameSessions.createdAt, startDate),
-        gte(endDate, gameSessions.createdAt)
+        lt(gameSessions.createdAt, endDate)
       ));
 
     const mostCommonCause = await db
@@ -156,7 +156,7 @@ export class DatabaseStorage implements IStorage {
       .from(gameSessions)
       .where(and(
         gte(gameSessions.createdAt, startDate),
-        gte(endDate, gameSessions.createdAt)
+        lt(gameSessions.createdAt, endDate)
       ))
       .groupBy(gameSessions.deathCause)
       .orderBy(desc(count(gameSessions.id)))

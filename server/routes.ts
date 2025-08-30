@@ -52,16 +52,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Session not found' });
       }
 
-      // Create leaderboard entry
+      // Create leaderboard entry only if it doesn't exist
       const achievementTitle = getAchievementTitle(validatedData.cubsSurvived, validatedData.monthsCompleted);
-      await storage.createLeaderboardEntry({
-        sessionId: validatedData.sessionId,
-        cubsSurvived: validatedData.cubsSurvived,
-        monthsCompleted: validatedData.monthsCompleted,
-        finalScore: validatedData.finalScore,
-        province: validatedData.province,
-        achievementTitle
-      });
+      try {
+        await storage.createLeaderboardEntry({
+          sessionId: validatedData.sessionId,
+          cubsSurvived: validatedData.cubsSurvived,
+          monthsCompleted: validatedData.monthsCompleted,
+          finalScore: validatedData.finalScore,
+          province: validatedData.province,
+          achievementTitle
+        });
+      } catch (error: any) {
+        // Ignore if leaderboard entry already exists
+        if (!error.code || error.code !== '23505') {
+          throw error;
+        }
+      }
 
       // Update daily stats
       const today = new Date().toISOString().split('T')[0];

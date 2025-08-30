@@ -1,5 +1,6 @@
+import Phaser from "phaser";
 import { GameData, GameResults, GameObject, Obstacle, Resource } from "@/types/game";
-import { trackEvent } from "./analytics";
+import { trackEvent } from "@/lib/analytics";
 
 interface GameScene extends Phaser.Scene {
   gameData: GameData;

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import Phaser from "phaser";
 import { GameData, GameResults } from "@/types/game";
 import { initializeGame } from "@/lib/gameEngine";
 

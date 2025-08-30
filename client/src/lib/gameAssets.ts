@@ -1,3 +1,5 @@
+import Phaser from "phaser";
+
 // Game asset definitions and sprite configurations
 export interface SpriteConfig {
   key: string;
