@@ -5,52 +5,129 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(45, 25%, 96%);
-  --foreground: hsl(20, 14%, 15%);
-  --card: hsl(180, 6.6667%, 97.0588%);
-  --card-foreground: hsl(20, 14%, 15%);
-  --popover: hsl(45, 25%, 96%);
-  --popover-foreground: hsl(20, 14%, 15%);
-  --primary: hsl(43, 74%, 49%);
-  --primary-foreground: hsl(45, 25%, 96%);
-  --secondary: hsl(80, 39%, 18%);
-  --secondary-foreground: hsl(45, 25%, 96%);
-  --muted: hsl(43, 23%, 89%);
-  --muted-foreground: hsl(20, 14%, 45%);
-  --accent: hsl(20, 90%, 62%);
-  --accent-foreground: hsl(45, 25%, 96%);
-  --destructive: hsl(0, 84%, 53%);
-  --destructive-foreground: hsl(45, 25%, 96%);
-  --border: hsl(43, 23%, 82%);
-  --input: hsl(43, 23%, 89%);
-  --ring: hsl(43, 74%, 49%);
-  --chart-1: hsl(43, 74%, 49%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
-  --sidebar: hsl(180, 6.6667%, 97.0588%);
-  --sidebar-foreground: hsl(20, 14%, 15%);
-  --sidebar-primary: hsl(43, 74%, 49%);
-  --sidebar-primary-foreground: hsl(45, 25%, 96%);
-  --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --sidebar-accent-foreground: hsl(43, 74%, 49%);
-  --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
-  --sidebar-ring: hsl(43, 74%, 49%);
-  --font-sans: "Vazirmatn", ui-sans-serif, system-ui;
+  /* Material Design Expressive Color Palette */
+  --md-sys-color-primary: hsl(122, 39%, 49%);
+  --md-sys-color-on-primary: hsl(122, 39%, 100%);
+  --md-sys-color-primary-container: hsl(122, 39%, 94%);
+  --md-sys-color-on-primary-container: hsl(122, 39%, 10%);
+
+  --md-sys-color-secondary: hsl(286, 45%, 55%);
+  --md-sys-color-on-secondary: hsl(286, 45%, 100%);
+  --md-sys-color-secondary-container: hsl(286, 45%, 94%);
+  --md-sys-color-on-secondary-container: hsl(286, 45%, 10%);
+
+  --md-sys-color-tertiary: hsl(45, 86%, 53%);
+  --md-sys-color-on-tertiary: hsl(45, 86%, 10%);
+  --md-sys-color-tertiary-container: hsl(45, 86%, 94%);
+  --md-sys-color-on-tertiary-container: hsl(45, 86%, 10%);
+
+  --md-sys-color-error: hsl(0, 84%, 53%);
+  --md-sys-color-on-error: hsl(0, 84%, 100%);
+  --md-sys-color-error-container: hsl(0, 84%, 94%);
+  --md-sys-color-on-error-container: hsl(0, 84%, 10%);
+
+  --md-sys-color-surface: hsl(0, 0%, 100%);
+  --md-sys-color-on-surface: hsl(0, 0%, 10%);
+  --md-sys-color-surface-variant: hsl(0, 0%, 94%);
+  --md-sys-color-on-surface-variant: hsl(0, 0%, 30%);
+
+  --md-sys-color-outline: hsl(0, 0%, 50%);
+  --md-sys-color-outline-variant: hsl(0, 0%, 80%);
+
+  /* Legacy compatibility */
+  --background: var(--md-sys-color-surface);
+  --foreground: var(--md-sys-color-on-surface);
+  --card: var(--md-sys-color-surface-variant);
+  --card-foreground: var(--md-sys-color-on-surface-variant);
+  --popover: var(--md-sys-color-surface);
+  --popover-foreground: var(--md-sys-color-on-surface);
+  --primary: var(--md-sys-color-primary);
+  --primary-foreground: var(--md-sys-color-on-primary);
+  --secondary: var(--md-sys-color-secondary);
+  --secondary-foreground: var(--md-sys-color-on-secondary);
+  --muted: var(--md-sys-color-surface-variant);
+  --muted-foreground: var(--md-sys-color-on-surface-variant);
+  --accent: var(--md-sys-color-tertiary);
+  --accent-foreground: var(--md-sys-color-on-tertiary);
+  --destructive: var(--md-sys-color-error);
+  --destructive-foreground: var(--md-sys-color-on-error);
+  --border: var(--md-sys-color-outline-variant);
+  --input: var(--md-sys-color-surface-variant);
+  --ring: var(--md-sys-color-primary);
+
+  /* Material Design Expressive Typography */
+  --font-sans: "Vazirmatn", "Roboto Flex", ui-sans-serif, system-ui;
   --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 0.75rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 1px 2px -1px hsl(43, 74%, 49% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 1px 2px -1px hsl(43, 74%, 49% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 2px 4px -1px hsl(43, 74%, 49% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 4px 6px -1px hsl(43, 74%, 49% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 8px 10px -1px hsl(43, 74%, 49% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
+  --font-mono: "JetBrains Mono", "Roboto Mono", Menlo, monospace;
+
+  /* Material Design Expressive Spacing */
+  --md-sys-spacing-0: 0px;
+  --md-sys-spacing-1: 4px;
+  --md-sys-spacing-2: 8px;
+  --md-sys-spacing-3: 12px;
+  --md-sys-spacing-4: 16px;
+  --md-sys-spacing-5: 20px;
+  --md-sys-spacing-6: 24px;
+  --md-sys-spacing-7: 28px;
+  --md-sys-spacing-8: 32px;
+  --md-sys-spacing-9: 36px;
+  --md-sys-spacing-10: 40px;
+  --md-sys-spacing-11: 44px;
+  --md-sys-spacing-12: 48px;
+
+  /* Material Design Expressive Border Radius */
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  --radius: var(--md-sys-shape-corner-medium);
+
+  /* Material Design Expressive Elevation */
+  --md-sys-elevation-level0: 0px 0px 0px 0px rgba(0, 0, 0, 0.00), 0px 0px 0px 0px rgba(0, 0, 0, 0.00), 0px 0px 0px 0px rgba(0, 0, 0, 0.00);
+  --md-sys-elevation-level1: 0px 1px 2px 0px rgba(0, 0, 0, 0.30), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level2: 0px 1px 2px 0px rgba(0, 0, 0, 0.30), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level3: 0px 1px 3px 0px rgba(0, 0, 0, 0.30), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level4: 0px 2px 3px 0px rgba(0, 0, 0, 0.30), 0px 5px 10px 4px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-level5: 0px 4px 4px 0px rgba(0, 0, 0, 0.30), 0px 5px 14px 6px rgba(0, 0, 0, 0.15);
+
+  /* Legacy shadow compatibility */
+  --shadow-2xs: var(--md-sys-elevation-level0);
+  --shadow-xs: var(--md-sys-elevation-level1);
+  --shadow-sm: var(--md-sys-elevation-level1);
+  --shadow: var(--md-sys-elevation-level2);
+  --shadow-md: var(--md-sys-elevation-level3);
+  --shadow-lg: var(--md-sys-elevation-level4);
+  --shadow-xl: var(--md-sys-elevation-level5);
+  --shadow-2xl: var(--md-sys-elevation-level5);
+
+  /* Material Design Expressive State Layers */
+  --md-sys-state-layer-opacity-hover: 0.08;
+  --md-sys-state-layer-opacity-focus: 0.12;
+  --md-sys-state-layer-opacity-pressed: 0.12;
+  --md-sys-state-layer-opacity-dragged: 0.16;
+
+  /* Chart colors updated for Material Design */
+  --chart-1: var(--md-sys-color-primary);
+  --chart-2: var(--md-sys-color-secondary);
+  --chart-3: var(--md-sys-color-tertiary);
+  --chart-4: hsl(199, 98%, 48%);
+  --chart-5: hsl(43, 96%, 56%);
+
+  /* Sidebar colors */
+  --sidebar: var(--md-sys-color-surface);
+  --sidebar-foreground: var(--md-sys-color-on-surface);
+  --sidebar-primary: var(--md-sys-color-primary);
+  --sidebar-primary-foreground: var(--md-sys-color-on-primary);
+  --sidebar-accent: var(--md-sys-color-secondary-container);
+  --sidebar-accent-foreground: var(--md-sys-color-on-secondary-container);
+  --sidebar-border: var(--md-sys-color-outline-variant);
+  --sidebar-ring: var(--md-sys-color-primary);
+
   --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  --spacing: var(--md-sys-spacing-1);
 }
 
 .dark {
@@ -82,35 +159,210 @@
 
   html {
     direction: rtl;
-    font-family: 'Vazirmatn', sans-serif;
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(45, 25%, 96%) 0%, hsl(43, 23%, 89%) 100%);
+    @apply font-sans antialiased;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Game-specific styles */
+/* Material Design Expressive Components */
+.md-filled-button {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: var(--md-sys-spacing-3) var(--md-sys-spacing-6);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0.089em;
+  text-transform: none;
+  border: none;
+  box-shadow: var(--md-sys-elevation-level1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.md-filled-button:hover {
+  box-shadow: var(--md-sys-elevation-level2);
+  background-color: var(--md-sys-color-primary);
+}
+
+.md-filled-button:hover::before {
+  opacity: var(--md-sys-state-layer-opacity-hover);
+}
+
+.md-filled-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--md-sys-color-on-primary);
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-outlined-button {
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: calc(var(--md-sys-spacing-3) - 1px) calc(var(--md-sys-spacing-6) - 1px);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0.089em;
+  text-transform: none;
+  box-shadow: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.md-outlined-button:hover {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-card {
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--md-sys-elevation-level1);
+  padding: var(--md-sys-spacing-6);
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-card:hover {
+  box-shadow: var(--md-sys-elevation-level2);
+}
+
+.md-elevated-card {
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--md-sys-elevation-level3);
+  padding: var(--md-sys-spacing-6);
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-elevated-card:hover {
+  box-shadow: var(--md-sys-elevation-level4);
+}
+
+.md-text-field {
+  position: relative;
+  margin-bottom: var(--md-sys-spacing-4);
+}
+
+.md-text-field input {
+  width: 100%;
+  padding: var(--md-sys-spacing-4) var(--md-sys-spacing-4) var(--md-sys-spacing-2);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-extra-small) 0 0;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.md-text-field input:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  border-width: 2px;
+  padding-bottom: calc(var(--md-sys-spacing-2) - 1px);
+}
+
+.md-text-field label {
+  position: absolute;
+  top: var(--md-sys-spacing-4);
+  left: var(--md-sys-spacing-4);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.md-text-field input:focus + label,
+.md-text-field input:not(:placeholder-shown) + label {
+  top: calc(var(--md-sys-spacing-2) + 2px);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--md-sys-color-primary);
+}
+
+.md-text-field .md-supporting-text {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: var(--md-sys-spacing-1);
+}
+
+/* Material Design Expressive Animations */
+@keyframes md-emphasized-easing {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes md-standard-easing {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.md-motion-emphasized {
+  animation: md-emphasized-easing 0.5s cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+
+.md-motion-standard {
+  animation: md-standard-easing 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Game-specific styles with Material Design */
 .game-container {
-  background: linear-gradient(180deg, 
-    hsl(200, 50%, 85%) 0%, 
-    hsl(45, 60%, 85%) 30%, 
-    hsl(30, 40%, 70%) 60%, 
-    hsl(25, 35%, 55%) 100%);
+  background: linear-gradient(135deg,
+    var(--md-sys-color-primary-container) 0%,
+    var(--md-sys-color-secondary-container) 50%,
+    var(--md-sys-color-tertiary-container) 100%);
 }
 
 .parallax-bg {
-  background-image: 
-    linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 15 Q25 10 50 15 T100 15 V20 H0 Z" fill="%23654321" opacity="0.3"/></svg>');
+  background-image:
+    linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.1)),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 15 Q25 10 50 15 T100 15 V20 H0 Z" fill="%23654321" opacity="0.2"/></svg>');
   background-size: 200px 40px, cover;
-  animation: parallaxScroll 8s linear infinite;
+  animation: parallaxScroll 12s linear infinite;
 }
 
 @keyframes parallaxScroll {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 40px; }
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 60px, 0 0; }
+}
+
+/* Dynamic background styles */
+.dynamic-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .cheetah-spots {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MainMenu from "./MainMenu";
 import GameUI from "./GameUI";
@@ -9,6 +9,7 @@ import ShareCard from "./ShareCard";
 import PhaserGame from "./PhaserGame";
 import { GameState, GameData, GameResults } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
+import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
 
 const initialGameState: GameState = {
   currentScreen: 'menu',
@@ -35,6 +36,7 @@ export default function GameContainer() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [gameData, setGameData] = useState<GameData>(initialGameData);
   const [gameResults, setGameResults] = useState<GameResults | null>(null);
+  const [gameStarted, setGameStarted] = useState(false);
 
   const showScreen = useCallback((screenId: GameState['currentScreen']) => {
     setGameState(prev => ({ ...prev, currentScreen: screenId }));
@@ -46,20 +48,21 @@ export default function GameContainer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
       if (!response.ok) throw new Error('Failed to start game');
-      
+
       const { sessionId } = await response.json();
-      
+
       setGameState(prev => ({
         ...prev,
         currentScreen: 'game',
-        isPlaying: true,
+        isPlaying: false, // Don't start playing yet - wait for tutorial
         sessionId
       }));
-      
+
       setGameData(initialGameData);
-      
+      setGameStarted(false); // Reset game started flag
+
       trackEvent('game_start', { sessionId });
     } catch (error) {
       console.error('Error starting game:', error);
@@ -123,6 +126,13 @@ export default function GameContainer() {
     setGameState(initialGameState);
     setGameData(initialGameData);
     setGameResults(null);
+    setGameStarted(false);
+  }, []);
+
+  const onTutorialComplete = useCallback(() => {
+    console.log('Tutorial completed, starting actual game...');
+    setGameState(prev => ({ ...prev, isPlaying: true }));
+    setGameStarted(true);
   }, []);
 
   return (
@@ -144,8 +154,12 @@ export default function GameContainer() {
             onUpdateGameData={updateGameData}
             onGameEnd={endGame}
             sessionId={gameState.sessionId!}
+            gameStarted={gameStarted}
           />
-          <GameUI gameData={gameData} />
+          <GameUI
+            gameData={gameData}
+            onTutorialComplete={onTutorialComplete}
+          />
         </>
       )}
 

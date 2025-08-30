@@ -121,6 +121,47 @@ export function createDogObstacleSprite(graphics: Phaser.GameObjects.Graphics): 
   return 'dog-obstacle-pixel';
 }
 
+export function createCamelObstacleSprite(graphics: Phaser.GameObjects.Graphics): string {
+  // Create camel obstacle sprite (32x24 pixels)
+  const colors = {
+    body: 0xd2b48c,     // Tan
+    hump: 0xbc8f8f,     // Rosy brown
+    legs: 0xa0522d,     // Sienna
+    eyes: 0x000000,     // Black
+    outline: 0x8b7355   // Dark tan outline
+  };
+
+  // Body outline
+  graphics.fillStyle(colors.outline);
+  graphics.fillRect(0, 0, 32, 24);
+
+  // Main body
+  graphics.fillStyle(colors.body);
+  graphics.fillRect(2, 2, 28, 20);
+
+  // Hump
+  graphics.fillStyle(colors.hump);
+  graphics.fillRect(12, 4, 8, 6);
+
+  // Legs
+  graphics.fillStyle(colors.legs);
+  graphics.fillRect(6, 22, 3, 2);
+  graphics.fillRect(12, 22, 3, 2);
+  graphics.fillRect(17, 22, 3, 2);
+  graphics.fillRect(23, 22, 3, 2);
+
+  // Eyes
+  graphics.fillStyle(colors.eyes);
+  graphics.fillRect(8, 8, 2, 2);
+  graphics.fillRect(22, 8, 2, 2);
+
+  // Neck
+  graphics.fillStyle(colors.body);
+  graphics.fillRect(26, 6, 4, 8);
+
+  return 'camel-obstacle-pixel';
+}
+
 export function createWaterResourceSprite(graphics: Phaser.GameObjects.Graphics): string {
   // Create water resource sprite (20x20 pixels)
   const colors = {
