@@ -295,6 +295,11 @@ function startGameTimers(scene: GameScene) {
         sessionId: scene.sessionId, 
         month: scene.gameData.currentMonth 
       });
+      
+      // Check for victory condition - reached month 18 (independence)
+      if (scene.gameData.currentMonth >= 18) {
+        endGame(scene, 'completed');
+      }
     },
     loop: true
   });
@@ -572,21 +577,18 @@ export function updateGame(scene: GameScene) {
     
     // Left arrow key - move left
     if (scene.cursors.left?.isDown && scene.currentLane > 0 && timeSinceLastMove > 300) {
-      console.log(`Moving left from lane ${scene.currentLane} to ${scene.currentLane - 1}`);
       changeLane(scene, scene.currentLane - 1);
       scene.lastLaneChange = currentTime;
     }
     
     // Right arrow key - move right  
     if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1 && timeSinceLastMove > 300) {
-      console.log(`Moving right from lane ${scene.currentLane} to ${scene.currentLane + 1}`);
       changeLane(scene, scene.currentLane + 1);
       scene.lastLaneChange = currentTime;
     }
     
     // Space key - speed burst
     if (scene.cursors.space?.isDown && timeSinceLastMove > 500) {
-      console.log('Speed burst triggered');
       triggerSpeedBurst(scene);
       scene.lastLaneChange = currentTime;
     }
