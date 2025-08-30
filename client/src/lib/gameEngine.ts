@@ -18,6 +18,8 @@ interface GameScene extends Phaser.Scene {
   // Game state
   lanes: number[];
   currentLane: number;
+  lastLaneChange?: number;
+  farBackground?: Phaser.GameObjects.TileSprite;
   gameSpeed: number;
   lastSpeedBurst: number;
   gameTimer?: Phaser.Time.TimerEvent;
@@ -121,8 +123,28 @@ function loadAssets(scene: Phaser.Scene) {
     .generateTexture('background', scene.scale.width, scene.scale.height);
 }
 
+function getSeasonColor(season: string): number {
+  switch (season) {
+    case 'spring': return 0x90EE90; // Light green
+    case 'summer': return 0xF4A460; // Sandy brown  
+    case 'autumn': return 0xDEB887; // Burlywood
+    case 'winter': return 0xF5F5DC; // Beige
+    default: return 0x90EE90; // Default to spring
+  }
+}
+
 function createGameWorld(scene: GameScene) {
-  // Create scrolling background
+  // Set seasonal background color
+  const bgColor = getSeasonColor(scene.gameData.season);
+  scene.cameras.main.setBackgroundColor(bgColor);
+  
+  // Create parallax background layers
+  // Far background (hills) - moves slower
+  scene.farBackground = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, 'background');
+  scene.farBackground.setOrigin(0, 0);
+  scene.farBackground.setTint(0x8FBC8F); // Dark sea green hills
+  
+  // Main background (plains) - normal speed
   scene.background = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, 'background');
   scene.background.setOrigin(0, 0);
 
@@ -319,12 +341,32 @@ function spawnGameObject(scene: GameScene) {
 }
 
 function spawnObstacle(scene: GameScene, x: number, y: number) {
+  // 20% chance for horizontal road (spans across lanes)
+  if (Math.random() < 0.2) {
+    spawnRoad(scene, y);
+    return;
+  }
+  
   const obstacleTypes = ['dog', 'trap', 'fence', 'poacher'];
   const type = obstacleTypes[Phaser.Math.Between(0, obstacleTypes.length - 1)];
   
   const obstacle = scene.add.sprite(x, y, type);
   scene.obstacles.add(obstacle);
   scene.physics.world.enable(obstacle);
+  
+  // Special handling for poacher with spotlight
+  if (type === 'poacher') {
+    const spotlight = scene.add.graphics();
+    spotlight.fillStyle(0xffff00, 0.3);
+    spotlight.fillTriangle(x, y + 30, x - 50, y + 120, x + 50, y + 120);
+    
+    scene.tweens.add({
+      targets: spotlight,
+      y: scene.scale.height + 150,
+      duration: 5000 / (scene.gameSpeed / 200),
+      onComplete: () => spotlight.destroy()
+    });
+  }
   
   // Move obstacle down
   scene.tweens.add({
@@ -359,6 +401,61 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       
       if (scene.gameData.cubs === 0) {
         endGame(scene, 'all_cubs_lost');
+      }
+    });
+  });
+}
+
+function spawnRoad(scene: GameScene, y: number) {
+  // Create horizontal road spanning all lanes
+  const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 40, 0x333333);
+  scene.obstacles.add(road);
+  scene.physics.world.enable(road);
+  
+  // Add road markings
+  for (let i = 0; i < scene.scale.width; i += 80) {
+    const marking = scene.add.rectangle(i, y, 40, 4, 0xffffff);
+    scene.tweens.add({
+      targets: marking,
+      y: scene.scale.height + 50,
+      duration: 5000 / (scene.gameSpeed / 200),
+      onComplete: () => marking.destroy()
+    });
+  }
+  
+  // Roads require speed adjustment - slow down to cross safely
+  scene.tweens.add({
+    targets: road,
+    y: scene.scale.height + 50,
+    duration: 5000 / (scene.gameSpeed / 200),
+    onComplete: () => road.destroy()
+  });
+
+  // Road collision - requires slow movement to cross safely
+  scene.physics.add.overlap(scene.motherCheetah!, road, () => {
+    if (scene.gameSpeed > 150) {
+      endGame(scene, 'road');
+    }
+  });
+
+  scene.cubs.forEach((cub, index) => {
+    scene.physics.add.overlap(cub, road, () => {
+      if (scene.gameSpeed > 150) {
+        scene.gameData.cubs--;
+        cub.destroy();
+        scene.cubs.splice(index, 1);
+        scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+        
+        trackEvent('collision', { 
+          sessionId: scene.sessionId, 
+          type: 'cub_lost', 
+          obstacleType: 'road',
+          month: scene.gameData.currentMonth 
+        });
+        
+        if (scene.gameData.cubs === 0) {
+          endGame(scene, 'all_cubs_lost');
+        }
       }
     });
   });
@@ -470,37 +567,44 @@ function endGame(scene: GameScene, cause: string) {
 export function updateGame(scene: GameScene) {
   // Process keyboard input
   if (scene.cursors) {
+    const currentTime = Date.now();
+    const timeSinceLastMove = currentTime - (scene.lastLaneChange || 0);
+    
     // Left arrow key - move left
-    if (scene.cursors.left?.isDown && scene.currentLane > 0) {
-      // Prevent rapid lane switching
-      if (Date.now() - scene.lastSpeedBurst > 200) {
-        changeLane(scene, scene.currentLane - 1);
-        scene.lastSpeedBurst = Date.now();
-      }
+    if (scene.cursors.left?.isDown && scene.currentLane > 0 && timeSinceLastMove > 300) {
+      console.log(`Moving left from lane ${scene.currentLane} to ${scene.currentLane - 1}`);
+      changeLane(scene, scene.currentLane - 1);
+      scene.lastLaneChange = currentTime;
     }
     
     // Right arrow key - move right  
-    if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1) {
-      // Prevent rapid lane switching
-      if (Date.now() - scene.lastSpeedBurst > 200) {
-        changeLane(scene, scene.currentLane + 1);
-        scene.lastSpeedBurst = Date.now();
-      }
+    if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1 && timeSinceLastMove > 300) {
+      console.log(`Moving right from lane ${scene.currentLane} to ${scene.currentLane + 1}`);
+      changeLane(scene, scene.currentLane + 1);
+      scene.lastLaneChange = currentTime;
     }
     
     // Space key - speed burst
-    if (scene.cursors.space?.isDown) {
+    if (scene.cursors.space?.isDown && timeSinceLastMove > 500) {
+      console.log('Speed burst triggered');
       triggerSpeedBurst(scene);
+      scene.lastLaneChange = currentTime;
     }
   }
 
-  // Scroll background
+  // Scroll background with parallax effect
   if (scene.background) {
     scene.background.tilePositionY -= scene.gameSpeed / 60;
   }
+  // Far background moves slower for parallax effect
+  if (scene.farBackground) {
+    scene.farBackground.tilePositionY -= (scene.gameSpeed / 60) * 0.3;
+  }
   
-  // Apply health effects
+  // Apply health effects based on specifications
   if (scene.gameData.health < 25) {
+    // Reduce speed to 0.5x when health is low
+    scene.gameSpeed = Math.max(scene.gameSpeed * 0.5, 100);
     // Add vignette effect for low health
     scene.cameras.main.setAlpha(0.7);
   } else {
