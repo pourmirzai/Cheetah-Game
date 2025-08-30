@@ -1,20 +1,33 @@
 import Phaser from "phaser";
 import { GameData, GameResults, GameObject, Obstacle, Resource } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
+import {
+  createMotherCheetahSprite,
+  createCubSprite,
+  createDogObstacleSprite,
+  createWaterResourceSprite,
+  createGazelleResourceSprite,
+  createRabbitResourceSprite,
+  createBackgroundTexture
+} from "@/lib/spriteGenerator";
+import { AudioManager } from "@/lib/audioManager";
 
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
   onUpdateGameData: (updates: Partial<GameData>) => void;
   onGameEnd: (results: Partial<GameResults>) => void;
   sessionId: string;
-  
+
+  // Audio
+  audioManager?: AudioManager;
+
   // Game objects
   motherCheetah?: Phaser.GameObjects.Sprite;
   cubs: Phaser.GameObjects.Sprite[];
   obstacles: Phaser.GameObjects.Group;
   resources: Phaser.GameObjects.Group;
   background?: Phaser.GameObjects.TileSprite;
-  
+
   // Game state
   lanes: number[];
   currentLane: number;
@@ -25,7 +38,7 @@ interface GameScene extends Phaser.Scene {
   lastSpeedBurst: number;
   gameTimer?: Phaser.Time.TimerEvent;
   monthTimer?: Phaser.Time.TimerEvent;
-  
+
   // Input
   cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   pointer?: Phaser.Input.Pointer;
@@ -65,63 +78,73 @@ export function initializeGame(
 }
 
 function loadAssets(scene: Phaser.Scene) {
-  // Create simple colored rectangles as sprites for now
-  // In production, these would be actual sprite images
-  
+  // Create pixel art sprites using the sprite generator
+
   // Create mother cheetah sprite
-  scene.add.graphics()
-    .fillStyle(0xff8c42) // Cheetah orange
-    .fillRect(0, 0, 32, 24)
-    .generateTexture('mother-cheetah', 32, 24);
+  const motherGraphics = scene.add.graphics();
+  motherGraphics.clear();
+  const motherTexture = createMotherCheetahSprite(motherGraphics);
+  motherGraphics.generateTexture(motherTexture, 32, 24);
 
   // Create cub sprite
-  scene.add.graphics()
-    .fillStyle(0xff8c42)
-    .fillRect(0, 0, 16, 12)
-    .generateTexture('cub', 16, 12);
+  const cubGraphics = scene.add.graphics();
+  cubGraphics.clear();
+  const cubTexture = createCubSprite(cubGraphics);
+  cubGraphics.generateTexture(cubTexture, 16, 12);
 
   // Create obstacle sprites
-  scene.add.graphics()
-    .fillStyle(0x8b4513) // Brown for dogs
-    .fillRect(0, 0, 24, 20)
-    .generateTexture('dog', 24, 20);
+  const dogGraphics = scene.add.graphics();
+  dogGraphics.clear();
+  const dogTexture = createDogObstacleSprite(dogGraphics);
+  dogGraphics.generateTexture(dogTexture, 24, 20);
 
+  // Create trap sprite (simple geometric shape for now)
   scene.add.graphics()
     .fillStyle(0x696969) // Gray for traps
     .fillRect(0, 0, 20, 20)
     .generateTexture('trap', 20, 20);
 
-  scene.add.graphics()
-    .fillStyle(0x654321) // Dark brown for fences
-    .fillRect(0, 0, 30, 40)
-    .generateTexture('fence', 30, 40);
+  // Create fence sprite (simple vertical lines)
+  const fenceGraphics = scene.add.graphics();
+  fenceGraphics.fillStyle(0x654321); // Dark brown for fences
+  fenceGraphics.fillRect(0, 0, 30, 40);
+  // Add vertical lines for fence pattern
+  fenceGraphics.fillStyle(0x8B7355);
+  for (let i = 5; i < 30; i += 5) {
+    fenceGraphics.fillRect(i, 0, 2, 40);
+  }
+  fenceGraphics.generateTexture('fence', 30, 40);
 
+  // Create poacher sprite (simple silhouette)
   scene.add.graphics()
     .fillStyle(0x000000) // Black for poachers
     .fillRect(0, 0, 24, 32)
     .generateTexture('poacher', 24, 32);
 
   // Create resource sprites
-  scene.add.graphics()
-    .fillStyle(0x4169e1) // Blue for water
-    .fillCircle(10, 10, 10)
-    .generateTexture('water', 20, 20);
+  const waterGraphics = scene.add.graphics();
+  waterGraphics.clear();
+  const waterTexture = createWaterResourceSprite(waterGraphics);
+  waterGraphics.generateTexture(waterTexture, 20, 20);
 
-  scene.add.graphics()
-    .fillStyle(0xd2691e) // Brown for gazelle
-    .fillRect(0, 0, 20, 16)
-    .generateTexture('gazelle', 20, 16);
+  const gazelleGraphics = scene.add.graphics();
+  gazelleGraphics.clear();
+  const gazelleTexture = createGazelleResourceSprite(gazelleGraphics);
+  gazelleGraphics.generateTexture(gazelleTexture, 20, 16);
 
-  scene.add.graphics()
-    .fillStyle(0x8fbc8f) // Green for rabbit
-    .fillRect(0, 0, 12, 10)
-    .generateTexture('rabbit', 12, 10);
+  const rabbitGraphics = scene.add.graphics();
+  rabbitGraphics.clear();
+  const rabbitTexture = createRabbitResourceSprite(rabbitGraphics);
+  rabbitGraphics.generateTexture(rabbitTexture, 12, 10);
 
-  // Create background texture
-  scene.add.graphics()
-    .fillGradientStyle(0x87ceeb, 0x87ceeb, 0xf4a460, 0xf4a460, 1) // Sky to sand gradient
-    .fillRect(0, 0, scene.scale.width, scene.scale.height)
-    .generateTexture('background', scene.scale.width, scene.scale.height);
+  // Create seasonal background textures
+  const seasons = ['spring', 'summer', 'autumn', 'winter'];
+  seasons.forEach(season => {
+    const bgGraphics = scene.add.graphics();
+    bgGraphics.clear();
+    const bgTexture = createBackgroundTexture(bgGraphics, season);
+    bgGraphics.generateTexture(bgTexture, 800, 600);
+  });
 }
 
 function getSeasonColor(season: string): number {
@@ -135,22 +158,25 @@ function getSeasonColor(season: string): number {
 }
 
 function createGameWorld(scene: GameScene) {
-  // Set seasonal background color
-  const bgColor = getSeasonColor(scene.gameData.season);
-  scene.cameras.main.setBackgroundColor(bgColor);
-  
+  // Initialize audio manager
+  scene.audioManager = new AudioManager(scene);
+  scene.audioManager.playMusic('ambient');
+
+  // Use seasonal background texture
+  const bgTexture = `background-${scene.gameData.season}`;
+
   // Create parallax background layers
   // Far background (hills) - moves slower
-  scene.farBackground = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, 'background');
+  scene.farBackground = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, bgTexture);
   scene.farBackground.setOrigin(0, 0);
   scene.farBackground.setTint(0x8FBC8F); // Dark sea green hills
-  
+
   // Main background (plains) - normal speed
-  scene.background = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, 'background');
+  scene.background = scene.add.tileSprite(0, 0, scene.scale.width, scene.scale.height, bgTexture);
   scene.background.setOrigin(0, 0);
 
   // Create mother cheetah
-  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah');
+  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah-pixel');
   scene.motherCheetah.setScale(1.5);
 
   // Create cubs following behind
@@ -158,7 +184,7 @@ function createGameWorld(scene: GameScene) {
     const cub = scene.add.sprite(
       scene.lanes[scene.currentLane] + (i % 2 === 0 ? -20 : 20),
       scene.scale.height - 100 - (i * 30),
-      'cub'
+      'cub-pixel'
     );
     cub.setScale(1.2);
     scene.cubs.push(cub);
@@ -243,11 +269,14 @@ function triggerSpeedBurst(scene: GameScene) {
   if (scene.gameData.burstEnergy >= 100) {
     scene.gameData.speedBurstActive = true;
     scene.gameSpeed *= 2;
-    
-    scene.onUpdateGameData({ 
-      burstEnergy: 0, 
-      speedBurstActive: true 
+
+    scene.onUpdateGameData({
+      burstEnergy: 0,
+      speedBurstActive: true
     });
+
+    // Audio effect
+    scene.audioManager?.onSpeedBurst();
 
     // Visual effect
     scene.cameras.main.flash(200, 255, 255, 0);
@@ -259,9 +288,9 @@ function triggerSpeedBurst(scene: GameScene) {
       scene.onUpdateGameData({ speedBurstActive: false });
     });
 
-    trackEvent('speed_burst', { 
-      sessionId: scene.sessionId, 
-      month: scene.gameData.currentMonth 
+    trackEvent('speed_burst', {
+      sessionId: scene.sessionId,
+      month: scene.gameData.currentMonth
     });
   }
 }
@@ -354,16 +383,14 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   }
   
   const obstacleTypes = [
-    { type: 'dog', emoji: '🐕' },
-    { type: 'trap', emoji: '⚠️' },
-    { type: 'fence', emoji: '🚧' },
-    { type: 'poacher', emoji: '🔫' }
+    { type: 'dog', texture: 'dog-obstacle-pixel' },
+    { type: 'trap', texture: 'trap' },
+    { type: 'fence', texture: 'fence' },
+    { type: 'poacher', texture: 'poacher' }
   ];
   const obstacleInfo = obstacleTypes[Phaser.Math.Between(0, obstacleTypes.length - 1)];
-  
-  const obstacle = scene.add.text(x, y, obstacleInfo.emoji, {
-    fontSize: '30px'
-  }).setOrigin(0.5);
+
+  const obstacle = scene.add.sprite(x, y, obstacleInfo.texture);
   scene.obstacles.add(obstacle);
   scene.physics.world.enable(obstacle);
   
@@ -388,6 +415,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 
   // Collision detection
   scene.physics.add.overlap(scene.motherCheetah!, obstacle, () => {
+    scene.audioManager?.onHitObstacle(obstacleInfo.type);
     endGame(scene, obstacleInfo.type);
   });
 
@@ -447,9 +475,16 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
   
   for (let i = 0; i < numCars; i++) {
     const carX = Phaser.Math.Between(50, scene.scale.width - 50);
-    const car = scene.add.text(carX, roadY, '🚗', {
-      fontSize: '30px'
-    });
+    // Create simple car sprite using graphics
+    const carGraphics = scene.add.graphics();
+    carGraphics.fillStyle(0xff0000); // Red car
+    carGraphics.fillRect(0, 0, 40, 20);
+    carGraphics.fillStyle(0x000000); // Black windows
+    carGraphics.fillRect(5, 5, 10, 10);
+    carGraphics.fillRect(25, 5, 10, 10);
+    carGraphics.generateTexture('car-pixel', 40, 20);
+
+    const car = scene.add.sprite(carX, roadY, 'car-pixel');
     scene.obstacles.add(car);
     scene.physics.world.enable(car);
     
@@ -463,6 +498,7 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
 
     // Car collision detection
     scene.physics.add.overlap(scene.motherCheetah!, car, () => {
+      scene.audioManager?.onHitObstacle('road');
       endGame(scene, 'road');
     });
 
@@ -490,15 +526,13 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
 
 function spawnResource(scene: GameScene, x: number, y: number) {
   const resourceTypes = [
-    { type: 'water', emoji: '💧' },
-    { type: 'gazelle', emoji: '🦌' },
-    { type: 'rabbit', emoji: '🐰' }
+    { type: 'water', texture: 'water-resource-pixel' },
+    { type: 'gazelle', texture: 'gazelle-resource-pixel' },
+    { type: 'rabbit', texture: 'rabbit-resource-pixel' }
   ];
   const resourceInfo = resourceTypes[Phaser.Math.Between(0, resourceTypes.length - 1)];
-  
-  const resource = scene.add.text(x, y, resourceInfo.emoji, {
-    fontSize: '25px'
-  }).setOrigin(0.5);
+
+  const resource = scene.add.sprite(x, y, resourceInfo.texture);
   scene.resources.add(resource);
   scene.physics.world.enable(resource);
   
@@ -523,19 +557,22 @@ function spawnResource(scene: GameScene, x: number, y: number) {
 
 function collectResource(scene: GameScene, type: string) {
   let healthGain = 0;
-  
+
   switch (type) {
     case 'water':
       healthGain = 15;
+      scene.audioManager?.onCollectResource('water');
       break;
     case 'gazelle':
       healthGain = 25;
+      scene.audioManager?.onCollectResource('gazelle');
       break;
     case 'rabbit':
       healthGain = 10;
+      scene.audioManager?.onCollectResource('rabbit');
       // Track rabbit collection for energy burst
       scene.gameData.rabbitsCollected = (scene.gameData.rabbitsCollected || 0) + 1;
-      
+
       // Charge burst energy only when 3 rabbits are collected
       if (scene.gameData.rabbitsCollected >= 3) {
         scene.gameData.burstEnergy = 100;
@@ -544,30 +581,35 @@ function collectResource(scene: GameScene, type: string) {
       }
       break;
   }
-  
+
   scene.gameData.health = Math.min(100, scene.gameData.health + healthGain);
   scene.gameData.score += healthGain * 10;
-  
-  scene.onUpdateGameData({ 
-    health: scene.gameData.health, 
-    score: scene.gameData.score 
+
+  scene.onUpdateGameData({
+    health: scene.gameData.health,
+    score: scene.gameData.score
   });
 }
 
 function updateHealthAndEnergy(scene: GameScene) {
   // Decrease health over time
   scene.gameData.health = Math.max(0, scene.gameData.health - 5);
-  
+
   // Increase burst energy
   if (!scene.gameData.speedBurstActive && scene.gameData.burstEnergy < 100) {
     scene.gameData.burstEnergy = Math.min(100, scene.gameData.burstEnergy + 10);
   }
-  
-  scene.onUpdateGameData({ 
-    health: scene.gameData.health, 
-    burstEnergy: scene.gameData.burstEnergy 
+
+  scene.onUpdateGameData({
+    health: scene.gameData.health,
+    burstEnergy: scene.gameData.burstEnergy
   });
-  
+
+  // Low health warning
+  if (scene.gameData.health < 25 && scene.gameData.health > 0) {
+    scene.audioManager?.onLowHealth();
+  }
+
   // Check for starvation
   if (scene.gameData.health <= 0) {
     endGame(scene, 'starvation');
@@ -578,7 +620,14 @@ function endGame(scene: GameScene, cause: string) {
   // Stop timers
   scene.gameTimer?.destroy();
   scene.monthTimer?.destroy();
-  
+
+  // Audio feedback
+  if (cause === 'completed') {
+    scene.audioManager?.onVictory();
+  } else {
+    scene.audioManager?.onGameOver();
+  }
+
   // Calculate final results
   const results: Partial<GameResults> = {
     cubsSurvived: scene.gameData.cubs,
@@ -588,7 +637,7 @@ function endGame(scene: GameScene, cause: string) {
     deathCause: cause === 'completed' ? undefined : cause,
     achievements: []
   };
-  
+
   // Add achievements
   if (results.cubsSurvived === 4 && results.monthsCompleted! >= 18) {
     results.achievements!.push('perfect_family');
@@ -596,12 +645,24 @@ function endGame(scene: GameScene, cause: string) {
   if (cause === 'completed') {
     results.achievements!.push('survivor');
   }
-  
+
+  // Cleanup audio
+  scene.audioManager?.destroy();
+
   scene.onGameEnd(results);
 }
 
 // Update scene every frame
 export function updateGame(scene: GameScene) {
+  // Play running sound periodically
+  if (scene.gameData.timeRemaining > 0 && !scene.isStopped) {
+    const currentTime = Date.now();
+    // Play running sound every 2 seconds
+    if (currentTime % 2000 < 100) {
+      scene.audioManager?.startRunningSound();
+    }
+  }
+
   // Process keyboard input
   if (scene.cursors) {
     const currentTime = Date.now();

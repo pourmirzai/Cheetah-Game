@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GameResults } from "@/types/game";
 
 interface ShareCardProps {
@@ -8,6 +8,7 @@ interface ShareCardProps {
 
 export default function ShareCard({ results, onClose }: ShareCardProps) {
   const [isSharing, setIsSharing] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
   const generateShareText = () => {
     return `${results.cubsSurvived} توله یوزپلنگ نجات یافت در ${results.monthsCompleted} ماه! ${results.achievementTitle}
@@ -15,6 +16,14 @@ export default function ShareCard({ results, onClose }: ShareCardProps) {
 شما هم برای نجات یوزپلنگ آسیایی بازی کنید:
 #نجات_یوز_ایران #حفاظت_طبیعت #یوزپلنگ_آسیایی`;
   };
+
+  // Generate share image URL when component mounts
+  useEffect(() => {
+    // In a real implementation, you'd get the sessionId from props or context
+    // For now, we'll use a placeholder
+    const sessionId = 'placeholder-session-id';
+    setShareImageUrl(`/api/share-card/${sessionId}`);
+  }, []);
 
   const shareToTelegram = async () => {
     setIsSharing(true);
@@ -57,43 +66,50 @@ export default function ShareCard({ results, onClose }: ShareCardProps) {
         <h3 className="text-xl font-bold text-center text-primary">اشتراک‌گذاری نتایج</h3>
         
         {/* Generated story card preview (9:16 aspect ratio) */}
-        <div className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-6 aspect-[9/16] flex flex-col justify-between text-center">
-          <div>
-            <h2 className="text-lg font-bold text-primary">نجات یوز ایران</h2>
-            <p className="text-xs text-muted-foreground mt-1">نتایج من در بازی حفاظت</p>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Cubs result visualization */}
-            <div className="flex justify-center space-x-2 space-x-reverse">
-              {Array.from({ length: 4 }, (_, i) => (
-                <div 
-                  key={i}
-                  className={`w-8 h-6 rounded-full cheetah-spots ${i < results.cubsSurvived ? 'bg-accent' : 'bg-muted opacity-50'}`}
-                />
-              ))}
+        <div className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
+          {shareImageUrl ? (
+            <div className="w-full h-full relative">
+              <img
+                src={shareImageUrl}
+                alt="Share Card"
+                className="w-full h-full object-contain rounded-lg shadow-lg"
+                onError={(e) => {
+                  // Fallback to client-side preview if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = `
+                    <div class="flex flex-col justify-between text-center h-full p-4">
+                      <div>
+                        <h2 class="text-lg font-bold text-primary">نجات یوز ایران</h2>
+                        <p class="text-xs text-muted-foreground mt-1">نتایج من در بازی حفاظت</p>
+                      </div>
+                      <div class="space-y-4">
+                        <div class="flex justify-center space-x-2 space-x-reverse">
+                          ${Array.from({ length: 4 }, (_, i) =>
+                            `<div class="w-8 h-6 rounded-full ${i < results.cubsSurvived ? 'bg-accent' : 'bg-muted opacity-50'}"></div>`
+                          ).join('')}
+                        </div>
+                        <div>
+                          <div class="text-2xl font-bold text-primary">${results.cubsSurvived} توله نجات یافت</div>
+                          <div class="text-sm text-muted-foreground">${results.achievementTitle}</div>
+                        </div>
+                        <div class="text-xs text-secondary font-medium">شما هم برای نجات یوزپلنگ بازی کنید!</div>
+                      </div>
+                      <div>
+                        <div class="text-xs text-muted-foreground">#نجات_یوز_ایران</div>
+                        <div class="text-xs text-muted-foreground">سروین | ${new Date().toLocaleDateString('fa-IR')}</div>
+                      </div>
+                    </div>
+                  `;
+                }}
+              />
             </div>
-            
-            <div>
-              <div className="text-2xl font-bold text-primary" data-testid="text-share-result">
-                {results.cubsSurvived} توله نجات یافت
-              </div>
-              <div className="text-sm text-muted-foreground" data-testid="text-share-title">
-                {results.achievementTitle}
-              </div>
+          ) : (
+            // Loading state
+            <div className="flex flex-col justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground mt-2">در حال تولید تصویر...</p>
             </div>
-            
-            <div className="text-xs text-secondary font-medium">
-              شما هم برای نجات یوزپلنگ بازی کنید!
-            </div>
-          </div>
-          
-          <div>
-            <div className="text-xs text-muted-foreground">#نجات_یوز_ایران</div>
-            <div className="text-xs text-muted-foreground">
-              سروین | {new Date().toLocaleDateString('fa-IR')}
-            </div>
-          </div>
+          )}
         </div>
         
         {/* Share buttons */}
