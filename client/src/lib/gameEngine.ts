@@ -20,6 +20,7 @@ interface GameScene extends Phaser.Scene {
   currentLane: number;
   lastLaneChange?: number;
   farBackground?: Phaser.GameObjects.TileSprite;
+  isStopped?: boolean;
   gameSpeed: number;
   lastSpeedBurst: number;
   gameTimer?: Phaser.Time.TimerEvent;
@@ -352,15 +353,22 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     return;
   }
   
-  const obstacleTypes = ['dog', 'trap', 'fence', 'poacher'];
-  const type = obstacleTypes[Phaser.Math.Between(0, obstacleTypes.length - 1)];
+  const obstacleTypes = [
+    { type: 'dog', emoji: '🐕' },
+    { type: 'trap', emoji: '⚠️' },
+    { type: 'fence', emoji: '🚧' },
+    { type: 'poacher', emoji: '🔫' }
+  ];
+  const obstacleInfo = obstacleTypes[Phaser.Math.Between(0, obstacleTypes.length - 1)];
   
-  const obstacle = scene.add.sprite(x, y, type);
+  const obstacle = scene.add.text(x, y, obstacleInfo.emoji, {
+    fontSize: '30px'
+  }).setOrigin(0.5);
   scene.obstacles.add(obstacle);
   scene.physics.world.enable(obstacle);
   
   // Special handling for poacher with spotlight
-  if (type === 'poacher') {
+  if (obstacleInfo.type === 'poacher') {
     const spotlight = scene.add.graphics();
     spotlight.fillStyle(0xffff00, 0.3);
     spotlight.fillTriangle(x, y + 30, x - 50, y + 120, x + 50, y + 120);
@@ -385,7 +393,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 
   // Collision detection
   scene.physics.add.overlap(scene.motherCheetah!, obstacle, () => {
-    endGame(scene, type);
+    endGame(scene, obstacleInfo.type);
   });
 
   scene.cubs.forEach((cub, index) => {
@@ -400,7 +408,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       trackEvent('collision', { 
         sessionId: scene.sessionId, 
         type: 'cub_lost', 
-        obstacleType: type,
+        obstacleType: obstacleInfo.type,
         month: scene.gameData.currentMonth 
       });
       
@@ -414,7 +422,6 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 function spawnRoad(scene: GameScene, y: number) {
   // Create horizontal road spanning all lanes
   const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 40, 0x333333);
-  scene.obstacles.add(road);
   scene.physics.world.enable(road);
   
   // Add road markings
@@ -428,7 +435,7 @@ function spawnRoad(scene: GameScene, y: number) {
     });
   }
   
-  // Roads require speed adjustment - slow down to cross safely
+  // Move road down
   scene.tweens.add({
     targets: road,
     y: scene.scale.height + 50,
@@ -436,16 +443,40 @@ function spawnRoad(scene: GameScene, y: number) {
     onComplete: () => road.destroy()
   });
 
-  // Road collision - requires slow movement to cross safely
-  scene.physics.add.overlap(scene.motherCheetah!, road, () => {
-    if (scene.gameSpeed > 150) {
-      endGame(scene, 'road');
-    }
-  });
+  // 50% chance to spawn cars on the road
+  if (Math.random() < 0.5) {
+    spawnCarsOnRoad(scene, y);
+  }
+}
 
-  scene.cubs.forEach((cub, index) => {
-    scene.physics.add.overlap(cub, road, () => {
-      if (scene.gameSpeed > 150) {
+function spawnCarsOnRoad(scene: GameScene, roadY: number) {
+  // Spawn 1-3 cars randomly across the road
+  const numCars = Phaser.Math.Between(1, 3);
+  
+  for (let i = 0; i < numCars; i++) {
+    const carX = Phaser.Math.Between(50, scene.scale.width - 50);
+    const car = scene.add.text(carX, roadY, '🚗', {
+      fontSize: '30px'
+    });
+    scene.obstacles.add(car);
+    scene.physics.world.enable(car);
+    
+    // Move car horizontally and down
+    scene.tweens.add({
+      targets: car,
+      x: carX + Phaser.Math.Between(-100, 100),
+      y: scene.scale.height + 50,
+      duration: 3000 / (scene.gameSpeed / 200),
+      onComplete: () => car.destroy()
+    });
+
+    // Car collision detection
+    scene.physics.add.overlap(scene.motherCheetah!, car, () => {
+      endGame(scene, 'road');
+    });
+
+    scene.cubs.forEach((cub, index) => {
+      scene.physics.add.overlap(cub, car, () => {
         scene.gameData.cubs--;
         cub.destroy();
         scene.cubs.splice(index, 1);
@@ -454,23 +485,29 @@ function spawnRoad(scene: GameScene, y: number) {
         trackEvent('collision', { 
           sessionId: scene.sessionId, 
           type: 'cub_lost', 
-          obstacleType: 'road',
+          obstacleType: 'car',
           month: scene.gameData.currentMonth 
         });
         
         if (scene.gameData.cubs === 0) {
           endGame(scene, 'all_cubs_lost');
         }
-      }
+      });
     });
-  });
+  }
 }
 
 function spawnResource(scene: GameScene, x: number, y: number) {
-  const resourceTypes = ['water', 'gazelle', 'rabbit'];
-  const type = resourceTypes[Phaser.Math.Between(0, resourceTypes.length - 1)];
+  const resourceTypes = [
+    { type: 'water', emoji: '💧' },
+    { type: 'gazelle', emoji: '🦌' },
+    { type: 'rabbit', emoji: '🐰' }
+  ];
+  const resourceInfo = resourceTypes[Phaser.Math.Between(0, resourceTypes.length - 1)];
   
-  const resource = scene.add.sprite(x, y, type);
+  const resource = scene.add.text(x, y, resourceInfo.emoji, {
+    fontSize: '25px'
+  }).setOrigin(0.5);
   scene.resources.add(resource);
   scene.physics.world.enable(resource);
   
@@ -486,7 +523,12 @@ function spawnResource(scene: GameScene, x: number, y: number) {
 
   // Collection detection
   scene.physics.add.overlap(scene.motherCheetah!, resource, () => {
-    collectResource(scene, type);
+    collectResource(scene, resourceInfo.type);
+    trackEvent('pickup', { 
+      sessionId: scene.sessionId, 
+      resourceType: resourceInfo.type,
+      month: scene.gameData.currentMonth 
+    });
     resource.destroy();
   });
 }
@@ -503,6 +545,15 @@ function collectResource(scene: GameScene, type: string) {
       break;
     case 'rabbit':
       healthGain = 10;
+      // Track rabbit collection for energy burst
+      scene.gameData.rabbitsCollected = (scene.gameData.rabbitsCollected || 0) + 1;
+      
+      // Charge burst energy only when 3 rabbits are collected
+      if (scene.gameData.rabbitsCollected >= 3) {
+        scene.gameData.burstEnergy = 100;
+        scene.gameData.rabbitsCollected = 0; // Reset counter
+        scene.onUpdateGameData({ burstEnergy: scene.gameData.burstEnergy });
+      }
       break;
   }
   
@@ -512,13 +563,6 @@ function collectResource(scene: GameScene, type: string) {
   scene.onUpdateGameData({ 
     health: scene.gameData.health, 
     score: scene.gameData.score 
-  });
-
-  trackEvent('pickup', { 
-    sessionId: scene.sessionId, 
-    type, 
-    healthGain,
-    month: scene.gameData.currentMonth 
   });
 }
 
@@ -585,6 +629,22 @@ export function updateGame(scene: GameScene) {
     if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1 && timeSinceLastMove > 300) {
       changeLane(scene, scene.currentLane + 1);
       scene.lastLaneChange = currentTime;
+    }
+    
+    // Up arrow key - increase speed
+    if (scene.cursors.up?.isDown && !scene.isStopped) {
+      scene.gameSpeed = Math.min(scene.gameSpeed * 1.5, 400);
+    }
+    
+    // Down arrow key - stop/slow down
+    if (scene.cursors.down?.isDown) {
+      scene.isStopped = true;
+      scene.gameSpeed = 50; // Very slow speed when stopped
+    } else {
+      if (scene.isStopped) {
+        scene.isStopped = false;
+        scene.gameSpeed = 200; // Resume normal speed
+      }
     }
     
     // Space key - speed burst

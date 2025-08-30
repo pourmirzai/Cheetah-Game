@@ -17,6 +17,7 @@ export interface GameData {
   lane: number;
   speed: number;
   speedBurstActive: boolean;
+  rabbitsCollected?: number;
 }
 
 export interface GameResults {
