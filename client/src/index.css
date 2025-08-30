@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(45, 25%, 96%);
+  --foreground: hsl(20, 14%, 15%);
+  --card: hsl(180, 6.6667%, 97.0588%);
+  --card-foreground: hsl(20, 14%, 15%);
+  --popover: hsl(45, 25%, 96%);
+  --popover-foreground: hsl(20, 14%, 15%);
+  --primary: hsl(43, 74%, 49%);
+  --primary-foreground: hsl(45, 25%, 96%);
+  --secondary: hsl(80, 39%, 18%);
+  --secondary-foreground: hsl(45, 25%, 96%);
+  --muted: hsl(43, 23%, 89%);
+  --muted-foreground: hsl(20, 14%, 45%);
+  --accent: hsl(20, 90%, 62%);
+  --accent-foreground: hsl(45, 25%, 96%);
+  --destructive: hsl(0, 84%, 53%);
+  --destructive-foreground: hsl(45, 25%, 96%);
+  --border: hsl(43, 23%, 82%);
+  --input: hsl(43, 23%, 89%);
+  --ring: hsl(43, 74%, 49%);
+  --chart-1: hsl(43, 74%, 49%);
+  --chart-2: hsl(159.7826, 100%, 36.0784%);
+  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
+  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
+  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
+  --sidebar: hsl(180, 6.6667%, 97.0588%);
+  --sidebar-foreground: hsl(20, 14%, 15%);
+  --sidebar-primary: hsl(43, 74%, 49%);
+  --sidebar-primary-foreground: hsl(45, 25%, 96%);
+  --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
+  --sidebar-accent-foreground: hsl(43, 74%, 49%);
+  --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
+  --sidebar-ring: hsl(43, 74%, 49%);
+  --font-sans: "Vazirmatn", ui-sans-serif, system-ui;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 1px 2px -1px hsl(43, 74%, 49% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 1px 2px -1px hsl(43, 74%, 49% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 2px 4px -1px hsl(43, 74%, 49% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 4px 6px -1px hsl(43, 74%, 49% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00), 0px 8px 10px -1px hsl(43, 74%, 49% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(43, 74%, 49% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(200, 6.6667%, 91.1765%);
+  --card: hsl(228, 9.8039%, 10%);
+  --card-foreground: hsl(0, 0%, 85.0980%);
+  --popover: hsl(0, 0%, 0%);
+  --popover-foreground: hsl(200, 6.6667%, 91.1765%);
+  --primary: hsl(43, 74%, 49%);
+  --primary-foreground: hsl(45, 25%, 96%);
+  --secondary: hsl(80, 39%, 18%);
+  --secondary-foreground: hsl(45, 25%, 96%);
+  --muted: hsl(0, 0%, 9.4118%);
+  --muted-foreground: hsl(210, 3.3898%, 46.2745%);
+  --accent: hsl(20, 90%, 62%);
+  --accent-foreground: hsl(45, 25%, 96%);
+  --destructive: hsl(0, 84%, 53%);
+  --destructive-foreground: hsl(45, 25%, 96%);
+  --border: hsl(210, 5.2632%, 14.9020%);
+  --input: hsl(207.6923, 27.6596%, 18.4314%);
+  --ring: hsl(43, 74%, 49%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    direction: rtl;
+    font-family: 'Vazirmatn', sans-serif;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background: linear-gradient(180deg, hsl(45, 25%, 96%) 0%, hsl(43, 23%, 89%) 100%);
+  }
+}
+
+/* Game-specific styles */
+.game-container {
+  background: linear-gradient(180deg, 
+    hsl(200, 50%, 85%) 0%, 
+    hsl(45, 60%, 85%) 30%, 
+    hsl(30, 40%, 70%) 60%, 
+    hsl(25, 35%, 55%) 100%);
+}
+
+.parallax-bg {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 15 Q25 10 50 15 T100 15 V20 H0 Z" fill="%23654321" opacity="0.3"/></svg>');
+  background-size: 200px 40px, cover;
+  animation: parallaxScroll 8s linear infinite;
+}
+
+@keyframes parallaxScroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 40px; }
+}
+
+.cheetah-spots {
+  background-image: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.8) 2px, transparent 2px),
+                  radial-gradient(circle at 80% 60%, rgba(0,0,0,0.8) 1.5px, transparent 1.5px),
+                  radial-gradient(circle at 40% 80%, rgba(0,0,0,0.8) 2.5px, transparent 2.5px);
+}
+
+.health-bar-animation {
+  transition: width 0.3s ease-in-out;
+}
+
+.pulse-danger {
+  animation: pulseDanger 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulseDanger {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.resource-icon {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.obstacle-warning {
+  animation: warningBlink 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes warningBlink {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.season-indicator {
+  transition: all 0.5s ease-in-out;
+}
+
+.lane {
+  border-left: 2px dashed rgba(255,255,255,0.3);
+  border-right: 2px dashed rgba(255,255,255,0.3);
+}
+
+.cub-follow {
+  animation: cubBounce 2s ease-in-out infinite;
+}
+
+@keyframes cubBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.speed-burst-ready {
+  animation: burstGlow 2s ease-in-out infinite;
+}
+
+@keyframes burstGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 140, 66, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 140, 66, 0.8); }
+}
+
+/* Phaser game canvas */
+.phaser-canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
