@@ -187,6 +187,30 @@ export default function GameContainer() {
     console.log('Setting game state to playing...');
     setGameState(prev => ({ ...prev, isPlaying: true }));
     console.log('Setting gameStarted to true...');
+
+    // Unlock audio context when tutorial is completed
+    console.log('🎵 Unlocking audio context on tutorial completion...');
+    try {
+      // Try to find the Phaser scene and unlock audio through audioManager
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        // Get the Phaser game instance from the canvas
+        const game = (canvas as any).game;
+        if (game && game.scene) {
+          const scene = game.scene.getScene('default');
+          if (scene && 'audioManager' in scene) {
+            const gameScene = scene as any;
+            if (gameScene.audioManager && gameScene.audioManager.initializeAudioContext) {
+              console.log('🎵 Unlocking audio through audioManager on tutorial completion');
+              gameScene.audioManager.initializeAudioContext();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('❌ Error unlocking audio context:', error);
+    }
+
     setGameStarted(true);
     console.log('✅ Tutorial completion process finished');
   }, []);

@@ -53,28 +53,36 @@ export class AudioManager {
 
       console.log(`🔊 Attempting to play sound: ${soundName} at volume ${finalVolume}`);
 
-      // Check if sound exists in cache
-      const soundExists = this.scene.sound.get(soundName);
-      if (soundExists) {
-        console.log(`✅ Sound '${soundName}' found in cache, playing...`);
+      // Try to play the sound directly - Phaser will handle the rest
+      try {
         const sound = this.scene.sound.play(soundName, { volume: finalVolume });
         console.log(`✅ Sound '${soundName}' played successfully`);
         return sound;
-      } else {
-        console.warn(`❌ Audio file '${soundName}' not found in sound cache`);
-        console.log('🔍 Checking all available sounds...');
+      } catch (playError) {
+        console.warn(`❌ Failed to play sound '${soundName}':`, playError);
 
-        // Try to list all sounds (safely)
+        // Try to add the sound to the sound manager first
         try {
-          const allSounds = (this.scene.sound as any)._sounds || {};
-          const soundKeys = Object.keys(allSounds);
-          console.log('📋 Available sound keys:', soundKeys);
-
-          if (soundKeys.length === 0) {
-            console.warn('⚠️ No sounds loaded at all! Audio files may not be loading properly.');
+          if (this.scene.cache.audio.exists(soundName)) {
+            console.log(`🔄 Adding sound '${soundName}' to sound manager...`);
+            this.scene.sound.add(soundName);
+            const sound = this.scene.sound.play(soundName, { volume: finalVolume });
+            console.log(`✅ Sound '${soundName}' added and played successfully`);
+            return sound;
+          } else {
+            console.warn(`❌ Audio file '${soundName}' not found in audio cache`);
           }
-        } catch (listError) {
-          console.warn('❌ Could not list available sounds:', listError);
+        } catch (addError) {
+          console.warn(`❌ Failed to add sound '${soundName}' to sound manager:`, addError);
+        }
+
+        // Debug: Check what's available
+        console.log('🔍 Checking audio cache...');
+        try {
+          const audioKeys = this.scene.cache.audio.getKeys();
+          console.log('📋 Available audio keys:', audioKeys);
+        } catch (cacheError) {
+          console.warn('❌ Could not check audio cache:', cacheError);
         }
       }
     } catch (error) {
@@ -89,12 +97,23 @@ export class AudioManager {
       // Stop existing music
       this.stopMusic();
 
-      if (musicType === 'ambient' && this.scene.sound.get('bg-music')) {
-        this.backgroundMusic = this.scene.sound.add('bg-music', {
-          volume: this.musicVolume * this.masterVolume,
-          loop: true
-        });
-        this.backgroundMusic.play();
+      if (musicType === 'ambient') {
+        // Try to add the music to sound manager if not already there
+        try {
+          if (!this.scene.sound.get('bg-music') && this.scene.cache.audio.exists('bg-music')) {
+            console.log('🔄 Adding bg-music to sound manager...');
+            this.scene.sound.add('bg-music');
+          }
+
+          this.backgroundMusic = this.scene.sound.add('bg-music', {
+            volume: this.musicVolume * this.masterVolume,
+            loop: true
+          });
+          this.backgroundMusic.play();
+          console.log('🎵 Background music started successfully');
+        } catch (musicError) {
+          console.warn('❌ Failed to play background music:', musicError);
+        }
       }
     } catch (error) {
       console.warn('Error playing music:', error);

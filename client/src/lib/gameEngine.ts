@@ -260,10 +260,10 @@ function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message
   // Load audio files first
   console.log('🎵 Loading audio files...');
   onProgress?.(10, 'بارگذاری فایل‌های صوتی...');
-  scene.load.audio('bg-music', 'assets/audio/bg-music.mp3');
-  scene.load.audio('car-horn', 'assets/audio/car-horn.mp3');
-  scene.load.audio('dog-bark', 'assets/audio/dog-bark.mp3');
-  scene.load.audio('angry-grunt', 'assets/audio/angry-grunt.mp3');
+  scene.load.audio('bg-music', '/assets/audio/bg-music.mp3');
+  scene.load.audio('car-horn', '/assets/audio/car-horn.mp3');
+  scene.load.audio('dog-bark', '/assets/audio/dog-bark.mp3');
+  scene.load.audio('angry-grunt', '/assets/audio/angry-grunt.mp3');
 
   // Load character sprites
   onProgress?.(25, 'بارگذاری شخصیت‌ها...');

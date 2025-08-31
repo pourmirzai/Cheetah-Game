@@ -183,7 +183,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                     <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-yellow-700 dark:text-yellow-400">علل کاهش جمعیت</h4>
                       <p className="text-sm leading-relaxed">
-                        جمعیت یوزپلنگ آسیایی از حدود ۱۰۰-۲۰۰ عدد در دهه ۱۹۷۰ به کمتر از ۳۰ عدد در سال ۲۰۲۴ کاهش یافته است.
+                        جمعیت یوزپلنگ آسیایی از حدود ۱۰۰-۲۰۰ فرد در دهه ۱۹۷۰ به کمتر از ۳۰ فرد در سال ۲۰۲۴ کاهش یافته است.
                         این کاهش شدید به دلیل ترکیب عوامل انسانی و طبیعی رخ داده است.
                       </p>
                     </div>
@@ -344,8 +344,8 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         هر فرد با اقدامات کوچک خود می‌تواند به نجات این گونه ارزشمند کمک کند.
                       </p>
                       <div className="bg-white dark:bg-gray-800 p-3 rounded text-center">
-                        <div className="text-lg font-bold text-green-600 mb-1">هدف ۲۰۳۰</div>
-                        <div className="text-sm">افزایش جمعیت به ۵۰ یوزپلنگ در طبیعت</div>
+                        <div className="text-lg font-bold text-green-600 mb-1">هدف ۱۰ ساله</div>
+                        <div className="text-sm">افزایش جمعیت به بالای ۳۰ یوزپلنگ در طبیعت</div>
                       </div>
                     </div>
                   </div>
