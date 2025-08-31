@@ -162,6 +162,7 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
                   خطرات
                 </h3>
                 <div className="flex justify-center space-x-2 space-x-reverse mb-1">
+                  <img src="/assets/sprites/obstacles/pocher.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/car.png" alt="ماشین" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/camel.png" alt="شتر" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/dog.png" alt="سگ" className="w-6 h-6 object-contain" />
@@ -178,15 +179,42 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
               <div className="p-2 bg-green-50 rounded-lg border border-green-200">
                 <h3 className="font-semibold text-green-800 mb-1 flex items-center text-sm">
                   <span className="text-base mr-1">🌿</span>
-                  منابع غذایی
+                  منابع غذایی، آب و سلامت خانواده
                 </h3>
                 <div className="flex justify-center space-x-2 space-x-reverse mb-1">
                   <img src="/assets/sprites/resources/gazelle.png" alt="آهو" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/resources/rabbit.png" alt="خرگوش" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/resources/water.png" alt="آب" className="w-6 h-6 object-contain" />
                 </div>
+                <div className="text-center mb-2">
+                  <svg width="80" height="20" viewBox="0 0 80 20" className="inline-block">
+                    <rect x="5" y="8" width="70" height="4" fill="#e5e7eb" rx="2"/>
+                    <rect x="5" y="8" width="56" height="4" fill="#10b981" rx="2"/>
+                    <text x="40" y="6" textAnchor="middle" className="text-xs font-semibold fill-gray-700">نمودار سلامتی</text>
+                  </svg>
+                </div>
+                <p className="text-xs text-red-600 text-center font-medium mb-1">
+                  ⚠️ حواستان به سلامتی خانواده باشد!
+                </p>
                 <p className="text-xs text-green-700 text-center font-medium">
-                  سلامت خانواده را افزایش می‌دهند
+دریافت منابع غذایی  و آب، نمودار سلامت را پر می‌کند. اگر آب و غذا نخورید، خانواده ضعیف می‌شود.
+                </p>
+              </div>
+
+              {/* Seasons Section */}
+              <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-blue-800 mb-1 flex items-center text-sm">
+                  <span className="text-base mr-1">🌸</span>
+                  تغییر فصل‌ها
+                </h3>
+                <div className="flex justify-center space-x-1 space-x-reverse mb-1">
+                  <img src="/assets/backgrounds/spring-bg.png" alt="بهار" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/summer-bg.png" alt="تابستان" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/autumn-bg.png" alt="پاییز" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/winter-bg.png" alt="زمستان" className="w-8 h-6 object-cover rounded" />
+                </div>
+                <p className="text-xs text-blue-700 text-center font-medium">
+                  در فصول مختلف منابع و تهدیدات کم یا زیاد می‌شوند. تغییر فصل را در پس زمینه بازی مشاهده کنید.
                 </p>
               </div>
 

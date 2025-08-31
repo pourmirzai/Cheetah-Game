@@ -16,6 +16,13 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
   const phaserGameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
+    // Destroy existing game instance if it exists (for game restarts)
+    if (phaserGameRef.current) {
+      console.log('🔄 Destroying existing Phaser game instance for restart');
+      phaserGameRef.current.destroy(true);
+      phaserGameRef.current = null;
+    }
+
     // Add a small delay for mobile devices to ensure DOM is ready
     const initGame = () => {
       if (!gameRef.current || phaserGameRef.current) return;
@@ -108,7 +115,7 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
         phaserGameRef.current = null;
       }
     };
-  }, []);
+  }, [sessionId]);
 
   // Handle window resize
   useEffect(() => {
@@ -168,7 +175,7 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
         console.log('🎮 PhaserGame: Scene not found!');
       }
     }
-  }, [gameStarted]);
+  }, [gameStarted, sessionId]);
 
   return (
     <div

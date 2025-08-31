@@ -15,11 +15,11 @@ import { AudioManager } from "@/lib/audioManager";
 import { backgroundManager } from "@/lib/backgroundManager";
 import { GAME_ASSETS } from "@/lib/assetConfig";
 
-const MOTHER_CHEETAH_SCALE = 0.8;
-const CUB_SCALE = 0.6;
-const OBSTACLE_SCALE = 0.56;
-const RESOURCE_SCALE = 0.42;
-const CAR_SCALE = 0.49;
+const MOTHER_CHEETAH_SCALE = 0.6;
+const CUB_SCALE = 0.5;
+const OBSTACLE_SCALE = 0.25; // 0.56 * 0.7 = 0.392 (additional 30% smaller)
+const RESOURCE_SCALE = 0.25; // 0.42 * 0.7 = 0.294 (additional 30% smaller)
+const CAR_SCALE = 0.25; // 0.343 * 0.8 = 0.274 (additional 20% smaller)
 
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
@@ -257,7 +257,7 @@ function createGameWorld(scene: GameScene) {
 
   // Create mother cheetah with enhanced visibility
   scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah');
-  scene.motherCheetah.setDepth(5); // Highest layer - above everything
+  scene.motherCheetah.setDepth(6); // Highest layer - above everything
 
   const motherScale = MOTHER_CHEETAH_SCALE; // Smooth scaling factor
   scene.motherCheetah.setScale(motherScale);
@@ -267,8 +267,8 @@ function createGameWorld(scene: GameScene) {
   // Create cubs following behind with enhanced visibility
   for (let i = 0; i < scene.gameData.cubs; i++) {
     const cub = scene.add.sprite(
-      scene.lanes[scene.currentLane] + (i % 2 === 0 ? -17.5 : 17.5), // 25 * 0.7 = 17.5 (30% smaller)
-      scene.scale.height - 100 - (i * 24.5), // 35 * 0.7 = 24.5 (30% smaller spacing)
+      scene.lanes[scene.currentLane] + (i % 2 === 0 ? -12.25 : 12.25), // 17.5 * 0.7 = 12.25 (additional 30% smaller)
+      scene.scale.height - 100 - (i * 17.15), // 24.5 * 0.7 = 17.15 (additional 30% smaller spacing)
       'cub'
     );
     cub.setDepth(5); // Highest layer - above everything
@@ -343,7 +343,7 @@ function changeLane(scene: GameScene, newLane: number) {
   scene.cubs.forEach((cub, index) => {
     scene.tweens.add({
       targets: cub,
-      x: targetX + (index % 2 === 0 ? -14 : 14), // 20 * 0.7 = 14 (30% smaller)
+      x: targetX + (index % 2 === 0 ? -9.8 : 9.8), // 14 * 0.7 = 9.8 (additional 30% smaller)
       duration: 250 + (index * 50),
       ease: 'Power2'
     });
@@ -524,7 +524,7 @@ function spawnGameObject(scene: GameScene) {
 
       // Survival mode: Harsh summer conditions
       const isSummer = scene.gameData.season === 'summer';
-      const obstacleChance = isSummer ? 0.75 : 0.7; // More obstacles in summer
+      const obstacleChance = isSummer ? 0.6 : 0.56; // More obstacles in summer (20% reduction)
 
       if (Math.random() < obstacleChance) {
         spawnObstacle(scene, x, y);
@@ -546,17 +546,17 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 
   const obstacleInfo = GAME_ASSETS.obstacles.types[Phaser.Math.Between(0, GAME_ASSETS.obstacles.types.length - 1)];
 
-  // Dangerous obstacles (camel, poacher, dog) only spawn in lane 2 (middle lane)
-  // This creates a predictable "death lane" that players learn to avoid
+  // Dangerous obstacles (camel, poacher, dog) spawn at least 80 pixels away from road
   let obstacle: Phaser.GameObjects.Sprite;
   const texture = obstacleInfo.texture;
 
   if (obstacleInfo.type === 'camel' || obstacleInfo.type === 'poacher' || obstacleInfo.type === 'dog') {
-    // Dangerous obstacles can spawn in ANY lane to prevent players from hiding on edges
+    // Keep dangerous obstacles 80 pixels away from road
+    y = y - 80;
     obstacle = scene.add.sprite(x, y, texture);
 
     // Create circular death zone around dangerous obstacles (scaled with obstacle size)
-    const deathZoneRadius = 28; // 40 * 0.7 = 28 (30% smaller to match obstacle size)
+    const deathZoneRadius = 19.6; // 28 * 0.7 = 19.6 (additional 30% smaller)
     const deathZone = scene.add.circle(x, y, deathZoneRadius, 0xff0000, 0); // Invisible red circle
     if (deathZone && scene.physics && scene.physics.world) {
       scene.physics.world.enable(deathZone);
@@ -605,7 +605,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     }
 
     // Add a second inner border for extra visibility (under obstacle)
-    const innerBorder = scene.add.circle(x, y, deathZoneRadius - 7, 0xff6600, 0); // 10 * 0.7 = 7
+    const innerBorder = scene.add.circle(x, y, deathZoneRadius - 4.9, 0xff6600, 0); // 7 * 0.7 = 4.9
     if (innerBorder) {
       innerBorder.setStrokeStyle(2, 0xff6600, 0.8);
       innerBorder.setDepth(2);
@@ -744,7 +744,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 
 function spawnRoad(scene: GameScene, y: number) {
   // Create horizontal road spanning all lanes (mobile optimized: thinner road)
-  const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 25, 0x333333);
+  const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 17.5, 0x333333); // 25 * 0.7 = 17.5 (30% smaller)
   road.setDepth(1); // Above background, below cheetahs and cars
 
   // Add road markings without physics (visual only)
@@ -785,18 +785,18 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     // Create simple car sprite using graphics
     const carGraphics = scene.add.graphics();
     carGraphics.fillStyle(0xff0000); // Red car
-    carGraphics.fillRect(0, 0, 40, 20);
+    carGraphics.fillRect(0, 0, 28, 14); // 40 * 0.7 = 28, 20 * 0.7 = 14 (30% smaller)
     carGraphics.fillStyle(0x000000); // Black windows
-    carGraphics.fillRect(5, 5, 10, 10);
-    carGraphics.fillRect(25, 5, 10, 10);
-    carGraphics.generateTexture('car', 40, 20);
+    carGraphics.fillRect(3.5, 3.5, 7, 7); // 5 * 0.7 = 3.5, 10 * 0.7 = 7 (30% smaller)
+    carGraphics.fillRect(17.5, 3.5, 7, 7); // 25 * 0.7 = 17.5, 10 * 0.7 = 7 (30% smaller)
+    carGraphics.generateTexture('car', 28, 14); // 40 * 0.7 = 28, 20 * 0.7 = 14 (30% smaller)
 
     // Position car properly on the road
     const car = scene.add.sprite(carX, roadY - 5, 'car');
     car.setDepth(2); // Above roads, below cheetahs
 
-    // Scale cars for smooth rendering (30% smaller)
-    const carScale = CAR_SCALE; // 0.7 * 0.7 = 0.49 (30% smaller)
+    // Scale cars for smooth rendering (50% smaller)
+    const carScale = CAR_SCALE; // 0.343 * 0.8 = 0.274 (50% smaller)
     car.setScale(carScale);
 
     // Ensure obstacles group exists before adding (mobile compatibility)
@@ -859,7 +859,7 @@ function spawnResource(scene: GameScene, x: number, y: number) {
 
   // Make gazelle larger (but still 30% smaller than original)
   if (resourceInfo.type === 'gazelle') {
-    resourceScale = 0.7; // 1.0 * 0.7 = 0.7 (30% smaller than original larger size)
+    resourceScale = 0.49; // 0.7 * 0.7 = 0.49 (additional 30% smaller)
   }
 
   resource.setScale(resourceScale);

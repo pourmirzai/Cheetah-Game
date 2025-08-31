@@ -82,7 +82,7 @@ function TemplateSelector({ onSelect, selected }: { onSelect: (template: string)
             <img
               src={template.image}
               alt={template.name}
-              className="w-full h-20 object-cover rounded"
+              className="w-full h-32 object-contain rounded"
             />
             <p className="text-xs text-center mt-1">{template.name}</p>
           </button>
