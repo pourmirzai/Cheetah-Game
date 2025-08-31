@@ -1,3 +1,11 @@
+// Type declarations for Google Analytics
+declare global {
+  function gtag(...args: any[]): void;
+  interface Window {
+    dataLayer: any[];
+  }
+}
+
 export interface AnalyticsEvent {
   type: string;
   data: any;
@@ -10,6 +18,9 @@ export function trackEvent(eventType: string, eventData: any) {
     data: eventData,
     timestamp: Date.now()
   };
+
+  // Send to Google Analytics
+  sendToGoogleAnalytics(eventType, eventData);
 
   // Send to backend
   fetch('/api/game/event', {
@@ -28,6 +39,96 @@ export function trackEvent(eventType: string, eventData: any) {
 
   // Log locally for debugging
   console.log('Analytics event:', event);
+}
+
+// Send event to Google Analytics
+function sendToGoogleAnalytics(eventType: string, eventData: any) {
+  // Check if gtag is available
+  if (typeof gtag !== 'function') {
+    console.warn('Google Analytics gtag not available');
+    return;
+  }
+
+  try {
+    // Push to dataLayer for custom data
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        event: eventType,
+        sessionId: eventData.sessionId,
+        ...eventData
+      });
+    }
+
+    // Send GA4 event based on event type
+    switch (eventType) {
+      case 'game_start':
+        gtag('event', 'game_start', {
+          session_id: eventData.sessionId,
+          device_type: eventData.deviceType
+        });
+        break;
+
+      case 'game_end':
+        gtag('event', 'game_end', {
+          session_id: eventData.sessionId,
+          cubs_survived: eventData.cubsSurvived,
+          months_completed: eventData.monthsCompleted,
+          final_score: eventData.finalScore,
+          death_cause: eventData.deathCause,
+          achievements: eventData.achievements?.join(',') || ''
+        });
+        break;
+
+      case 'collision':
+        gtag('event', 'collision', {
+          session_id: eventData.sessionId,
+          collision_type: eventData.type,
+          obstacle_type: eventData.obstacleType,
+          month: eventData.month,
+          health_reduction: eventData.healthReduction || 0
+        });
+        break;
+
+      case 'pickup':
+        gtag('event', 'pickup', {
+          session_id: eventData.sessionId,
+          resource_type: eventData.resourceType,
+          month: eventData.month
+        });
+        break;
+
+      case 'lane_change':
+        gtag('event', 'lane_change', {
+          session_id: eventData.sessionId,
+          new_lane: eventData.newLane,
+          month: eventData.month
+        });
+        break;
+
+      case 'month_reached':
+        gtag('event', 'month_reached', {
+          session_id: eventData.sessionId,
+          month: eventData.month
+        });
+        break;
+
+      case 'speed_burst':
+        gtag('event', 'speed_burst', {
+          session_id: eventData.sessionId,
+          month: eventData.month
+        });
+        break;
+
+      default:
+        // Generic event for any other type
+        gtag('event', eventType, {
+          session_id: eventData.sessionId,
+          ...eventData
+        });
+    }
+  } catch (error) {
+    console.error('Failed to send event to Google Analytics:', error);
+  }
 }
 
 export function trackGameStart(sessionId: string, deviceType: string) {
