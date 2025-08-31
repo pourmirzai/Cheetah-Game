@@ -15,6 +15,12 @@ import { AudioManager } from "@/lib/audioManager";
 import { backgroundManager } from "@/lib/backgroundManager";
 import { GAME_ASSETS } from "@/lib/assetConfig";
 
+const MOTHER_CHEETAH_SCALE = 0.8;
+const CUB_SCALE = 0.6;
+const OBSTACLE_SCALE = 0.56;
+const RESOURCE_SCALE = 0.42;
+const CAR_SCALE = 0.49;
+
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
   onUpdateGameData: (updates: Partial<GameData>) => void;
@@ -29,16 +35,15 @@ interface GameScene extends Phaser.Scene {
   cubs: Phaser.GameObjects.Sprite[];
   obstacles: Phaser.GameObjects.Group;
   resources: Phaser.GameObjects.Group;
-  background?: Phaser.GameObjects.TileSprite;
+  background?: Phaser.GameObjects.Sprite;
 
   // Game state
   lanes: number[];
   currentLane: number;
   lastLaneChange?: number;
-  farBackground?: Phaser.GameObjects.TileSprite;
+  farBackground?: Phaser.GameObjects.Sprite;
   isStopped?: boolean;
   gameSpeed: number;
-  lastSpeedBurst: number;
   gameTimer?: Phaser.Time.TimerEvent;
   monthTimer?: Phaser.Time.TimerEvent;
   spawnTimer?: Phaser.Time.TimerEvent;
@@ -60,16 +65,29 @@ export function initializeGame(
   onGameEnd: (results: Partial<GameResults>) => void,
   sessionId: string
 ) {
+  // Safety check for scene
+  if (!scene) {
+    console.error('Scene is undefined in initializeGame');
+    return;
+  }
+
   const gameScene = scene as GameScene;
   gameScene.gameData = gameData;
   gameScene.onUpdateGameData = onUpdateGameData;
   gameScene.onGameEnd = onGameEnd;
   gameScene.sessionId = sessionId;
   gameScene.cubs = [];
-  gameScene.lanes = [120, 240, 360, 480]; // Lane positions
+  // Calculate lane positions based on full screen width
+  const screenWidth = scene.scale.width;
+  const laneSpacing = screenWidth / 4; // Divide screen into 4 equal lanes
+  gameScene.lanes = [
+    laneSpacing * 0.5,     // Lane 1: 12.5% from left
+    laneSpacing * 1.5,     // Lane 2: 37.5% from left
+    laneSpacing * 2.5,     // Lane 3: 62.5% from left
+    laneSpacing * 3.5      // Lane 4: 87.5% from left
+  ];
   gameScene.currentLane = 1;
   gameScene.gameSpeed = 200;
-  gameScene.lastSpeedBurst = 0;
   gameScene.lastTap = 0;
   gameScene.startX = 0;
   gameScene.gameStarted = false; // Game starts paused until tutorial is completed
@@ -79,24 +97,49 @@ export function initializeGame(
 
   // Wait for all assets to load before creating the game world
   scene.load.on('complete', () => {
-    console.log('🎮 All assets loaded, creating game world...');
-    createGameWorld(gameScene);
-    setupInput(gameScene);
-    // Don't start timers yet - wait for tutorial completion
+    try {
+      console.log('🎮 All assets loaded, creating game world...');
+      createGameWorld(gameScene);
+      setupInput(gameScene);
+      // Don't start timers yet - wait for tutorial completion
+    } catch (error) {
+      console.error('Error in asset load complete callback:', error);
+    }
+  });
+
+  // Add error handling for asset loading failures
+  scene.load.on('filecomplete', (key: string) => {
+    console.log(`✅ Asset loaded: ${key}`);
+  });
+
+  scene.load.on('filecomplete-failed', (key: string) => {
+    console.error(`❌ Failed to load asset: ${key}`);
   });
 }
 
 export function startActualGame(scene: Phaser.Scene) {
   const gameScene = scene as GameScene;
+  console.log('🚀 startActualGame called with scene:', scene);
+  console.log('🚀 Current gameStarted status:', gameScene.gameStarted);
+
   if (!gameScene.gameStarted) {
-    console.log('🚀 Starting actual game after tutorial completion!');
+    console.log('🚀 Setting gameStarted to true and starting timers...');
     gameScene.gameStarted = true;
     startGameTimers(gameScene);
+    console.log('🚀 Game timers started successfully!');
+  } else {
+    console.log('🚀 Game was already started, skipping...');
   }
 }
 
 function loadAssets(scene: Phaser.Scene) {
   console.log('🎮 Loading game assets from centralized configuration...');
+
+  // Safety check for scene
+  if (!scene || !scene.load) {
+    console.error('Scene or scene.load is undefined in loadAssets');
+    return;
+  }
 
   // Load character sprites
   GAME_ASSETS.loadConfig.characters.forEach(({ texture, path }) => {
@@ -137,6 +180,12 @@ function getSeasonColor(season: string): number {
 }
 
 function createGameWorld(scene: GameScene) {
+  // Safety check for scene
+  if (!scene || !scene.add) {
+    console.error('Scene is not properly initialized in createGameWorld');
+    return;
+  }
+
   // Initialize audio manager
   scene.audioManager = new AudioManager(scene);
   scene.audioManager.playMusic('ambient');
@@ -146,13 +195,7 @@ function createGameWorld(scene: GameScene) {
     scene.gameData.season = 'spring';
   }
 
-  // Initialize jump bar to 0/3 (not charged)
-  if (scene.gameData.burstEnergy >= 100) {
-    scene.gameData.burstEnergy = 0;
-  }
-  if (scene.gameData.rabbitsCollected !== 0) {
-    scene.gameData.rabbitsCollected = 0;
-  }
+  // Removed jump/burst energy initialization
 
   // Get seasonal background based on current season
   const seasonToTexture = {
@@ -164,110 +207,82 @@ function createGameWorld(scene: GameScene) {
   const bgTexture = seasonToTexture[scene.gameData.season as keyof typeof seasonToTexture] || 'spring-bg';
   console.log(`🎨 Initializing seasonal background: ${bgTexture} for season ${scene.gameData.season}`);
 
-  // Create responsive background layers that scale properly
+  // Create responsive background that covers the entire screen
   const screenWidth = scene.scale.width;
   const screenHeight = scene.scale.height;
 
-  // Create single background using tileSprite for better performance and scaling
-  scene.background = scene.add.tileSprite(0, 0, screenWidth, screenHeight, bgTexture);
-  scene.background.setOrigin(0, 0);
+  // Check if texture is loaded before creating sprite
+  if (scene.textures.exists(bgTexture)) {
+    // Use regular sprite instead of tileSprite for better scaling control
+    scene.background = scene.add.sprite(0, 0, bgTexture);
+    scene.background.setOrigin(0, 0);
+    scene.background.setDepth(0); // Background at base layer
 
-  // Scale background to cover the entire screen without distortion
-  const bgImage = scene.textures.get(bgTexture);
-  if (bgImage) {
-    const bgFrame = bgImage.getSourceImage();
-    if (bgFrame) {
-      const bgAspectRatio = bgFrame.width / bgFrame.height;
-      const screenAspectRatio = screenWidth / screenHeight;
+    // Scale background to cover the entire screen without any gaps or margins
+    const bgImage = scene.textures.get(bgTexture);
+    if (bgImage) {
+      const bgFrame = bgImage.getSourceImage();
+      if (bgFrame && bgFrame.width && bgFrame.height) {
+        const bgAspectRatio = bgFrame.width / bgFrame.height;
+        const screenAspectRatio = screenWidth / screenHeight;
 
-      let scaleX, scaleY;
-      if (screenAspectRatio > bgAspectRatio) {
-        // Screen is wider than background - scale to cover width
-        scaleX = screenWidth / bgFrame.width;
-        scaleY = scaleX;
+        let scaleX, scaleY;
+        if (screenAspectRatio > bgAspectRatio) {
+          // Screen is wider than background - scale to cover full width
+          scaleX = screenWidth / bgFrame.width;
+          scaleY = scaleX;
+        } else {
+          // Screen is taller than background - scale to cover full height
+          scaleY = screenHeight / bgFrame.height;
+          scaleX = scaleY;
+        }
+
+        scene.background.setScale(scaleX, scaleY);
+        scene.background.setPosition(0, 0);
+        scene.background.setOrigin(0, 0);
       } else {
-        // Screen is taller than background - scale to cover height
-        scaleY = screenHeight / bgFrame.height;
-        scaleX = scaleY;
+        // Fallback: create a simple colored background if image fails to load
+        console.warn(`Background image for ${bgTexture} failed to load, using fallback`);
+        scene.background.setScale(screenWidth / scene.background.width, screenHeight / scene.background.height);
+        scene.background.setPosition(0, 0);
+        scene.background.setOrigin(0, 0);
       }
-
-      scene.background.setScale(scaleX, scaleY);
     }
+  } else {
+    console.warn(`Background texture ${bgTexture} not loaded, skipping background creation`);
   }
 
   // Remove farBackground to eliminate green overlay
   scene.farBackground = undefined;
 
   // Create mother cheetah with enhanced visibility
-  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah-pixel');
+  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah');
+  scene.motherCheetah.setDepth(5); // Highest layer - above everything
 
-  // Scale mother cheetah to better visibility (increased size: max 64x48 pixels)
-  const motherMaxWidth = 64;
-  const motherMaxHeight = 48;
-  const motherOriginalWidth = scene.motherCheetah.width;
-  const motherOriginalHeight = scene.motherCheetah.height;
+  const motherScale = MOTHER_CHEETAH_SCALE; // Smooth scaling factor
+  scene.motherCheetah.setScale(motherScale);
 
-  if (motherOriginalWidth > motherMaxWidth || motherOriginalHeight > motherMaxHeight) {
-    const scaleX = motherMaxWidth / motherOriginalWidth;
-    const scaleY = motherMaxHeight / motherOriginalHeight;
-    const scale = Math.min(scaleX, scaleY);
-    scene.motherCheetah.setScale(scale);
-  } else {
-    // If image is smaller than max, use a minimum scale for visibility
-    scene.motherCheetah.setScale(Math.max(1.2, motherOriginalWidth / motherMaxWidth));
-  }
-
-  // Add glow effect for better visibility
-  scene.motherCheetah.setTint(0xffffff);
-  scene.motherCheetah.preFX?.addGlow(0xffd700, 0.3, 0, false);
+  // Keep the mother cheetah image simple without extra effects
 
   // Create cubs following behind with enhanced visibility
   for (let i = 0; i < scene.gameData.cubs; i++) {
     const cub = scene.add.sprite(
-      scene.lanes[scene.currentLane] + (i % 2 === 0 ? -25 : 25),
-      scene.scale.height - 100 - (i * 35),
-      'cub-pixel'
+      scene.lanes[scene.currentLane] + (i % 2 === 0 ? -17.5 : 17.5), // 25 * 0.7 = 17.5 (30% smaller)
+      scene.scale.height - 100 - (i * 24.5), // 35 * 0.7 = 24.5 (30% smaller spacing)
+      'cub'
     );
+    cub.setDepth(5); // Highest layer - above everything
 
-    // Scale cubs for better visibility (increased size: max 40x28 pixels)
-    const cubMaxWidth = 40;
-    const cubMaxHeight = 28;
-    const cubOriginalWidth = cub.width;
-    const cubOriginalHeight = cub.height;
+    // Scale cubs for smooth rendering
+    const cubScale = CUB_SCALE; // Smooth scaling factor
+    cub.setScale(cubScale);
 
-    if (cubOriginalWidth > cubMaxWidth || cubOriginalHeight > cubMaxHeight) {
-      const scaleX = cubMaxWidth / cubOriginalWidth;
-      const scaleY = cubMaxHeight / cubOriginalHeight;
-      const scale = Math.min(scaleX, scaleY);
-      cub.setScale(scale);
-    } else {
-      // If image is smaller than max, use a minimum scale for visibility
-      cub.setScale(Math.max(1.0, cubOriginalWidth / cubMaxWidth));
-    }
-
-    // Add glow effect for better visibility
+    // Add multiple visual effects for maximum visibility
     cub.setTint(0xffffff);
-    cub.preFX?.addGlow(0xffa500, 0.25, 0, false);
 
-    // Add gentle bobbing animation for cuteness and visibility
-    scene.tweens.add({
-      targets: cub,
-      y: cub.y - 4,
-      duration: 1200 + (i * 300),
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
+    // Strong orange glow
+    cub.preFX?.addGlow(0xffa500, 0.7, 0, false);
 
-    // Add subtle pulsing effect
-    scene.tweens.add({
-      targets: cub,
-      alpha: 0.8,
-      duration: 800 + (i * 200),
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
 
     scene.cubs.push(cub);
   }
@@ -292,21 +307,15 @@ function setupInput(scene: GameScene) {
   // Touch/mouse input
   scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
     scene.startX = pointer.x;
-    
-    // Double tap detection for speed burst
-    const currentTime = Date.now();
-    if (currentTime - scene.lastTap < 500) {
-      triggerSpeedBurst(scene);
-    }
-    scene.lastTap = currentTime;
+    scene.lastTap = Date.now();
   });
 
   scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
     if (pointer.isDown) {
       const deltaX = pointer.x - scene.startX;
-      
-      // Lane switching based on swipe
-      if (Math.abs(deltaX) > 50) {
+
+      // Lane switching based on swipe (less sensitive for precision)
+      if (Math.abs(deltaX) > 50) { // Increased from 30 to 50 for better precision and less accidental lane changes
         if (deltaX > 0 && scene.currentLane < scene.lanes.length - 1) {
           changeLane(scene, scene.currentLane + 1);
         } else if (deltaX < 0 && scene.currentLane > 0) {
@@ -334,7 +343,7 @@ function changeLane(scene: GameScene, newLane: number) {
   scene.cubs.forEach((cub, index) => {
     scene.tweens.add({
       targets: cub,
-      x: targetX + (index % 2 === 0 ? -20 : 20),
+      x: targetX + (index % 2 === 0 ? -14 : 14), // 20 * 0.7 = 14 (30% smaller)
       duration: 250 + (index * 50),
       ease: 'Power2'
     });
@@ -347,35 +356,6 @@ function changeLane(scene: GameScene, newLane: number) {
   });
 }
 
-function triggerSpeedBurst(scene: GameScene) {
-  if (scene.gameData.burstEnergy >= 100) {
-    scene.gameData.speedBurstActive = true;
-    scene.gameSpeed *= 2;
-
-    scene.onUpdateGameData({
-      burstEnergy: 0,
-      speedBurstActive: true
-    });
-
-    // Audio effect
-    scene.audioManager?.onSpeedBurst();
-
-    // Visual effect
-    scene.cameras.main.flash(200, 255, 255, 0);
-
-    // End speed burst after 2 seconds
-    scene.time.delayedCall(2000, () => {
-      scene.gameData.speedBurstActive = false;
-      scene.gameSpeed /= 2;
-      scene.onUpdateGameData({ speedBurstActive: false });
-    });
-
-    trackEvent('speed_burst', {
-      sessionId: scene.sessionId,
-      month: scene.gameData.currentMonth
-    });
-  }
-}
 
 function startGameTimers(scene: GameScene) {
   // Main game timer (120 seconds)
@@ -416,14 +396,26 @@ function startGameTimers(scene: GameScene) {
     loop: true
   });
 
-  // Spawn obstacles and resources
-  scene.time.addEvent({
-    delay: 2000,
-    callback: () => spawnGameObject(scene),
-    loop: true
-  });
+  // Spawn obstacles and resources (progressive difficulty)
+  const spawnGameObjectsProgressive = () => {
+    const currentMonth = scene.gameData.currentMonth;
+    const progressRatio = Math.min(currentMonth / 18, 1);
 
-  // Update health and energy
+    // Survival mode: Fast spawning for intense gameplay
+    const baseDelay = 1200;
+    const minDelay = 450;
+    const currentDelay = baseDelay - (baseDelay - minDelay) * progressRatio;
+
+    spawnGameObject(scene);
+
+    // Schedule next spawn with progressive delay
+    scene.time.delayedCall(currentDelay, spawnGameObjectsProgressive);
+  };
+
+  // Start the progressive spawning
+  spawnGameObjectsProgressive();
+
+  // Update health
   scene.time.addEvent({
     delay: 3000,
     callback: () => updateHealthAndEnergy(scene),
@@ -466,7 +458,7 @@ function updateBackgroundForSeason(scene: GameScene, season: string) {
 
   const newBgTexture = seasonToTexture[season as keyof typeof seasonToTexture] || 'spring-bg';
 
-  if (scene.background) {
+  if (scene.background && scene.textures.exists(newBgTexture)) {
     console.log(`🔄 Changing background to: ${newBgTexture} for season ${season}`);
 
     // Update background texture
@@ -479,61 +471,218 @@ function updateBackgroundForSeason(scene: GameScene, season: string) {
 
     if (bgImage) {
       const bgFrame = bgImage.getSourceImage();
-      if (bgFrame) {
+      if (bgFrame && bgFrame.width && bgFrame.height) {
         const bgAspectRatio = bgFrame.width / bgFrame.height;
         const screenAspectRatio = screenWidth / screenHeight;
 
         let scaleX, scaleY;
         if (screenAspectRatio > bgAspectRatio) {
+          // Screen is wider than background - scale to cover full width
           scaleX = screenWidth / bgFrame.width;
           scaleY = scaleX;
         } else {
+          // Screen is taller than background - scale to cover full height
           scaleY = screenHeight / bgFrame.height;
           scaleX = scaleY;
         }
 
         scene.background.setScale(scaleX, scaleY);
+        scene.background.setPosition(0, 0);
+        scene.background.setOrigin(0, 0);
+      } else {
+        // Fallback scaling if image data is not available
+        console.warn(`Background image data for ${newBgTexture} not available, using fallback scaling`);
+        scene.background.setScale(screenWidth / scene.background.width, screenHeight / scene.background.height);
+        scene.background.setPosition(0, 0);
+        scene.background.setOrigin(0, 0);
       }
     }
+  } else {
+    console.warn(`Cannot update background: background sprite not found or texture ${newBgTexture} not loaded`);
   }
 }
 
 function spawnGameObject(scene: GameScene) {
-  const lane = Phaser.Math.Between(0, scene.lanes.length - 1);
-  const x = scene.lanes[lane];
-  const y = -50;
+  const currentMonth = scene.gameData.currentMonth;
+  const progressRatio = Math.min(currentMonth / 18, 1); // 0 to 1 based on progress
 
-  // 70% chance for obstacle, 30% for resource
-  if (Math.random() < 0.7) {
-    spawnObstacle(scene, x, y);
-  } else {
-    spawnResource(scene, x, y);
+  // Survival mode: High difficulty with multiple threats
+  const maxThreats = progressRatio > 0.15 ? (progressRatio > 0.4 ? (progressRatio > 0.7 ? 4 : 3) : 2) : 1;
+  const minThreats = progressRatio > 0.3 ? 2 : (progressRatio > 0.1 ? 1 : 1);
+  const numThreats = Phaser.Math.Between(minThreats, maxThreats);
+
+  // Removed screen color flashes - using subtle visual cues instead
+  // Multiple threats will be visually apparent from the increased number of objects
+
+  for (let i = 0; i < numThreats; i++) {
+    // Survival mode: Intense threat waves
+    const delay = i * 180;
+    scene.time.delayedCall(delay, () => {
+      const lane = Phaser.Math.Between(0, scene.lanes.length - 1);
+      const x = scene.lanes[lane];
+      const y = -50;
+
+      // Survival mode: Harsh summer conditions
+      const isSummer = scene.gameData.season === 'summer';
+      const obstacleChance = isSummer ? 0.75 : 0.7; // More obstacles in summer
+
+      if (Math.random() < obstacleChance) {
+        spawnObstacle(scene, x, y);
+      } else {
+        // In summer, resources are scarce (only 40% chance to actually spawn)
+        if (!isSummer || Math.random() < 0.4) {
+          spawnResource(scene, x, y);
+        }
+      }
+    });
   }
 }
 
 function spawnObstacle(scene: GameScene, x: number, y: number) {
-  // 20% chance for horizontal road (spans across lanes)
-  if (Math.random() < 0.2) {
-    spawnRoad(scene, y);
-    return;
+  // 40% chance for horizontal road (doubled frequency)
+  if (Math.random() < 0.4) {
+      return spawnRoad(scene, y);
   }
 
   const obstacleInfo = GAME_ASSETS.obstacles.types[Phaser.Math.Between(0, GAME_ASSETS.obstacles.types.length - 1)];
 
-  const obstacle = scene.add.sprite(x, y, obstacleInfo.texture);
+  // Dangerous obstacles (camel, poacher, dog) only spawn in lane 2 (middle lane)
+  // This creates a predictable "death lane" that players learn to avoid
+  let obstacle: Phaser.GameObjects.Sprite;
+  const texture = obstacleInfo.texture;
 
-  // Scale obstacles to consistent reasonable size based on type
-  const maxSize = GAME_ASSETS.obstacles.sizes[obstacleInfo.type as keyof typeof GAME_ASSETS.obstacles.sizes] || 40;
-  const originalWidth = obstacle.width;
-  const originalHeight = obstacle.height;
+  if (obstacleInfo.type === 'camel' || obstacleInfo.type === 'poacher' || obstacleInfo.type === 'dog') {
+    // Dangerous obstacles can spawn in ANY lane to prevent players from hiding on edges
+    obstacle = scene.add.sprite(x, y, texture);
 
-  if (originalWidth > maxSize || originalHeight > maxSize) {
-    const scaleX = maxSize / originalWidth;
-    const scaleY = maxSize / originalHeight;
-    const scale = Math.min(scaleX, scaleY);
-    obstacle.setScale(scale);
+    // Create circular death zone around dangerous obstacles (scaled with obstacle size)
+    const deathZoneRadius = 28; // 40 * 0.7 = 28 (30% smaller to match obstacle size)
+    const deathZone = scene.add.circle(x, y, deathZoneRadius, 0xff0000, 0); // Invisible red circle
+    if (deathZone && scene.physics && scene.physics.world) {
+      scene.physics.world.enable(deathZone);
+      const deathZoneBody = deathZone.body as Phaser.Physics.Arcade.Body;
+      if (deathZoneBody) {
+        deathZoneBody.setCircle(deathZoneRadius);
+        deathZoneBody.setVelocityY(scene.gameSpeed); // Move with the obstacle
+      }
+    }
+
+    // Add visual indicator for death zone (smaller pulsing red glow under obstacle)
+    const deathZoneGlow = scene.add.circle(x, y, deathZoneRadius, 0xff0000, 0.7);
+    if (deathZoneGlow) {
+      deathZoneGlow.setDepth(1); // Under obstacles for better visibility
+
+      // Add intense pulsing animation to make death zone very visible
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: deathZoneGlow,
+          alpha: 1.0,
+          duration: 600,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Add warning border around death zone (under obstacle)
+    const deathZoneBorder = scene.add.circle(x, y, deathZoneRadius, 0xff0000, 0);
+    if (deathZoneBorder) {
+      deathZoneBorder.setStrokeStyle(4, 0xff0000, 1.0);
+      deathZoneBorder.setDepth(2); // Under obstacle
+
+      // Add intense pulsing animation to the border
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: deathZoneBorder,
+          strokeAlpha: 0.5,
+          duration: 500,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Add a second inner border for extra visibility (under obstacle)
+    const innerBorder = scene.add.circle(x, y, deathZoneRadius - 7, 0xff6600, 0); // 10 * 0.7 = 7
+    if (innerBorder) {
+      innerBorder.setStrokeStyle(2, 0xff6600, 0.8);
+      innerBorder.setDepth(2);
+
+      // Pulse the inner border with different timing
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: innerBorder,
+          strokeAlpha: 0.3,
+          duration: 700,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Store inner border reference for cleanup
+    obstacle.setData('innerBorder', innerBorder);
+
+    // Store border reference for cleanup
+    obstacle.setData('deathZoneBorder', deathZoneBorder);
+
+
+    // Store references for cleanup
+    obstacle.setData('deathZone', deathZone);
+    obstacle.setData('deathZoneGlow', deathZoneGlow);
+
+    // Collision detection for death zone (with safety checks)
+    if (scene.physics && scene.motherCheetah && deathZone) {
+      scene.physics.add.overlap(scene.motherCheetah, deathZone, () => {
+        scene.audioManager?.onHitObstacle(obstacleInfo.type);
+        endGame(scene, obstacleInfo.type);
+      });
+    }
+
+    if (scene.cubs && scene.physics) {
+      scene.cubs.forEach((cub, index) => {
+        if (cub && deathZone) {
+          scene.physics.add.overlap(cub, deathZone, () => {
+            scene.gameData.cubs--;
+            cub.destroy();
+            scene.cubs.splice(index, 1);
+
+            scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+
+            trackEvent('collision', {
+              sessionId: scene.sessionId,
+              type: 'cub_lost',
+              obstacleType: obstacleInfo.type,
+              month: scene.gameData.currentMonth
+            });
+
+            if (scene.gameData.cubs === 0) {
+              endGame(scene, 'all_cubs_lost');
+            }
+          });
+        }
+      });
+    }
+
+  } else {
+    // Safe obstacles can spawn in any lane
+    obstacle = scene.add.sprite(x, y, texture);
   }
 
+  // Set depth for obstacle to be above halos
+  obstacle.setDepth(3);
+
+  // Scale obstacles for smooth rendering (30% smaller)
+  const obstacleScale = OBSTACLE_SCALE; // 0.8 * 0.7 = 0.56 (30% smaller)
+  obstacle.setScale(obstacleScale);
+
+  // Ensure obstacles group exists before adding (mobile compatibility)
+  if (!scene.obstacles) {
+    scene.obstacles = scene.add.group();
+  }
   scene.obstacles.add(obstacle);
   scene.physics.world.enable(obstacle);
   
@@ -543,81 +692,96 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   if (specialBehavior) {
     // Removed poacher spotlight/cone effect completely
 
-    if (specialBehavior.speedMultiplier && specialBehavior.speedMultiplier !== 1.0) {
+    if (specialBehavior.speedMultiplier && specialBehavior.speedMultiplier !== 1.0 && obstacle.body) {
       const body = obstacle.body as Phaser.Physics.Arcade.Body;
       body.setVelocityY(scene.gameSpeed * specialBehavior.speedMultiplier);
     }
   }
-  
+
   // Set initial velocity for obstacle (will be updated in updateGame)
-  const body = obstacle.body as Phaser.Physics.Arcade.Body;
-  body.setVelocityY(scene.gameSpeed);
+  if (obstacle.body) {
+    const body = obstacle.body as Phaser.Physics.Arcade.Body;
+    body.setVelocityY(scene.gameSpeed);
+  }
   
   // Remove obstacle when it goes off screen
   obstacle.setData('isMoving', true);
 
-  // Collision detection
-  scene.physics.add.overlap(scene.motherCheetah!, obstacle, () => {
-    scene.audioManager?.onHitObstacle(obstacleInfo.type);
-    endGame(scene, obstacleInfo.type);
-  });
+  // Collision detection (with safety checks)
+  if (scene.physics && scene.motherCheetah && obstacle) {
+    scene.physics.add.overlap(scene.motherCheetah, obstacle, () => {
+      scene.audioManager?.onHitObstacle(obstacleInfo.type);
+      endGame(scene, obstacleInfo.type);
+    });
+  }
 
-  scene.cubs.forEach((cub, index) => {
-    scene.physics.add.overlap(cub, obstacle, () => {
-      // Remove one cub
-      scene.gameData.cubs--;
-      cub.destroy();
-      scene.cubs.splice(index, 1);
-      
-      scene.onUpdateGameData({ cubs: scene.gameData.cubs });
-      
-      trackEvent('collision', { 
-        sessionId: scene.sessionId, 
-        type: 'cub_lost', 
-        obstacleType: obstacleInfo.type,
-        month: scene.gameData.currentMonth 
-      });
-      
-      if (scene.gameData.cubs === 0) {
-        endGame(scene, 'all_cubs_lost');
+  if (scene.cubs && scene.physics) {
+    scene.cubs.forEach((cub, index) => {
+      if (cub && obstacle) {
+        scene.physics.add.overlap(cub, obstacle, () => {
+          // Remove one cub
+          scene.gameData.cubs--;
+          cub.destroy();
+          scene.cubs.splice(index, 1);
+
+          scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+
+          trackEvent('collision', {
+            sessionId: scene.sessionId,
+            type: 'cub_lost',
+            obstacleType: obstacleInfo.type,
+            month: scene.gameData.currentMonth
+          });
+
+          if (scene.gameData.cubs === 0) {
+            endGame(scene, 'all_cubs_lost');
+          }
+        });
       }
     });
-  });
+  }
 }
 
 function spawnRoad(scene: GameScene, y: number) {
-  // Create horizontal road spanning all lanes
-  const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 40, 0x333333);
-  scene.physics.world.enable(road);
-  
-  // Add road markings with physics
+  // Create horizontal road spanning all lanes (mobile optimized: thinner road)
+  const road = scene.add.rectangle(scene.scale.width / 2, y, scene.scale.width, 25, 0x333333);
+  road.setDepth(1); // Above background, below cheetahs and cars
+
+  // Add road markings without physics (visual only)
   for (let i = 0; i < scene.scale.width; i += 80) {
-    const marking = scene.add.rectangle(i, y, 40, 4, 0xffffff);
-    scene.physics.world.enable(marking);
-    const markingBody = marking.body as Phaser.Physics.Arcade.Body;
-    markingBody.setVelocityY(scene.gameSpeed);
+    const marking = scene.add.rectangle(i, y, 40, 2, 0xffffff);
+    marking.setDepth(1); // Above background, below cheetahs and cars
     marking.setData('isMoving', true);
   }
-  
-  // Set initial velocity for road (will be updated in updateGame)
-  const body = road.body as Phaser.Physics.Arcade.Body;
-  body.setVelocityY(scene.gameSpeed);
+
+  // Road is visual only - no physics to prevent unwanted collisions
+  road.setData('isMoving', true);
   
   // Remove road when it goes off screen
   road.setData('isMoving', true);
 
-  // 50% chance to spawn cars on the road
-  if (Math.random() < 0.5) {
-    spawnCarsOnRoad(scene, y);
-  }
+  // Always spawn cars on the road (100% chance)
+  spawnCarsOnRoad(scene, y);
+
+  // Note: Road itself does not cause game over - only cars do
 }
 
 function spawnCarsOnRoad(scene: GameScene, roadY: number) {
-  // Spawn 1-3 cars randomly across the road
-  const numCars = Phaser.Math.Between(1, 3);
-  
+  // Detect mobile device and adjust car count
+  const isMobile = window.innerWidth <= 768;
+  const baseMinCars = 2;
+  const baseMaxCars = 6;
+
+  // Reduce car count by 20% on mobile
+  const minCars = isMobile ? Math.max(1, Math.floor(baseMinCars * 0.8)) : baseMinCars;
+  const maxCars = isMobile ? Math.max(1, Math.floor(baseMaxCars * 0.8)) : baseMaxCars;
+
+  const numCars = Phaser.Math.Between(minCars, maxCars);
+
   for (let i = 0; i < numCars; i++) {
-    const carX = Phaser.Math.Between(50, scene.scale.width - 50);
+    // Ensure cars spawn within visible road area
+    const carX = Phaser.Math.Between(60, scene.scale.width - 60);
+
     // Create simple car sprite using graphics
     const carGraphics = scene.add.graphics();
     carGraphics.fillStyle(0xff0000); // Red car
@@ -625,59 +789,63 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     carGraphics.fillStyle(0x000000); // Black windows
     carGraphics.fillRect(5, 5, 10, 10);
     carGraphics.fillRect(25, 5, 10, 10);
-    carGraphics.generateTexture('car-pixel', 40, 20);
+    carGraphics.generateTexture('car', 40, 20);
 
-    const car = scene.add.sprite(carX, roadY, 'car-pixel');
+    // Position car properly on the road
+    const car = scene.add.sprite(carX, roadY - 5, 'car');
+    car.setDepth(2); // Above roads, below cheetahs
 
-    // Scale cars to consistent reasonable size (35x20 pixels max)
-    const maxCarWidth = 35;
-    const maxCarHeight = 20;
-    const originalCarWidth = car.width;
-    const originalCarHeight = car.height;
+    // Scale cars for smooth rendering (30% smaller)
+    const carScale = CAR_SCALE; // 0.7 * 0.7 = 0.49 (30% smaller)
+    car.setScale(carScale);
 
-    if (originalCarWidth > maxCarWidth || originalCarHeight > maxCarHeight) {
-      const scaleX = maxCarWidth / originalCarWidth;
-      const scaleY = maxCarHeight / originalCarHeight;
-      const scale = Math.min(scaleX, scaleY);
-      car.setScale(scale);
+    // Ensure obstacles group exists before adding (mobile compatibility)
+    if (scene.obstacles) {
+      scene.obstacles.add(car);
     }
-
-    scene.obstacles.add(car);
     scene.physics.world.enable(car);
 
-    // Set initial velocity for car (will be updated in updateGame)
-    const body = car.body as Phaser.Physics.Arcade.Body;
-    body.setVelocityY(scene.gameSpeed);
-    body.setVelocityX(Phaser.Math.Between(-50, 50)); // Slight horizontal movement
+    // Set initial velocity for car (right to left movement)
+    if (car.body) {
+      const body = car.body as Phaser.Physics.Arcade.Body;
+      body.setVelocityY(scene.gameSpeed);
+      body.setVelocityX(-30); // Consistent right-to-left movement
+    }
 
     // Remove car when it goes off screen
     car.setData('isMoving', true);
 
-    // Car collision detection
-    scene.physics.add.overlap(scene.motherCheetah!, car, () => {
-      scene.audioManager?.onHitObstacle('road');
-      endGame(scene, 'road');
-    });
+    // Car collision detection (with safety checks)
+    if (scene.physics && scene.motherCheetah && car) {
+      scene.physics.add.overlap(scene.motherCheetah, car, () => {
+        scene.audioManager?.onHitObstacle('road');
+        endGame(scene, 'road');
+      });
+    }
 
-    scene.cubs.forEach((cub, index) => {
-      scene.physics.add.overlap(cub, car, () => {
-        scene.gameData.cubs--;
-        cub.destroy();
-        scene.cubs.splice(index, 1);
-        scene.onUpdateGameData({ cubs: scene.gameData.cubs });
-        
-        trackEvent('collision', { 
-          sessionId: scene.sessionId, 
-          type: 'cub_lost', 
-          obstacleType: 'car',
-          month: scene.gameData.currentMonth 
-        });
-        
-        if (scene.gameData.cubs === 0) {
-          endGame(scene, 'all_cubs_lost');
+    if (scene.cubs && scene.physics) {
+      scene.cubs.forEach((cub, index) => {
+        if (cub && car) {
+          scene.physics.add.overlap(cub, car, () => {
+            scene.gameData.cubs--;
+            cub.destroy();
+            scene.cubs.splice(index, 1);
+            scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+
+            trackEvent('collision', {
+              sessionId: scene.sessionId,
+              type: 'cub_lost',
+              obstacleType: 'car',
+              month: scene.gameData.currentMonth
+            });
+
+            if (scene.gameData.cubs === 0) {
+              endGame(scene, 'all_cubs_lost');
+            }
+          });
         }
       });
-    });
+    }
   }
 }
 
@@ -686,24 +854,29 @@ function spawnResource(scene: GameScene, x: number, y: number) {
 
   const resource = scene.add.sprite(x, y, resourceInfo.texture);
 
-  // Scale resources to consistent reasonable size
-  const maxSize = GAME_ASSETS.resources.maxSize;
-  const originalWidth = resource.width;
-  const originalHeight = resource.height;
+  // Scale resources for smooth rendering (30% smaller)
+  let resourceScale = RESOURCE_SCALE; // 0.6 * 0.7 = 0.42 (30% smaller)
 
-  if (originalWidth > maxSize || originalHeight > maxSize) {
-    const scaleX = maxSize / originalWidth;
-    const scaleY = maxSize / originalHeight;
-    const scale = Math.min(scaleX, scaleY);
-    resource.setScale(scale);
+  // Make gazelle larger (but still 30% smaller than original)
+  if (resourceInfo.type === 'gazelle') {
+    resourceScale = 0.7; // 1.0 * 0.7 = 0.7 (30% smaller than original larger size)
+  }
+
+  resource.setScale(resourceScale);
+
+  // Ensure resources group exists
+  if (!scene.resources) {
+    scene.resources = scene.add.group();
   }
 
   scene.resources.add(resource);
   scene.physics.world.enable(resource);
   
   // Set initial velocity for resource (will be updated in updateGame)
-  const body = resource.body as Phaser.Physics.Arcade.Body;
-  body.setVelocityY(scene.gameSpeed);
+  if (resource.body) {
+    const body = resource.body as Phaser.Physics.Arcade.Body;
+    body.setVelocityY(scene.gameSpeed);
+  }
   
   // Remove resource when it goes off screen
   resource.setData('isMoving', true);
@@ -728,33 +901,7 @@ function collectResource(scene: GameScene, type: string) {
   // Play collection sound
   scene.audioManager?.onCollectResource(type);
 
-  // Special handling for rabbit energy burst
-  if (type === 'rabbit') {
-    // Initialize rabbitsCollected if not exists
-    if (!scene.gameData.rabbitsCollected) {
-      scene.gameData.rabbitsCollected = 0;
-    }
-
-    scene.gameData.rabbitsCollected += 1;
-    console.log(`🐰 Rabbit collected! Total: ${scene.gameData.rabbitsCollected}/3`);
-
-    // Charge burst energy when 3 rabbits are collected
-    if (scene.gameData.rabbitsCollected >= 3) {
-      scene.gameData.burstEnergy = Math.min(100, scene.gameData.burstEnergy + 100);
-      scene.gameData.rabbitsCollected = 0; // Reset counter
-      console.log('⚡ Energy burst charged to 100%!');
-
-      scene.onUpdateGameData({
-        burstEnergy: scene.gameData.burstEnergy,
-        rabbitsCollected: scene.gameData.rabbitsCollected
-      });
-    } else {
-      // Update rabbits collected count
-      scene.onUpdateGameData({
-        rabbitsCollected: scene.gameData.rabbitsCollected
-      });
-    }
-  }
+  // Removed rabbit energy burst functionality
 
   scene.gameData.health = Math.min(100, scene.gameData.health + healthGain);
   scene.gameData.score += healthGain * 10;
@@ -768,17 +915,20 @@ function collectResource(scene: GameScene, type: string) {
 }
 
 function updateHealthAndEnergy(scene: GameScene) {
-  // Decrease health over time
-  scene.gameData.health = Math.max(0, scene.gameData.health - 5);
+  // Progressive health decrease based on cub age/maturity
+  const currentMonth = scene.gameData.currentMonth;
+  const progressRatio = Math.min(currentMonth / 18, 1); // 0 to 1 based on progress
 
-  // Increase burst energy
-  if (!scene.gameData.speedBurstActive && scene.gameData.burstEnergy < 100) {
-    scene.gameData.burstEnergy = Math.min(100, scene.gameData.burstEnergy + 10);
-  }
+  // Survival mode: Aggressive health decrease for intense challenge
+  const baseDecrease = 7;
+  const maxDecrease = 15;
+  const healthDecrease = baseDecrease + (maxDecrease - baseDecrease) * progressRatio;
+
+  // Decrease health over time (faster as cubs get older)
+  scene.gameData.health = Math.max(0, scene.gameData.health - healthDecrease);
 
   scene.onUpdateGameData({
-    health: scene.gameData.health,
-    burstEnergy: scene.gameData.burstEnergy
+    health: scene.gameData.health
   });
 
   // Low health warning
@@ -830,6 +980,11 @@ function endGame(scene: GameScene, cause: string) {
 
 // Update scene every frame
 export function updateGame(scene: GameScene) {
+  // Safety check for scene
+  if (!scene || !scene.gameData) {
+    return;
+  }
+
   // Only run game logic if the game has started (tutorial completed)
   if (!scene.gameStarted) {
     return;
@@ -877,19 +1032,51 @@ export function updateGame(scene: GameScene) {
       }
     }
     
-    // Space key - speed burst
-    if (scene.cursors.space?.isDown && timeSinceLastMove > 500) {
-      triggerSpeedBurst(scene);
-      scene.lastLaneChange = currentTime;
-    }
+    // Space key - removed speed burst functionality
   }
 
   // Update velocities of all moving objects based on current speed
   scene.obstacles.children.entries.forEach((obstacle: any) => {
     if (obstacle.getData('isMoving') && obstacle.body) {
       obstacle.body.setVelocityY(scene.gameSpeed);
+
+      // Update horizontal velocity for cars (scale with game speed) - right to left
+      if (obstacle.texture.key === 'car') {
+        const baseHorizontalSpeed = 30;
+        const scaledHorizontalSpeed = -(baseHorizontalSpeed * (scene.gameSpeed / 200)); // Negative for right-to-left movement
+        obstacle.body.setVelocityX(scaledHorizontalSpeed);
+      }
+
+      // Update positions and velocities of danger halos to match obstacle
+      const deathZone = obstacle.getData('deathZone');
+      const deathZoneGlow = obstacle.getData('deathZoneGlow');
+      const deathZoneBorder = obstacle.getData('deathZoneBorder');
+      const innerBorder = obstacle.getData('innerBorder');
+
+      if (deathZone) {
+        deathZone.setPosition(obstacle.x, obstacle.y);
+        if (deathZone.body) {
+          (deathZone.body as Phaser.Physics.Arcade.Body).setVelocityY(scene.gameSpeed);
+        }
+      }
+      if (deathZoneGlow) {
+        deathZoneGlow.setPosition(obstacle.x, obstacle.y);
+      }
+      if (deathZoneBorder) {
+        deathZoneBorder.setPosition(obstacle.x, obstacle.y);
+      }
+      if (innerBorder) {
+        innerBorder.setPosition(obstacle.x, obstacle.y);
+      }
+
       // Remove if off screen
       if (obstacle.y > scene.scale.height + 100) {
+        // Clean up death zones for dangerous obstacles
+        if (deathZone) deathZone.destroy();
+        if (deathZoneGlow) deathZoneGlow.destroy();
+        if (deathZoneBorder) deathZoneBorder.destroy();
+
+        if (innerBorder) innerBorder.destroy();
         obstacle.destroy();
       }
     }
@@ -905,13 +1092,34 @@ export function updateGame(scene: GameScene) {
     }
   });
 
-  // For single background images, create a subtle parallax effect by adjusting position
-  if (scene.background) {
-    // Create a subtle vertical movement effect for the background
-    const time = scene.time.now * 0.001; // Convert to seconds
-    const parallaxOffset = Math.sin(time * 0.3) * 1; // Very subtle sine wave movement
-    scene.background.tilePositionY = parallaxOffset;
-  }
+  // Update road markings and road surface position (they have no physics)
+  scene.children.list.forEach((child: any) => {
+    if (child.getData && child.getData('isMoving')) {
+      if (child.body) {
+        // Objects with physics bodies
+        if (child.fillColor !== undefined && child.fillColor === 0xffffff) {
+          // Road marking with physics (if any)
+          child.body.setVelocityY(scene.gameSpeed);
+        } else if (child.fillColor !== undefined && child.fillColor === 0x333333) {
+          // Road surface with physics (if any)
+          child.body.setVelocityY(scene.gameSpeed);
+        }
+      } else {
+        // Visual objects without physics
+        if (child.fillColor !== undefined && (child.fillColor === 0xffffff || child.fillColor === 0x333333)) {
+          child.y += scene.gameSpeed * (scene.game.loop.delta / 1000);
+        }
+      }
+
+      // Remove if off screen
+      if (child.y > scene.scale.height + 100) {
+        child.destroy();
+      }
+    }
+  });
+
+  // Background is static for proper full-screen coverage
+  // Removed parallax effect to ensure consistent coverage
   
   // Apply health effects based on specifications
   if (scene.gameData.health < 25) {
@@ -922,4 +1130,6 @@ export function updateGame(scene: GameScene) {
   } else {
     scene.cameras.main.setAlpha(1);
   }
+
+  // Removed speed burst logic
 }

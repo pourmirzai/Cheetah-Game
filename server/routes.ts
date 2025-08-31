@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameSessionSchema, insertGameEventSchema, insertLeaderboardSchema } from "@shared/schema";
+import { insertGameSessionSchema, insertGameEventSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { createCanvas } from "canvas";
 import * as fs from "fs";
@@ -55,26 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Session not found' });
       }
 
-      // Create leaderboard entry only if it doesn't exist
-      const cubsSurvived = validatedData.cubsSurvived ?? 0;
-      const monthsCompleted = validatedData.monthsCompleted ?? 0;
-      const finalScore = validatedData.finalScore ?? 0;
-      const achievementTitle = getAchievementTitle(cubsSurvived, monthsCompleted);
-      try {
-        await storage.createLeaderboardEntry({
-          sessionId: validatedData.sessionId,
-          cubsSurvived,
-          monthsCompleted,
-          finalScore,
-          province: validatedData.province,
-          achievementTitle
-        });
-      } catch (error: any) {
-        // Ignore if leaderboard entry already exists
-        if (!error.code || error.code !== '23505') {
-          throw error;
-        }
-      }
+      // Calculate achievement title
+      const achievementTitle = getAchievementTitle(session.cubsSurvived, session.monthsCompleted);
 
       // Update daily stats
       const today = new Date().toISOString().split('T')[0];
@@ -99,22 +81,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Leaderboard routes
-  app.get("/api/leaderboard", async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const topPlayers = await storage.getTopPlayers(limit);
-      const todayStats = await storage.getTodayStats();
-      
-      res.json({
-        topPlayers,
-        stats: todayStats
-      });
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error);
-      res.status(500).json({ error: 'Failed to fetch leaderboard' });
-    }
-  });
 
   // Story card generation
   app.post("/api/generate-story-card", async (req, res) => {

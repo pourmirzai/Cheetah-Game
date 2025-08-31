@@ -424,9 +424,12 @@
   50% { box-shadow: 0 0 20px rgba(255, 140, 66, 0.8); }
 }
 
-/* Phaser game canvas */
+/* Phaser game canvas - optimized for mobile quality */
 .phaser-canvas {
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
+  /* Remove pixelated rendering for smooth vector graphics */
+  image-rendering: auto;
+  image-rendering: smooth;
+  /* Ensure crisp rendering on high DPI displays */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

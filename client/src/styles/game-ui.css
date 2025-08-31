@@ -17,6 +17,25 @@
   position: absolute;
 }
 
+/* Tutorial modal should allow pointer events */
+.game-ui-container .fixed {
+  pointer-events: auto;
+}
+
+/* Modal overlay should allow pointer events */
+.game-ui-container [class*="bg-black/"] {
+  pointer-events: auto;
+}
+
+/* Specifically target tutorial modal */
+.game-ui-container .fixed.inset-0.bg-black\/70 {
+  pointer-events: auto;
+}
+
+.game-ui-container .fixed.inset-0.bg-black\/70 * {
+  pointer-events: auto;
+}
+
 /* Perfect Centering Utilities */
 .perfect-center {
   position: absolute;
@@ -45,6 +64,14 @@
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 20;
+}
+
+.top-ui-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
   z-index: 20;
 }
 
@@ -265,6 +292,16 @@
     padding: 6px 10px;
     font-size: 12px;
   }
+
+  .top-ui-bar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .top-ui-bar .game-ui-card {
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -281,6 +318,26 @@
   .health-bar-container,
   .energy-bar-container {
     height: 24px;
+  }
+
+  .top-ui-bar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .top-ui-bar .game-ui-card {
+    padding: 6px 8px;
+  }
+
+  .top-ui-bar .flex {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .top-ui-bar .flex-1 {
+    flex: 1 1 100%;
+    justify-content: center !important;
   }
 }
 
@@ -315,6 +372,43 @@
   .energy-bar-container {
     border: 2px solid #000;
   }
+}
+
+/* Mobile Optimized Styles */
+.top-ui-bar-mobile {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 20;
+}
+
+.game-ui-card-mobile {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+}
+
+.health-bar-container-mobile {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  background: #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.health-bar-fill-mobile {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Print Styles */

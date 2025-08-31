@@ -4,10 +4,9 @@ import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
 interface MainMenuProps {
   onStartGame: () => void;
   onShowTutorial: () => void;
-  onShowLeaderboard: () => void;
 }
 
-export default function MainMenu({ onStartGame, onShowTutorial, onShowLeaderboard }: MainMenuProps) {
+export default function MainMenu({ onStartGame, onShowTutorial }: MainMenuProps) {
   const [currentBackground, setCurrentBackground] = useState<BackgroundConfig | null>(null);
 
   useEffect(() => {
@@ -19,88 +18,81 @@ export default function MainMenu({ onStartGame, onShowTutorial, onShowLeaderboar
   const backgroundStyle = currentBackground ? backgroundManager.getBackgroundStyle(currentBackground) : {};
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center md-motion-standard" data-testid="main-menu">
+    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center md-motion-standard min-h-screen" data-testid="main-menu">
       {/* Dynamic background */}
       <div className="absolute inset-0" style={backgroundStyle}></div>
 
       {/* Main content container */}
-      <div className="relative z-10 w-full max-w-2xl space-y-8">
+      <div className="relative z-10 w-full max-w-2xl space-y-6 sm:space-y-8 px-4">
         {/* Header section with Material Design card */}
-        <div className="md-elevated-card text-center space-y-4">
-          <div className="space-y-3">
-            <h1 className="text-4xl md:text-6xl font-black text-primary leading-tight md-motion-emphasized">
+        <div className="md-elevated-card text-center space-y-6">
+          <div className="space-y-4">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-primary leading-tight md-motion-emphasized drop-shadow-lg">
               نجات یوز ایران
             </h1>
-            <p className="text-lg md:text-xl text-secondary font-medium leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-secondary font-semibold leading-relaxed">
               بازی حفاظت از یوزپلنگ آسیایی
             </p>
           </div>
 
           {/* Enhanced cheetah family illustration */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             {/* Mother cheetah with enhanced Material Design styling */}
-            <div className="w-24 h-14 bg-tertiary cheetah-spots rounded-2xl mx-auto mb-6 relative shadow-lg md-motion-standard">
-              <div className="absolute top-2 right-3 w-3 h-3 bg-on-tertiary rounded-full shadow-sm"></div>
-              <div className="absolute top-2 left-3 w-3 h-3 bg-on-tertiary rounded-full shadow-sm"></div>
-              <div className="absolute bottom-2 right-8 w-2 h-2 bg-on-tertiary rounded-full shadow-sm"></div>
-              {/* Enhanced eyes */}
-              <div className="absolute top-3 right-4 w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-              <div className="absolute top-3 left-4 w-1 h-1 bg-primary rounded-full animate-pulse"></div>
+            <div className="w-48 h-26 bg-gradient-to-br from-tertiary to-tertiary/80   mx-auto mb-8 relative  md-motion-standard">
+              <img src="/assets/sprites/characters/mother-cheetah.png" alt="Cheetah Mother" className=""></img>
             </div>
             {/* Four cubs following with Material Design styling */}
-            <div className="flex justify-center space-x-3 space-x-reverse">
-              <div className="w-10 h-7 bg-tertiary cheetah-spots rounded-xl cub-follow shadow-md md-motion-standard"></div>
-              <div className="w-10 h-7 bg-tertiary cheetah-spots rounded-xl cub-follow shadow-md md-motion-standard" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-10 h-7 bg-tertiary cheetah-spots rounded-xl cub-follow shadow-md md-motion-standard" style={{ animationDelay: '0.4s' }}></div>
-              <div className="w-10 h-7 bg-tertiary cheetah-spots rounded-xl cub-follow shadow-md md-motion-standard" style={{ animationDelay: '0.6s' }}></div>
+            <div className="flex justify-center space-x-4 space-x-reverse">
+              <img src="/assets/sprites/characters/cub.png" alt="Cheetah Cub 1" className="w-12 h-8 bg-gradient-to-br from-tertiary to-tertiary/80 cub-follow  md-motion-standard" />
+              <img src="/assets/sprites/characters/cub.png" alt="Cheetah Cub 2" className="w-12 h-8 bg-gradient-to-br from-tertiary to-tertiary/80 cub-follow  md-motion-standard" />
+              <img src="/assets/sprites/characters/cub.png" alt="Cheetah Cub 3" className="w-12 h-8 bg-gradient-to-br from-tertiary to-tertiary/80 cub-follow  md-motion-standard" />
+              <img src="/assets/sprites/characters/cub.png" alt="Cheetah Cub 4" className="w-12 h-8  from-tertiary to-tertiary/80 cub-follow md-motion-standard" />
             </div>
           </div>
-        </div>
 
         {/* Game description with Material Design card */}
-        <div className="md-card">
-          <p className="text-base text-on-surface-variant leading-relaxed">
-            مادر یوزپلنگ خود و ۴ توله‌اش را در ۱۸ ماه سخت به استقلال برسان. از موانع دوری کن، منابع جمع‌آوری کن و خانواده را نجات بده.
+        <div className="md-card max-w-lg mx-auto">
+          <p className="text-lg text-on-surface-variant leading-relaxed font-medium text-center">
+            مادر یوزپلنگ خود و ۴ توله‌اش را در ۱۸ ماه سخت به استقلال برسان.<br />
+            از موانع دوری کن، منابع جمع‌آوری کن و خانواده را نجات بده.
           </p>
         </div>
 
         {/* Action buttons with Material Design styling */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Primary action button */}
           <button
             onClick={onStartGame}
-            className="md-filled-button w-full text-lg font-semibold py-4 px-8 md-motion-emphasized"
+            className="md-filled-button w-full max-w-sm mx-auto text-lg sm:text-xl font-bold py-4 sm:py-5 px-8 sm:px-10 md-motion-emphasized shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
             data-testid="button-start-game"
           >
-            شروع بازی
+            🎮 شروع بازی
           </button>
 
           {/* Secondary action buttons */}
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full max-w-md mx-auto">
             <button
               onClick={onShowTutorial}
-              className="md-outlined-button px-6 py-3 font-medium"
+              className="md-outlined-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg hover:bg-primary hover:text-on-primary transition-all duration-200"
               data-testid="button-tutorial"
             >
-              آموزش
-            </button>
-            <button
-              onClick={onShowLeaderboard}
-              className="md-outlined-button px-6 py-3 font-medium"
-              data-testid="button-leaderboard"
-            >
-              جدول امتیازات
+              📚 آموزش
             </button>
           </div>
         </div>
 
         {/* Footer with Material Design styling */}
-        <div className="text-center">
-          <p className="text-sm text-on-surface-variant">
+        <div className="text-center mt-8">
+          <p className="text-base text-on-surface-variant font-medium">
             ساخته شده با ❤️ برای حفاظت از یوزپلنگ آسیایی
           </p>
+          <div className="mt-4 flex justify-center space-x-6 space-x-reverse">
+            <span className="text-sm text-on-surface-variant/70">نسخه ۱.۰.۰</span>
+            <span className="text-sm text-on-surface-variant/70">۱۴۰۳</span>
+          </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

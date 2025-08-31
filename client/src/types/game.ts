@@ -1,5 +1,5 @@
 export interface GameState {
-  currentScreen: 'menu' | 'game' | 'tutorial' | 'leaderboard' | 'gameOver' | 'shareCard';
+  currentScreen: 'menu' | 'game' | 'tutorial' | 'gameOver' | 'shareCard';
   isPlaying: boolean;
   isPaused: boolean;
   sessionId: string | null;
@@ -31,22 +31,6 @@ export interface GameResults {
   conservationMessage: string;
 }
 
-export interface LeaderboardEntry {
-  id: string;
-  playerName: string;
-  cubsSurvived: number;
-  monthsCompleted: number;
-  finalScore: number;
-  province?: string;
-  achievementTitle?: string;
-  createdAt: string;
-}
-
-export interface LeaderboardStats {
-  totalGames: number;
-  avgSurvived: number;
-  avgMonths: number;
-}
 
 export interface GameObject {
   id: string;

@@ -4,12 +4,12 @@ import MainMenu from "./MainMenu";
 import GameUI from "./GameUI";
 import Tutorial from "./Tutorial";
 import GameOver from "./GameOver";
-import Leaderboard from "./Leaderboard";
 import ShareCard from "./ShareCard";
 import PhaserGame from "./PhaserGame";
 import { GameState, GameData, GameResults } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
 import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
+import { updateBestScore } from "@/lib/cookieStorage";
 
 const initialGameState: GameState = {
   currentScreen: 'menu',
@@ -99,6 +99,18 @@ export default function GameContainer() {
         conservationMessage: getConservationMessage(results.deathCause)
       };
 
+      // Save best score to cookies
+      const isNewBest = updateBestScore({
+        cubsSurvived: finalResults.cubsSurvived,
+        monthsCompleted: finalResults.monthsCompleted,
+        finalScore: finalResults.finalScore,
+        achievementTitle: finalResults.achievementTitle
+      });
+
+      if (isNewBest) {
+        console.log('🎉 New best score saved!');
+      }
+
       setGameResults(finalResults);
       setGameState(prev => ({
         ...prev,
@@ -130,19 +142,21 @@ export default function GameContainer() {
   }, []);
 
   const onTutorialComplete = useCallback(() => {
-    console.log('Tutorial completed, starting actual game...');
+    console.log('🎯 onTutorialComplete called in GameContainer');
+    console.log('Setting game state to playing...');
     setGameState(prev => ({ ...prev, isPlaying: true }));
+    console.log('Setting gameStarted to true...');
     setGameStarted(true);
+    console.log('✅ Tutorial completion process finished');
   }, []);
 
   return (
     <div className="relative w-full h-screen overflow-hidden" data-testid="game-container">
       {/* Main Menu Screen */}
       {gameState.currentScreen === 'menu' && (
-        <MainMenu 
+        <MainMenu
           onStartGame={startGame}
           onShowTutorial={() => showScreen('tutorial')}
-          onShowLeaderboard={() => showScreen('leaderboard')}
         />
       )}
 
@@ -178,10 +192,6 @@ export default function GameContainer() {
         />
       )}
 
-      {/* Leaderboard Screen */}
-      {gameState.currentScreen === 'leaderboard' && (
-        <Leaderboard onClose={() => showScreen('menu')} />
-      )}
 
       {/* Share Card Screen */}
       {gameState.currentScreen === 'shareCard' && gameResults && (

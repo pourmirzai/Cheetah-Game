@@ -32,17 +32,6 @@ export const gameEvents = pgTable("game_events", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
-export const leaderboard = pgTable("leaderboard", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: text("session_id").notNull().unique(),
-  playerName: text("player_name").default("بازیکن ناشناس"),
-  cubsSurvived: integer("cubs_survived").notNull(),
-  monthsCompleted: integer("months_completed").notNull(),
-  finalScore: integer("final_score").notNull(),
-  province: text("province"),
-  achievementTitle: text("achievement_title"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
 
 export const gameStats = pgTable("game_stats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -66,12 +55,6 @@ export const gameEventsRelations = relations(gameEvents, ({ one }) => ({
   }),
 }));
 
-export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
-  session: one(gameSessions, {
-    fields: [leaderboard.sessionId],
-    references: [gameSessions.sessionId],
-  }),
-}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -89,10 +72,6 @@ export const insertGameEventSchema = createInsertSchema(gameEvents).omit({
   timestamp: true,
 });
 
-export const insertLeaderboardSchema = createInsertSchema(leaderboard).omit({
-  id: true,
-  createdAt: true,
-});
 
 export const insertGameStatsSchema = createInsertSchema(gameStats).omit({
   id: true,
@@ -109,8 +88,6 @@ export type GameSession = typeof gameSessions.$inferSelect;
 export type InsertGameEvent = z.infer<typeof insertGameEventSchema>;
 export type GameEvent = typeof gameEvents.$inferSelect;
 
-export type InsertLeaderboard = z.infer<typeof insertLeaderboardSchema>;
-export type LeaderboardEntry = typeof leaderboard.$inferSelect;
 
 export type InsertGameStats = z.infer<typeof insertGameStatsSchema>;
 export type GameStats = typeof gameStats.$inferSelect;

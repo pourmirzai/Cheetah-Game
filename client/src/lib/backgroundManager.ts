@@ -27,7 +27,7 @@ export class BackgroundManager {
       {
         id: 'spring-bg',
         name: 'بهار',
-        path: '/assets/backgrounds/spring-bg.jpg',
+        path: '/assets/backgrounds/spring-bg.png',
         type: 'image',
         season: 'spring'
       },
@@ -48,7 +48,7 @@ export class BackgroundManager {
       {
         id: 'winter-bg',
         name: 'زمستان',
-        path: '/assets/backgrounds/winter-bg.jpg',
+        path: '/assets/backgrounds/winter-bg.png',
         type: 'image',
         season: 'winter'
       }

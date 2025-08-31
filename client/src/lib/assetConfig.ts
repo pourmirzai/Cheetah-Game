@@ -35,10 +35,10 @@ export const ASSET_PATHS = {
 // Asset Loading Configuration
 export const ASSET_LOAD_CONFIG = {
   obstacles: [
-    { texture: 'dog-obstacle-pixel', path: ASSET_PATHS.obstacles.dog },
+    { texture: 'dog-obstacle', path: ASSET_PATHS.obstacles.dog },
     { texture: 'poacher', path: ASSET_PATHS.obstacles.poacher },
-    { texture: 'car-pixel', path: ASSET_PATHS.obstacles.car },
-    { texture: 'camel-obstacle-pixel', path: ASSET_PATHS.obstacles.camel }
+    { texture: 'car', path: ASSET_PATHS.obstacles.car },
+    { texture: 'camel-obstacle', path: ASSET_PATHS.obstacles.camel }
   ],
 
   backgrounds: [
@@ -49,23 +49,23 @@ export const ASSET_LOAD_CONFIG = {
   ],
 
   resources: [
-    { texture: 'water-resource-pixel', path: ASSET_PATHS.resources.water },
-    { texture: 'gazelle-resource-pixel', path: ASSET_PATHS.resources.gazelle },
-    { texture: 'rabbit-resource-pixel', path: ASSET_PATHS.resources.rabbit }
+    { texture: 'water-resource', path: ASSET_PATHS.resources.water },
+    { texture: 'gazelle-resource', path: ASSET_PATHS.resources.gazelle },
+    { texture: 'rabbit-resource', path: ASSET_PATHS.resources.rabbit }
   ],
 
   characters: [
-    { texture: 'mother-cheetah-pixel', path: ASSET_PATHS.characters.motherCheetah },
-    { texture: 'cub-pixel', path: ASSET_PATHS.characters.cub }
+    { texture: 'mother-cheetah', path: ASSET_PATHS.characters.motherCheetah },
+    { texture: 'cub', path: ASSET_PATHS.characters.cub }
   ]
 } as const;
 
 // Obstacle Configuration
 export const OBSTACLE_CONFIG = {
   types: [
-    { type: 'dog', texture: 'dog-obstacle-pixel' },
+    { type: 'dog', texture: 'dog-obstacle' },
     { type: 'poacher', texture: 'poacher' },
-    { type: 'camel', texture: 'camel-obstacle-pixel' }
+    { type: 'camel', texture: 'camel-obstacle' }
   ],
 
   sizes: {
@@ -84,9 +84,9 @@ export const OBSTACLE_CONFIG = {
 // Resource Configuration
 export const RESOURCE_CONFIG = {
   types: [
-    { type: 'water', texture: 'water-resource-pixel', healthGain: 15 },
-    { type: 'gazelle', texture: 'gazelle-resource-pixel', healthGain: 25 },
-    { type: 'rabbit', texture: 'rabbit-resource-pixel', healthGain: 10 }
+    { type: 'water', texture: 'water-resource', healthGain: 15 },
+    { type: 'gazelle', texture: 'gazelle-resource', healthGain: 25 },
+    { type: 'rabbit', texture: 'rabbit-resource', healthGain: 10 }
   ],
 
   maxSize: 30
@@ -105,12 +105,12 @@ export const BACKGROUND_CONFIG = {
 // Character Configuration
 export const CHARACTER_CONFIG = {
   motherCheetah: {
-    texture: 'mother-cheetah-pixel',
+    texture: 'mother-cheetah',
     scale: 0.5
   },
 
   cub: {
-    texture: 'cub-pixel',
+    texture: 'cub',
     scale: 0.5
   }
 } as const;

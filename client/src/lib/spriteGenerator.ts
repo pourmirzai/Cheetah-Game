@@ -48,7 +48,7 @@ export function createMotherCheetahSprite(graphics: Phaser.GameObjects.Graphics)
   graphics.fillRect(6, 6, 2, 2);
   graphics.fillRect(24, 6, 2, 2);
 
-  return 'mother-cheetah-pixel';
+  return 'mother-cheetah';
 }
 
 export function createCubSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -84,7 +84,7 @@ export function createCubSprite(graphics: Phaser.GameObjects.Graphics): string {
   graphics.fillRect(3, 2, 1, 1);
   graphics.fillRect(12, 2, 1, 1);
 
-  return 'cub-pixel';
+  return 'cub';
 }
 
 export function createDogObstacleSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -118,7 +118,7 @@ export function createDogObstacleSprite(graphics: Phaser.GameObjects.Graphics): 
   graphics.fillStyle(colors.outline);
   graphics.fillRect(10, 12, 4, 4);
 
-  return 'dog-obstacle-pixel';
+  return 'dog-obstacle';
 }
 
 export function createCamelObstacleSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -159,7 +159,7 @@ export function createCamelObstacleSprite(graphics: Phaser.GameObjects.Graphics)
   graphics.fillStyle(colors.body);
   graphics.fillRect(26, 6, 4, 8);
 
-  return 'camel-obstacle-pixel';
+  return 'camel-obstacle';
 }
 
 export function createWaterResourceSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -183,7 +183,7 @@ export function createWaterResourceSprite(graphics: Phaser.GameObjects.Graphics)
   graphics.fillRect(4, 4, 6, 6);
   graphics.fillRect(10, 6, 4, 4);
 
-  return 'water-resource-pixel';
+  return 'water-resource';
 }
 
 export function createGazelleResourceSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -213,7 +213,7 @@ export function createGazelleResourceSprite(graphics: Phaser.GameObjects.Graphic
   graphics.fillStyle(colors.body);
   graphics.fillRect(16, 4, 4, 4);
 
-  return 'gazelle-resource-pixel';
+  return 'gazelle-resource';
 }
 
 export function createRabbitResourceSprite(graphics: Phaser.GameObjects.Graphics): string {
@@ -243,7 +243,7 @@ export function createRabbitResourceSprite(graphics: Phaser.GameObjects.Graphics
   graphics.fillRect(3, 3, 1, 1);
   graphics.fillRect(8, 3, 1, 1);
 
-  return 'rabbit-resource-pixel';
+  return 'rabbit-resource';
 }
 
 export function createBackgroundTexture(graphics: Phaser.GameObjects.Graphics, season: string): string {

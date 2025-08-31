@@ -1,11 +1,12 @@
-import { 
-  users, gameSessions, gameEvents, leaderboard, gameStats,
+import {
+  users, gameSessions, gameEvents, gameStats,
   type User, type InsertUser, type GameSession, type InsertGameSession,
-  type GameEvent, type InsertGameEvent, type LeaderboardEntry, type InsertLeaderboard,
+  type GameEvent, type InsertGameEvent,
   type GameStats, type InsertGameStats
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
+// Temporarily disabled database imports for in-memory storage
+// import { db } from "./db";
+// import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -21,113 +22,102 @@ export interface IStorage {
   createGameEvent(event: InsertGameEvent): Promise<GameEvent>;
   getGameEvents(sessionId: string): Promise<GameEvent[]>;
   
-  // Leaderboard
-  createLeaderboardEntry(entry: InsertLeaderboard): Promise<LeaderboardEntry>;
-  getTopPlayers(limit?: number): Promise<LeaderboardEntry[]>;
-  getTodayStats(): Promise<{ totalGames: number; avgSurvived: number; avgMonths: number }>;
   
   // Statistics
   updateDailyStats(date: string): Promise<void>;
   getGameStats(date: string): Promise<GameStats | undefined>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class InMemoryStorage implements IStorage {
+  private users: User[] = [];
+  private gameSessions: GameSession[] = [];
+  private gameEvents: GameEvent[] = [];
+  private gameStatsData: GameStats[] = [];
+
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return this.users.find(user => user.id === id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return this.users.find(user => user.username === username);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const user: User = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...insertUser
+    };
+    this.users.push(user);
     return user;
   }
 
   async createGameSession(session: InsertGameSession): Promise<GameSession> {
-    const [gameSession] = await db
-      .insert(gameSessions)
-      .values(session)
-      .returning();
+    const gameSession: GameSession = {
+      id: Math.random().toString(36).substr(2, 9),
+      sessionId: session.sessionId,
+      cubsSurvived: session.cubsSurvived ?? 0,
+      monthsCompleted: session.monthsCompleted ?? 0,
+      finalScore: session.finalScore ?? 0,
+      gameTime: session.gameTime ?? 0,
+      deathCause: session.deathCause ?? null,
+      deviceType: session.deviceType ?? null,
+      province: session.province ?? null,
+      achievements: session.achievements ?? [],
+      createdAt: new Date()
+    };
+    this.gameSessions.push(gameSession);
     return gameSession;
   }
 
   async getGameSession(sessionId: string): Promise<GameSession | undefined> {
-    const [session] = await db
-      .select()
-      .from(gameSessions)
-      .where(eq(gameSessions.sessionId, sessionId));
-    return session || undefined;
+    return this.gameSessions.find(session => session.sessionId === sessionId);
   }
 
   async updateGameSession(sessionId: string, updates: Partial<InsertGameSession>): Promise<GameSession | undefined> {
-    const [session] = await db
-      .update(gameSessions)
-      .set(updates)
-      .where(eq(gameSessions.sessionId, sessionId))
-      .returning();
-    return session || undefined;
+    const sessionIndex = this.gameSessions.findIndex(session => session.sessionId === sessionId);
+    if (sessionIndex === -1) return undefined;
+
+    this.gameSessions[sessionIndex] = { ...this.gameSessions[sessionIndex], ...updates };
+    return this.gameSessions[sessionIndex];
   }
 
   async createGameEvent(event: InsertGameEvent): Promise<GameEvent> {
-    const [gameEvent] = await db
-      .insert(gameEvents)
-      .values(event)
-      .returning();
+    const gameEvent: GameEvent = {
+      id: Math.random().toString(36).substr(2, 9),
+      sessionId: event.sessionId,
+      eventType: event.eventType,
+      eventData: event.eventData ?? null,
+      timestamp: new Date()
+    };
+    this.gameEvents.push(gameEvent);
     return gameEvent;
   }
 
   async getGameEvents(sessionId: string): Promise<GameEvent[]> {
-    return await db
-      .select()
-      .from(gameEvents)
-      .where(eq(gameEvents.sessionId, sessionId))
-      .orderBy(asc(gameEvents.timestamp));
+    return this.gameEvents
+      .filter(event => event.sessionId === sessionId)
+      .sort((a, b) => (a.timestamp?.getTime() ?? 0) - (b.timestamp?.getTime() ?? 0));
   }
 
-  async createLeaderboardEntry(entry: InsertLeaderboard): Promise<LeaderboardEntry> {
-    const [leaderboardEntry] = await db
-      .insert(leaderboard)
-      .values(entry)
-      .returning();
-    return leaderboardEntry;
-  }
-
-  async getTopPlayers(limit: number = 10): Promise<LeaderboardEntry[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return await db
-      .select()
-      .from(leaderboard)
-      .where(gte(leaderboard.createdAt, today))
-      .orderBy(desc(leaderboard.cubsSurvived), desc(leaderboard.monthsCompleted), desc(leaderboard.finalScore))
-      .limit(limit);
-  }
 
   async getTodayStats(): Promise<{ totalGames: number; avgSurvived: number; avgMonths: number }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    const [stats] = await db
-      .select({
-        totalGames: count(gameSessions.id),
-        avgSurvived: avg(gameSessions.cubsSurvived),
-        avgMonths: avg(gameSessions.monthsCompleted)
-      })
-      .from(gameSessions)
-      .where(gte(gameSessions.createdAt, today));
-    
+
+    const todaySessions = this.gameSessions.filter(session => session.createdAt && session.createdAt >= today);
+
+    if (todaySessions.length === 0) {
+      return { totalGames: 0, avgSurvived: 0, avgMonths: 0 };
+    }
+
+    const totalGames = todaySessions.length;
+    const avgSurvived = todaySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
+    const avgMonths = todaySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
+
     return {
-      totalGames: stats.totalGames || 0,
-      avgSurvived: parseFloat(stats.avgSurvived || "0"),
-      avgMonths: parseFloat(stats.avgMonths || "0")
+      totalGames,
+      avgSurvived: Math.round(avgSurvived * 10) / 10,
+      avgMonths: Math.round(avgMonths * 10) / 10
     };
   }
 
@@ -135,61 +125,50 @@ export class DatabaseStorage implements IStorage {
     const startDate = new Date(date);
     const endDate = new Date(date);
     endDate.setDate(endDate.getDate() + 1);
-    
-    const [stats] = await db
-      .select({
-        totalGames: count(gameSessions.id),
-        avgSurvived: avg(gameSessions.cubsSurvived),
-        avgMonths: avg(gameSessions.monthsCompleted)
-      })
-      .from(gameSessions)
-      .where(and(
-        gte(gameSessions.createdAt, startDate),
-        lt(gameSessions.createdAt, endDate)
-      ));
 
-    const mostCommonCause = await db
-      .select({
-        deathCause: gameSessions.deathCause,
-        count: count(gameSessions.id)
-      })
-      .from(gameSessions)
-      .where(and(
-        gte(gameSessions.createdAt, startDate),
-        lt(gameSessions.createdAt, endDate)
-      ))
-      .groupBy(gameSessions.deathCause)
-      .orderBy(desc(count(gameSessions.id)))
-      .limit(1);
+    const daySessions = this.gameSessions.filter(
+      session => session.createdAt && session.createdAt >= startDate && session.createdAt < endDate
+    );
 
-    await db
-      .insert(gameStats)
-      .values({
-        date,
-        totalGames: stats.totalGames || 0,
-        avgCubsSurvived: stats.avgSurvived?.toString() || "0.0",
-        avgMonthsCompleted: stats.avgMonths?.toString() || "0.0",
-        mostCommonDeathCause: mostCommonCause[0]?.deathCause || null
-      })
-      .onConflictDoUpdate({
-        target: gameStats.date,
-        set: {
-          totalGames: stats.totalGames || 0,
-          avgCubsSurvived: stats.avgSurvived?.toString() || "0.0",
-          avgMonthsCompleted: stats.avgMonths?.toString() || "0.0",
-          mostCommonDeathCause: mostCommonCause[0]?.deathCause || null,
-          updatedAt: new Date()
-        }
-      });
+    if (daySessions.length === 0) return;
+
+    const totalGames = daySessions.length;
+    const avgSurvived = daySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
+    const avgMonths = daySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
+
+    // Count death causes
+    const deathCauseCount: { [key: string]: number } = {};
+    daySessions.forEach(session => {
+      if (session.deathCause) {
+        deathCauseCount[session.deathCause] = (deathCauseCount[session.deathCause] || 0) + 1;
+      }
+    });
+
+    const mostCommonCause = Object.entries(deathCauseCount)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || null;
+
+    const existingStatsIndex = this.gameStatsData.findIndex(stats => stats.date === date);
+
+    const stats: GameStats = {
+      id: existingStatsIndex >= 0 ? this.gameStatsData[existingStatsIndex].id : Math.random().toString(36).substr(2, 9),
+      date,
+      totalGames,
+      avgCubsSurvived: avgSurvived.toFixed(1),
+      avgMonthsCompleted: avgMonths.toFixed(1),
+      mostCommonDeathCause: mostCommonCause,
+      updatedAt: new Date()
+    };
+
+    if (existingStatsIndex >= 0) {
+      this.gameStatsData[existingStatsIndex] = stats;
+    } else {
+      this.gameStatsData.push(stats);
+    }
   }
 
   async getGameStats(date: string): Promise<GameStats | undefined> {
-    const [stats] = await db
-      .select()
-      .from(gameStats)
-      .where(eq(gameStats.date, date));
-    return stats || undefined;
+    return this.gameStatsData.find(stats => stats.date === date);
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new InMemoryStorage();
