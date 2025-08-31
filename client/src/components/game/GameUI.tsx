@@ -11,6 +11,7 @@ interface GameUIProps {
 export default function GameUI({ gameData, onTutorialComplete, gameStarted }: GameUIProps) {
   const [showLowHealthWarning, setShowLowHealthWarning] = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   // Show guide modal when game hasn't started yet (tutorial not completed)
   useEffect(() => {
@@ -32,6 +33,40 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted }: Ga
       setShowLowHealthWarning(false);
     }
   }, [gameData.health]);
+
+  // Handle viewport height changes for mobile devices
+  useEffect(() => {
+    const handleViewportChange = () => {
+      // Use requestAnimationFrame to ensure we get the correct height after any layout changes
+      requestAnimationFrame(() => {
+        const newHeight = window.innerHeight;
+        if (Math.abs(newHeight - viewportHeight) > 10) { // Only update if significant change
+          setViewportHeight(newHeight);
+          // Force a re-render by updating a CSS custom property
+          document.documentElement.style.setProperty('--vh', `${newHeight * 0.01}px`);
+        }
+      });
+    };
+
+    // Listen for various events that might cause viewport changes
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('orientationchange', handleViewportChange);
+    // Also listen for visual viewport changes if supported
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+    }
+
+    // Set initial custom property
+    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportChange);
+      }
+    };
+  }, [viewportHeight]);
 
 
   const seasonColors = {
@@ -156,7 +191,7 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted }: Ga
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 text-sm">حرکت</h3>
-                  <p className="text-xs text-gray-600">برای تغییر مسیر مادر یوز و توله‌ها را لمس کنید</p>
+                  <p className="text-xs text-gray-600">برای تغییر مسیر، مادر و توله‌ها را لمس کنید</p>
                 </div>
               </div>
 

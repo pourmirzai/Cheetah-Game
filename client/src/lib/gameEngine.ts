@@ -74,7 +74,11 @@ export function initializeGame(
 
   const gameScene = scene as GameScene;
   gameScene.gameData = gameData;
-  gameScene.onUpdateGameData = onUpdateGameData;
+  // Wrap onUpdateGameData to keep scene's gameData in sync
+  gameScene.onUpdateGameData = (updates: Partial<GameData>) => {
+    gameScene.gameData = { ...gameScene.gameData, ...updates };
+    onUpdateGameData(updates);
+  };
   gameScene.onGameEnd = onGameEnd;
   gameScene.sessionId = sessionId;
   gameScene.cubs = [];
@@ -581,6 +585,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     y = y - 80;
     obstacle = scene.add.sprite(x, y, texture);
 
+    // Disable physics for camel sprite - only warning zone should have collision
+    obstacle.setData('noPhysics', true);
+
     // Create circular warning zone around camel (yellow instead of red)
     const warningZoneRadius = 19.6; // 28 * 0.7 = 19.6 (additional 30% smaller)
     const warningZone = scene.add.circle(x, y, warningZoneRadius, 0xffff00, 0); // Invisible yellow circle
@@ -659,32 +666,42 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     obstacle.setData('warningZone', warningZone);
     obstacle.setData('warningZoneGlow', warningZoneGlow);
 
+    // Initialize damage cooldown timestamp
+    obstacle.setData('lastDamageTime', 0);
+
     // Collision detection for warning zone (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && warningZone && warningZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, warningZone, () => {
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && warningZone?.active) {
-          if (scene.audioManager) scene.audioManager.onHitObstacle(obstacleInfo.type);
+          // Check if 3 seconds have passed since last damage from this camel
+          const currentTime = Date.now();
+          const lastDamageTime = obstacle.getData('lastDamageTime') || 0;
+          const timeSinceLastDamage = currentTime - lastDamageTime;
 
-          // Reduce health by 30% instead of ending game
-          const healthReduction = Math.floor(scene.gameData.health * 0.3);
-          scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
-          scene.onUpdateGameData({ health: scene.gameData.health });
+          if (timeSinceLastDamage >= 3000) { // 3 seconds cooldown
+            if (scene.audioManager) scene.audioManager.onHitObstacle(obstacleInfo.type);
 
-          // Add screen flash effect (dark then light for 1 second)
-          addScreenFlash(scene);
+            // Reduce health by 30% instead of ending game
+            const healthReduction = Math.floor(scene.gameData.health * 0.3);
+            scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+            scene.onUpdateGameData({ health: scene.gameData.health });
 
-          trackEvent('collision', {
-            sessionId: scene.sessionId,
-            type: 'health_reduced',
-            obstacleType: obstacleInfo.type,
-            healthReduction: healthReduction,
-            month: scene.gameData.currentMonth
-          });
+            // Update last damage timestamp
+            obstacle.setData('lastDamageTime', currentTime);
 
-          // Check for starvation after health reduction
-          if (scene.gameData.health <= 0) {
-            endGame(scene, 'starvation');
+            // Check for starvation after health reduction
+            if (scene.gameData.health <= 0) {
+              endGame(scene, 'starvation');
+            }
+
+            trackEvent('collision', {
+              sessionId: scene.sessionId,
+              type: 'health_reduced',
+              obstacleType: obstacleInfo.type,
+              healthReduction: healthReduction,
+              month: scene.gameData.currentMonth
+            });
           }
         }
       });
@@ -696,26 +713,33 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
           scene.physics.add.overlap(cub, warningZone, () => {
             // Double-check objects are still active before processing collision
             if (cub?.active && warningZone?.active && scene.cubs[index] === cub) {
-              // Reduce cub's health by 30% instead of removing cub
-              // Since cubs don't have individual health, we'll reduce overall health
-              const healthReduction = Math.floor(scene.gameData.health * 0.3);
-              scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
-              scene.onUpdateGameData({ health: scene.gameData.health });
+              // Check if 3 seconds have passed since last damage from this camel
+              const currentTime = Date.now();
+              const lastDamageTime = obstacle.getData('lastDamageTime') || 0;
+              const timeSinceLastDamage = currentTime - lastDamageTime;
 
-              // Add screen flash effect
-              addScreenFlash(scene);
+              if (timeSinceLastDamage >= 3000) { // 3 seconds cooldown
+                // Reduce cub's health by 30% instead of removing cub
+                // Since cubs don't have individual health, we'll reduce overall health
+                const healthReduction = Math.floor(scene.gameData.health * 0.3);
+                scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+                scene.onUpdateGameData({ health: scene.gameData.health });
 
-              trackEvent('collision', {
-                sessionId: scene.sessionId,
-                type: 'cub_health_reduced',
-                obstacleType: obstacleInfo.type,
-                healthReduction: healthReduction,
-                month: scene.gameData.currentMonth
-              });
+                // Update last damage timestamp
+                obstacle.setData('lastDamageTime', currentTime);
 
-              // Check for starvation after health reduction
-              if (scene.gameData.health <= 0) {
-                endGame(scene, 'starvation');
+                // Check for starvation after health reduction
+                if (scene.gameData.health <= 0) {
+                  endGame(scene, 'starvation');
+                }
+
+                trackEvent('collision', {
+                  sessionId: scene.sessionId,
+                  type: 'cub_health_reduced',
+                  obstacleType: obstacleInfo.type,
+                  healthReduction: healthReduction,
+                  month: scene.gameData.currentMonth
+                });
               }
             }
           });
@@ -863,7 +887,11 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     scene.obstacles = scene.add.group();
   }
   scene.obstacles.add(obstacle);
-  scene.physics.world.enable(obstacle);
+
+  // Only enable physics for non-camel obstacles
+  if (!obstacle.getData('noPhysics')) {
+    scene.physics.world.enable(obstacle);
+  }
   
   // Special handling for different obstacle types using centralized config
   const specialBehavior = GAME_ASSETS.obstacles.specialBehaviors[obstacleInfo.type as keyof typeof GAME_ASSETS.obstacles.specialBehaviors];
@@ -878,7 +906,8 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   }
 
   // Set initial velocity for obstacle (will be updated in updateGame)
-  if (obstacle.body) {
+  // Only set velocity if obstacle has physics (camels don't have physics bodies)
+  if (obstacle.body && !obstacle.getData('noPhysics')) {
     const body = obstacle.body as Phaser.Physics.Arcade.Body;
     body.setVelocityY(scene.gameSpeed);
   }
@@ -1116,45 +1145,6 @@ function collectResource(scene: GameScene, type: string) {
   console.log(`📊 Resource collected: ${type}, Health: +${healthGain}, Total Health: ${scene.gameData.health}`);
 }
 
-function addScreenFlash(scene: GameScene) {
-  // Create a full-screen flash effect (dark then light for 1 second)
-  const flashRect = scene.add.rectangle(
-    scene.scale.width / 2,
-    scene.scale.height / 2,
-    scene.scale.width,
-    scene.scale.height,
-    0x000000,
-    0.8
-  );
-  flashRect.setDepth(10); // Above everything
-
-  // Flash sequence: dark (0.2s) -> light (0.3s) -> normal (0.5s)
-  scene.tweens.add({
-    targets: flashRect,
-    alpha: 0.9,
-    duration: 200,
-    ease: 'Power2',
-    onComplete: () => {
-      scene.tweens.add({
-        targets: flashRect,
-        alpha: 0.3,
-        duration: 300,
-        ease: 'Power2',
-        onComplete: () => {
-          scene.tweens.add({
-            targets: flashRect,
-            alpha: 0,
-            duration: 500,
-            ease: 'Power2',
-            onComplete: () => {
-              flashRect.destroy();
-            }
-          });
-        }
-      });
-    }
-  });
-}
 
 function updateHealthAndEnergy(scene: GameScene) {
   // Progressive health decrease based on cub age/maturity
@@ -1281,15 +1271,21 @@ export function updateGame(scene: GameScene) {
   if (scene.obstacles && scene.obstacles.children) {
     scene.obstacles.children.entries.forEach((obstacle: any) => {
       // Enhanced safety checks to prevent processing destroyed objects
-      if (obstacle && obstacle.active && !obstacle.destroyed && obstacle.getData && obstacle.getData('isMoving') && obstacle.body) {
+      if (obstacle && obstacle.active && !obstacle.destroyed && obstacle.getData && obstacle.getData('isMoving')) {
         try {
-          obstacle.body.setVelocityY(scene.gameSpeed);
+          // Only update velocity if obstacle has physics body (camels don't have physics)
+          if (obstacle.body && !obstacle.getData('noPhysics')) {
+            obstacle.body.setVelocityY(scene.gameSpeed);
 
-          // Update horizontal velocity for cars (scale with game speed) - right to left
-          if (obstacle.texture && obstacle.texture.key === 'car') {
-            const baseHorizontalSpeed = 30;
-            const scaledHorizontalSpeed = -(baseHorizontalSpeed * (scene.gameSpeed / 200)); // Negative for right-to-left movement
-            obstacle.body.setVelocityX(scaledHorizontalSpeed);
+            // Update horizontal velocity for cars (scale with game speed) - right to left
+            if (obstacle.texture && obstacle.texture.key === 'car') {
+              const baseHorizontalSpeed = 30;
+              const scaledHorizontalSpeed = -(baseHorizontalSpeed * (scene.gameSpeed / 200)); // Negative for right-to-left movement
+              obstacle.body.setVelocityX(scaledHorizontalSpeed);
+            }
+          } else if (obstacle.getData('noPhysics')) {
+            // Manually move obstacles without physics (like camels)
+            obstacle.y += scene.gameSpeed * (scene.game.loop.delta / 1000);
           }
 
           // Update positions and velocities of danger/warning halos to match obstacle

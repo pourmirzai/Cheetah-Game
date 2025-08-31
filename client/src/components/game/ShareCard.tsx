@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GameResults } from "@/types/game";
+import html2canvas from "html2canvas";
+
+// Helper function to convert numbers to Persian digits
+function toPersianDigits(num: number): string {
+  return num.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);
+}
 
 // Background selection logic
 function getBackgroundForResults(results: GameResults, selectedTemplate?: string | null, style?: 'digital' | 'miniature'): string {
@@ -18,12 +24,11 @@ function getBackgroundForResults(results: GameResults, selectedTemplate?: string
 // Generate motivational text based on results
 function getMotivationalText(results: GameResults): string {
   if (results.monthsCompleted >= 18) {
-    const cubsText = results.cubsSurvived === 4 ? 'تمام خانواده' :
-                    results.cubsSurvived >= 2 ? 'بیشتر خانواده' : 'بخشی از خانواده';
-
-    return `یوزپلنگ آسیایی نماد قدرت و استقامت است. شما توانستید ${cubsText} را تا ۱۸ ماهگی زنده نگه دارید. این نشان‌دهنده اهمیت حفاظت از محیط زیست و حیات وحش است.`;
+    const cubsPersian = toPersianDigits(results.cubsSurvived);
+    return `خوشبختانه من موفق شدم یوزپلنگ مادر رو با ${cubsPersian} توله نجات بدم. شما هم برای نجات یوزپلنگ بازی کنید!`;
   } else {
-    return `یوزپلنگ آسیایی نماد قدرت و استقامت است. شما ${results.monthsCompleted} ماه توانستید خانواده را زنده نگه دارید. هر تلاشی برای حفاظت از طبیعت ارزشمند است.`;
+    const monthsPersian = toPersianDigits(results.monthsCompleted);
+    return `متاسفانه من فقط ${monthsPersian} ماه تونستم خانواده یوزپلنگ را زنده نگه دارم و در نهایت اونهارو از دست دادم. شما هم برای نجات یوزپلنگ بازی کنید!`;
   }
 }
 
@@ -111,71 +116,43 @@ function ClientSideSharePreview({ results, selectedTemplate, selectedStyle }: { 
 
   return (
     <div
-      className="flex flex-col justify-between text-center h-full p-4 bg-cover bg-center relative"
+      className="relative w-full h-full bg-cover bg-center"
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      {/* Main message box with black glassmorphism - positioned at 100px from top */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 top-[100px] w-11/12 max-w-md">
+        <div className=" p-2 shadow-xl  ">
 
-      <div className="relative z-10">
-        <h2 className="text-lg font-bold text-white">نجات یوز ایران</h2>
-        <p className="text-xs text-white/80 mt-1">نتایج من در بازی حفاظت</p>
-      </div>
+              
+            
 
-      <div className="space-y-4 relative z-10">
-        {results.monthsCompleted >= 18 && (
-          <div className="flex justify-center space-x-2 space-x-reverse">
-            {Array.from({ length: 4 }, (_, i) => (
-              <div
-                key={i}
-                className={`w-8 h-6 rounded-full ${
-                  i < results.cubsSurvived ? 'bg-yellow-400' : 'bg-white/30'
-                }`}
-              ></div>
-            ))}
-          </div>
-        )}
-
-        <div>
-          <div className="text-2xl font-bold text-white">
-            {results.monthsCompleted >= 18
-              ? `${results.cubsSurvived} توله نجات یافت`
-              : `${results.monthsCompleted} ماه مقاومت`}
-          </div>
-          <div className="text-sm text-white/90 mt-2 px-2">
-            {results.monthsCompleted >= 18
-              ? results.achievementTitle
-              : `مقاومت ${results.monthsCompleted} ماهه`}
+            <div className="text-xs text-white font-bold leading-relaxed border border-black/50 rounded p-1 bg-black/20" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.9), 0px 0px 4px rgba(0,0,0,1)' }}>
+              {motivationalText}
+            </div>
           </div>
         </div>
+      
 
-        <div className="text-xs text-white/80 font-medium px-2 leading-relaxed">
-          {motivationalText}
-        </div>
-
-        <div className="text-xs text-white font-medium">شما هم برای نجات یوزپلنگ بازی کنید!</div>
-      </div>
-
-      <div className="relative z-10">
-        <div className="text-xs text-white/70">#نجات_یوز_ایران</div>
-        <div className="text-xs text-white/70">سروین | {new Date().toLocaleDateString('fa-IR')}</div>
+      {/* Footer at 1240px from top */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 top-[430px] text-center">
+        <div className="text-xs text-white/90 font-small  py-1 border border-white/10">۹ شهریور <br/>روز ملی یوزپلنگ ایرانی</div>
       </div>
     </div>
   );
 }
 
 export default function ShareCard({ results, bestScore, onClose }: ShareCardProps) {
-  // Convert bestScore to GameResults format if provided
-  const gameResults: GameResults = results || {
-    cubsSurvived: bestScore!.cubsSurvived,
-    monthsCompleted: bestScore!.monthsCompleted,
-    finalScore: bestScore!.finalScore,
+  // Always use bestScore if provided, otherwise use results
+  const gameResults: GameResults = bestScore ? {
+    cubsSurvived: bestScore.cubsSurvived,
+    monthsCompleted: bestScore.monthsCompleted,
+    finalScore: bestScore.finalScore,
     gameTime: 0, // Not available in bestScore
     deathCause: undefined,
     achievements: [],
-    achievementTitle: bestScore!.achievementTitle,
+    achievementTitle: bestScore.achievementTitle,
     conservationMessage: 'یوزپلنگ آسیایی در معرض خطر انقراض است. با حمایت از حفاظت طبیعت به نجات این گونه کمک کنید.'
-  };
+  } : results!;
 
   const [isSharing, setIsSharing] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
@@ -184,19 +161,20 @@ export default function ShareCard({ results, bestScore, onClose }: ShareCardProp
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
   const [showTemplateSelector, setShowTemplateSelector] = useState(gameResults.monthsCompleted < 18);
   const [showStyleSelector, setShowStyleSelector] = useState(gameResults.monthsCompleted >= 18);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const generateShareText = () => {
     const motivationalText = getMotivationalText(gameResults);
 
     if (gameResults.monthsCompleted >= 18) {
-      return `${gameResults.cubsSurvived} توله یوزپلنگ نجات یافت در ${gameResults.monthsCompleted} ماه! ${gameResults.achievementTitle}
+      return `${toPersianDigits(gameResults.cubsSurvived)} توله یوزپلنگ نجات یافت در ${toPersianDigits(gameResults.monthsCompleted)} ماه! ${gameResults.achievementTitle}
 
 ${motivationalText}
 
 شما هم برای نجات یوزپلنگ آسیایی بازی کنید:
 #نجات_یوز_ایران #حفاظت_طبیعت #یوزپلنگ_آسیایی`;
     } else {
-      return `مقاومت ${gameResults.monthsCompleted} ماهه در نجات خانواده یوزپلنگ!
+      return `مقاومت ${toPersianDigits(gameResults.monthsCompleted)} ماهه در نجات خانواده یوزپلنگ!
 
 ${motivationalText}
 
@@ -218,19 +196,6 @@ ${motivationalText}
     setShareImageUrl(`/api/share-card/${sessionId}?bg=${encodeURIComponent(backgroundImage)}&text=${encodeURIComponent(motivationalText)}&style=${selectedStyle}`);
   }, [gameResults, selectedTemplate, selectedStyle]);
 
-  const shareToTelegram = async () => {
-    setIsSharing(true);
-    try {
-      const shareText = generateShareText();
-      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(shareText)}`;
-      window.open(telegramUrl, '_blank');
-    } catch (error) {
-      console.error('Error sharing to Telegram:', error);
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
   const shareToInstagram = async () => {
     setIsSharing(true);
     try {
@@ -250,6 +215,51 @@ ${motivationalText}
       console.error('Error sharing to Instagram:', error);
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const downloadImage = async () => {
+    setIsSharing(true);
+    try {
+      if (shareImageUrl && !imageLoadFailed) {
+        // Download the image from URL
+        const response = await fetch(shareImageUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'share-card.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else if (previewRef.current) {
+        // Use html2canvas for fallback preview
+        const canvas = await html2canvas(previewRef.current, {
+          backgroundColor: null,
+          scale: 2,
+          useCORS: true,
+        });
+        const link = document.createElement('a');
+        link.download = 'share-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('خطا در دانلود تصویر');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const copyGameLink = async () => {
+    try {
+      await navigator.clipboard.writeText('https://game.sarvinwildlife.com/');
+      alert('لینک بازی کپی شد!');
+    } catch (error) {
+      console.error('Error copying link:', error);
+      alert('خطا در کپی لینک');
     }
   };
 
@@ -282,7 +292,7 @@ ${motivationalText}
 
         {/* Generated story card preview (9:16 aspect ratio) */}
         {!showTemplateSelector && (
-          <div className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
+          <div ref={previewRef} className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
             {shareImageUrl && !imageLoadFailed ? (
               <img
                 src={shareImageUrl}
@@ -316,13 +326,32 @@ ${motivationalText}
                 اینستاگرام
               </button>
               <button
-                onClick={shareToTelegram}
+                onClick={downloadImage}
                 disabled={isSharing}
-                className="bg-blue-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
-                data-testid="button-share-telegram"
+                className="bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
+                data-testid="button-download-image"
               >
-                تلگرام
+                دانلود تصویر
               </button>
+            </div>
+
+            {/* Game link section */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-center text-primary">لینک بازی</h4>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value="https://game.sarvinwildlife.com/"
+                  readOnly
+                  className="flex-1 px-3 py-2 text-sm border rounded-lg bg-muted"
+                />
+                <button
+                  onClick={copyGameLink}
+                  className="bg-primary text-primary-foreground font-medium py-2 px-4 rounded-lg text-sm hover:bg-primary/90"
+                >
+                  کپی
+                </button>
+              </div>
             </div>
 
             <button

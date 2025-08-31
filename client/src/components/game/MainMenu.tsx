@@ -18,11 +18,10 @@ interface BestScore {
 
 interface MainMenuProps {
   onStartGame: () => void;
-  onShowTutorial: () => void;
   onDownloadStory?: (bestScore: BestScore) => void;
 }
 
-export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory }: MainMenuProps) {
+export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps) {
   const [currentBackground, setCurrentBackground] = useState<BackgroundConfig | null>(null);
   const [bestScore, setBestScore] = useState<BestScore | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -138,7 +137,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
               <h3 className="text-2xl font-bold text-primary">آموزش و حفاظت از یوزپلنگ ایرانی</h3>
               <div></div> {/* Spacer for centering */}
             </div>
-            <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="cheetah-status">
+            <Accordion type="single" collapsible className="w-full space-y-4">
               {/* وضعیت یوزپلنگ ایرانی */}
               <AccordionItem value="cheetah-status" className="border rounded-lg">
                 <AccordionTrigger className="px-4 py-3 hover:bg-accent/50 text-right">
@@ -160,14 +159,14 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                       </p>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="bg-white dark:bg-gray-800 p-3 rounded">
-                          <div className="font-medium text-red-600">جمعیت جهانی</div>
+                          <div className="font-medium text-red-600">جمعیت در جهان</div>
                           <div className="text-2xl font-bold">فقط در </div>
-                          <div className="text-xs text-muted-foreground">ایران</div>
+                          <div className="text-xs text-muted-foreground"><strong>ایران</strong></div>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-3 rounded">
                           <div className="font-medium text-red-600">در ایران</div>
                           <div className="text-2xl font-bold">۲۰-۳۰</div>
-                          <div className="text-xs text-muted-foreground">یوزپلنگ</div>
+                          <div className="text-xs text-muted-foreground">فرد</div>
                         </div>
                       </div>
                     </div>
@@ -177,7 +176,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                       <ul className="space-y-2 text-sm">
                         <li>• <strong>استان سمنان:</strong> زیستگاه اصلی با جمعیت حدود ۲۰ یوز</li>
                         <li>• <strong>استان خراسان شمالی:</strong> جمعیت کوچکتر وابسته به جمعیت سمنان</li>
-                        <li>• <strong>استان خراسان رضوی:</strong>  جمعیت بسیار محدود و گذرری</li>
+                        <li>• <strong>استان خراسان رضوی:</strong>  جمعیت بسیار محدود و گذری</li>
                       </ul>
                     </div>
 
@@ -254,14 +253,14 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                     <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🏜️</span>
-                        <span>کاهش طعمه طبیعی</span>
+                        <span>حضور شترهای رها شده در زیستگاه های یوزپلنگ</span>
                       </h4>
                       <p className="text-sm leading-relaxed mb-3">
                         دامداری و شترداری بی رویه باعث تخریب بیشتر زیستگاه‌ها شده
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
                         <li>• رقابت بر سر منابع آبی با شتر</li>
-                        <li>• کاهش مراتع و منابع غذایی برای طعمه‌های یوز</li>
+                        <li>• کاهش جمعیت طعمه یوزپلنگ بر اثر کاهش مراتع و منابع غذایی</li>
                         <li>• تشدید اثر تغییر اقلیم و خشکسالی</li>
                       </ul>
                     </div>
@@ -279,6 +278,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                         <li>• ساخت جاده و راه‌آهن</li>
                         <li>• استخراج معادن</li>
                         <li>• گسترش شهرها و روستاها</li>
+                        <li>• کاهش طعمه یوزپلنگ</li>
                       </ul>
                     </div>
 
@@ -316,24 +316,24 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                     <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-green-700 dark:text-green-400">اقدامات دولتی و سازمانی</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• <strong>ایجاد کریدورهای حیات‌وحش:</strong> اتصال زیستگاه‌های جدا شده</li>
-                        <li>• <strong>ساخت پل‌های حیات‌وحش:</strong> روی جاده‌های اصلی</li>
-                        <li>• <strong>کنترل جمعیت سگ‌های گله:</strong> مدیریت و واکسیناسیون</li>
-                        <li>• <strong>نظارت الکترونیکی:</strong> دوربین‌های تله و GPS</li>
-                        <li>• <strong>آموزش جوامع محلی:</strong> آگاهی از اهمیت حفاظت</li>
-                        <li>• <strong>تقویت قوانین حفاظت:</strong> مجازات شدید برای شکار غیرمجاز</li>
-                        <li>• <strong>افزایش توان حفاظتی:</strong> افزایش تعداد محیط‌بان</li>
+                        <li>• <strong>ایمن سازی محل های عبور یوزپلنگ بین زیستگاه ها</strong></li>
+                        <li>• <strong>ساخت پل های هوایی ماشین رو در محل های داغ عبور یوزپلنگ بر روی جاده تهران- مشهد</strong></li>
+                        <li>• <strong>کنترل جمعیت سگ های گله و مدیریت و کنترل واکسیناسیون دام های موجود در زیستگاه ها</strong></li>
+                        <li>• <strong>نظارت الکترونیکی از طریق دوربین های تله ای و ردیاب های ماهواره ای</strong></li>
+                        <li>• <strong>آموزش و مشارکت جوامع محلی برای حفاظت از یوزپلنگ</strong></li>
+                        <li>• <strong>تقویت قوانین حفاظت و مجازات کارآمد و تاثیر گذار برای شکار غیرمجاز</strong></li>
+                        <li>• <strong>افزایش توان حفاظتی با افزایش تعداد نیروی محیط بان</strong></li>
                       </ul>
                     </div>
 
                     <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-blue-700 dark:text-blue-400">اقدامات فردی شما</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• <strong>رانندگی ایمن:</strong> کاهش سرعت در مناطق یوز، گزارش تصادفات</li>
-                        <li>• <strong>پشتیبانی از سازمان‌ها:</strong> کمک مالی به پروژه‌های حفاظتی</li>
-                        <li>• <strong>آگاهی‌رسانی:</strong> اشتراک‌گذاری اطلاعات در شبکه‌های اجتماعی</li>
-                        <li>• <strong>مصرف مسئولانه:</strong> اجتناب از محصولات شکار غیرقانونی</li>
-                        <li>• <strong>گزارش موارد:</strong> اطلاع‌رسانی شکار غیرقانونی به authorities</li>
+                        <li>• <strong>رانندگی با سرعت مطمئن در محل های عبور یوزپلنگ و گزارش تصادف یوزپلنگ در صورت مشاهده</strong></li>
+                        <li>• <strong>کمک مالی به پروژه های حفاظتی و حمایت از سازمان های مستقل مردمی</strong></li>
+                        <li>• <strong>آگاهی رسانی و اشتراک گذاری اطلاعات از منابع معتبر در شبکه های اجتماعی</strong></li>
+                        <li>• <strong>اجتناب از خرید محصولات شکار و غیرقانونی</strong></li>
+                        <li>• <strong>اطلاع رسانی شکار غیر قانونی به مسئولین سازمان حفاظت محیط زیست</strong></li>
                       </ul>
                     </div>
 

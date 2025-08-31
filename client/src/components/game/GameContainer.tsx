@@ -2,14 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MainMenu from "./MainMenu";
 import GameUI from "./GameUI";
-import Tutorial from "./Tutorial";
 import GameOver from "./GameOver";
 import ShareCard from "./ShareCard";
 import PhaserGame from "./PhaserGame";
 import { GameState, GameData, GameResults } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
 import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
-import { updateBestScore, incrementConsecutiveLosses, resetConsecutiveLosses } from "@/lib/cookieStorage";
+import { updateBestScore, incrementConsecutiveLosses, resetConsecutiveLosses, getBestScore } from "@/lib/cookieStorage";
 
 const initialGameState: GameState = {
   currentScreen: 'menu',
@@ -184,12 +183,11 @@ export default function GameContainer() {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden" data-testid="game-container">
+    <div className="relative w-full h-dvh overflow-hidden" data-testid="game-container">
       {/* Main Menu Screen */}
       {gameState.currentScreen === 'menu' && (
         <MainMenu
           onStartGame={startGame}
-          onShowTutorial={() => showScreen('tutorial')}
           onDownloadStory={handleDownloadStory}
         />
       )}
@@ -212,11 +210,6 @@ export default function GameContainer() {
         </>
       )}
 
-      {/* Tutorial Overlay */}
-      {gameState.currentScreen === 'tutorial' && (
-        <Tutorial onClose={() => showScreen('menu')} />
-      )}
-
       {/* Game Over Screen */}
       {gameState.currentScreen === 'gameOver' && gameResults && (
         <GameOver
@@ -232,6 +225,7 @@ export default function GameContainer() {
       {gameState.currentScreen === 'shareCard' && gameResults && (
         <ShareCard
           results={gameResults}
+          bestScore={getBestScore() || undefined}
           onClose={() => showScreen('gameOver')}
         />
       )}
@@ -250,13 +244,15 @@ export default function GameContainer() {
 function getConservationMessage(deathCause?: string): string {
   switch (deathCause) {
     case 'road':
-      return 'جاده‌ها، خط پایان بسیاری از یوزها هستند. حفاظت از کریدورهای طبیعی ضروری است.';
+      return 'جاده‌ها، خط پایان بسیاری از یوزها هستند. ایمن‌سازی جاده‌ها یکی از مهمترین اقدامات برای نجات یوزپلنگ است.';
     case 'poacher':
-      return 'شکار غیرقانونی، آینده یوز را می‌دزدد. گزارش فعالیت‌های مشکوک به حفاظت محیط زیست.';
+      return 'حذف توله‌ها از طبیعت توسط قاچاقچیان و افراد نا‌اگاه یکی از مهمترین عوامل تهدید یوزپلنگ در جهان است.';
     case 'dog':
-      return 'سگ‌های رها شده و سگ گله، بلای جان توله یوزها. کنترل سگ‌های ولگرد ضروری است.';
+      return 'سگ‌های رها شده و سگ گله، بلای جان توله یوزها. کنترل جمعیت سگ‌های رها‌شده در زیستگاه ضروری است.';
     case 'starvation':
-      return 'تکه‌تکه شدن زیستگاه، یعنی گرسنگی و انقراض. حفظ کریدورهای طبیعی حیاتی است.';
+      return 'تکه‌تکه شدن زیستگاه، یعنی کاهش دسترسی به آب و غذا و نهایتا گرسنگی و انقراض.';
+    case 'all_cubs_lost':
+      return 'از دست دادن توله‌ها، پایان نسل یوزپلنگ را به همراه دارد. حفاظت از زیستگاه‌های امن ضروری است.';
     default:
       return 'یوزپلنگ آسیایی در معرض خطر انقراض است. با حمایت از حفاظت طبیعت به نجات این گونه کمک کنید.';
   }

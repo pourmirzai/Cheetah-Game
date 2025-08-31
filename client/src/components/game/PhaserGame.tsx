@@ -36,8 +36,8 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
 
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: window.visualViewport ? window.visualViewport.width : window.innerWidth,
+        height: window.visualViewport ? window.visualViewport.height : window.innerHeight,
         parent: gameRef.current,
         physics: {
           default: 'arcade',
@@ -121,15 +121,18 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
   useEffect(() => {
     const handleResize = () => {
       if (phaserGameRef.current) {
-        phaserGameRef.current.scale.resize(window.innerWidth, window.innerHeight);
+        // Use visual viewport if available for better mobile support
+        const width = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+        const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        phaserGameRef.current.scale.resize(width, height);
 
         // Update background scaling if game scene exists
         const scene = phaserGameRef.current.scene.getScene('default');
         if (scene && 'background' in scene) {
           const gameScene = scene as any;
           if (gameScene.background) {
-            const screenWidth = window.innerWidth;
-            const screenHeight = window.innerHeight;
+            const screenWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+            const screenHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
             // Scale background to cover the entire screen using proper aspect ratio
             const bgImage = gameScene.background.texture.getSourceImage();
