@@ -28,7 +28,6 @@ interface BestScore {
 const initialGameData: GameData = {
   cubs: 4,
   currentMonth: 1,
-  timeRemaining: 120,
   health: 100,
   burstEnergy: 100,
   score: 0,
@@ -98,7 +97,7 @@ export default function GameContainer() {
         cubsSurvived: results.cubsSurvived || gameData.cubs,
         monthsCompleted: results.monthsCompleted || gameData.currentMonth,
         finalScore: results.finalScore || gameData.score,
-        gameTime: 120 - gameData.timeRemaining,
+        gameTime: 0, // No time limit, so game time is not relevant
         deathCause: results.deathCause,
         achievements: results.achievements || []
       };
@@ -162,7 +161,8 @@ export default function GameContainer() {
   const playAgain = useCallback(() => {
     // Reset all values including month to start fresh
     const resetGameData: GameData = {
-      ...initialGameData
+      ...initialGameData,
+      currentMonth: 1 // Ensure month resets to 1
     };
 
     setGameData(resetGameData);
@@ -276,6 +276,8 @@ export default function GameContainer() {
           results={gameResults}
           bestScore={getBestScore() || undefined}
           onClose={() => showScreen('gameOver')}
+          onPlayAgain={playAgain}
+          onBackToMenu={backToMenu}
         />
       )}
 
@@ -284,6 +286,8 @@ export default function GameContainer() {
         <ShareCard
           bestScore={bestScoreForDownload}
           onClose={() => showScreen('menu')}
+          onPlayAgain={playAgain}
+          onBackToMenu={backToMenu}
         />
       )}
     </div>

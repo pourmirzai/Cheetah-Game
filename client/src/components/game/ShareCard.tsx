@@ -73,6 +73,8 @@ interface ShareCardProps {
     date: string;
   };
   onClose: () => void;
+  onPlayAgain?: () => void;
+  onBackToMenu?: () => void;
 }
 
 // A new component for client-side fallback preview
@@ -104,7 +106,7 @@ function ClientSideSharePreview({ results, selectedStyle }: { results: GameResul
   );
 }
 
-export default function ShareCard({ results, bestScore, onClose }: ShareCardProps) {
+export default function ShareCard({ results, bestScore, onClose, onPlayAgain, onBackToMenu }: ShareCardProps) {
   // Always use bestScore if provided, otherwise use results
   const gameResults: GameResults = bestScore ? {
     cubsSurvived: bestScore.cubsSurvived,
@@ -156,27 +158,6 @@ ${motivationalText}
     setShareImageUrl(`/api/share-card/${sessionId}?bg=${encodeURIComponent(backgroundImage)}&text=${encodeURIComponent(motivationalText)}&style=${selectedStyle}`);
   }, [gameResults, selectedStyle]);
 
-  const shareToInstagram = async () => {
-    setIsSharing(true);
-    try {
-      // For Instagram, we'll use the Web Share API if available
-      if (navigator.share) {
-        await navigator.share({
-          title: 'نجات یوز ایران',
-          text: generateShareText(),
-          url: window.location.origin
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(generateShareText());
-        alert('متن در کلیپ‌بورد کپی شد! آن را در اینستاگرام استوری خود پیست کنید.');
-      }
-    } catch (error) {
-      console.error('Error sharing to Instagram:', error);
-    } finally {
-      setIsSharing(false);
-    }
-  };
 
   const downloadImage = async () => {
     setIsSharing(true);
@@ -214,18 +195,50 @@ ${motivationalText}
   };
 
   const copyGameLink = async () => {
+    const gameUrl = 'https://game.sarvinwildlife.com/';
+
     try {
-      await navigator.clipboard.writeText('https://game.sarvinwildlife.com/');
-      alert('لینک بازی کپی شد!');
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(gameUrl);
+        alert('لینک بازی کپی شد!');
+        return;
+      }
     } catch (error) {
-      console.error('Error copying link:', error);
-      alert('خطا در کپی لینک');
+      console.warn('Modern clipboard API failed, trying fallback:', error);
+    }
+
+    // Fallback for older browsers or mobile devices
+    try {
+      // Create a temporary input element
+      const textArea = document.createElement('textarea');
+      textArea.value = gameUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      // Try to copy using document.execCommand
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        alert('لینک بازی کپی شد!');
+      } else {
+        throw new Error('execCommand failed');
+      }
+    } catch (fallbackError) {
+      console.error('Fallback copy method also failed:', fallbackError);
+      // Last resort: show the URL for manual copying
+      alert(`لینک بازی: ${gameUrl}\nلطفا آن را کپی کنید.`);
     }
   };
 
   return (
-    <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6" data-testid="share-card-screen">
-      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
+    <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto" data-testid="share-card-screen">
+      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold text-center text-primary">اشتراک‌گذاری نتایج</h3>
 
         {/* Style selector - always visible for all users */}
@@ -257,14 +270,15 @@ ${motivationalText}
 
         {/* Share buttons - always show */}
         <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={shareToInstagram}
-            disabled={isSharing}
-            className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
-            data-testid="button-share-instagram"
+          <a
+            href="https://www.instagram.com/sarvinwildlife/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm text-center hover:from-purple-600 hover:to-pink-600 transition-all"
+            data-testid="button-follow-instagram"
           >
-            اینستاگرام
-          </button>
+              اینستاگرام ما
+          </a>
           <button
             onClick={downloadImage}
             disabled={isSharing}
@@ -294,14 +308,29 @@ ${motivationalText}
           </div>
         </div>
 
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="bg-muted hover:bg-muted/90 text-muted-foreground font-medium py-2 px-4 rounded-lg w-full"
-          data-testid="button-close-share-card"
-        >
-          بستن
-        </button>
+
+        {/* Direct navigation buttons */}
+        {(onPlayAgain || onBackToMenu) && (
+          <div className="grid grid-cols-2 gap-3">
+            {onPlayAgain && (
+              <button
+                onClick={onPlayAgain}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-4 rounded-lg text-sm"
+              >
+                بازی مجدد
+              </button>
+            )}
+            {onBackToMenu && (
+              <button
+                onClick={onBackToMenu}
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold py-3 px-4 rounded-lg text-sm"
+              >
+                بازگشت به منوی اصلی
+              </button>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

@@ -52,6 +52,9 @@ interface GameScene extends Phaser.Scene {
   // Game control
   gameStarted: boolean;
 
+  // Audio timing
+  lastRunningSoundTime?: number;
+
   // Input
   cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   pointer?: Phaser.Input.Pointer;
@@ -97,6 +100,7 @@ export function initializeGame(
   gameScene.gameSpeed = 200;
   gameScene.lastTap = 0;
   gameScene.startX = 0;
+  gameScene.lastRunningSoundTime = 0;
   gameScene.gameStarted = false; // Game starts paused until tutorial is completed
 
   // Store progress callback for event handlers
@@ -248,7 +252,7 @@ function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message
   totalAssets += GAME_ASSETS.loadConfig.obstacles.length;
   totalAssets += GAME_ASSETS.loadConfig.resources.length;
   totalAssets += GAME_ASSETS.loadConfig.backgrounds.length;
-  totalAssets += 4; // Audio files
+  totalAssets += 7; // Audio files (bg-music, car-horn, dog-bark, angry-grunt, eat, die, applause)
 
   // Progress callback function
   const updateProgress = (message: string) => {
@@ -264,6 +268,9 @@ function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message
   scene.load.audio('car-horn', '/assets/audio/car-horn.mp3');
   scene.load.audio('dog-bark', '/assets/audio/dog-bark.mp3');
   scene.load.audio('angry-grunt', '/assets/audio/angry-grunt.mp3');
+  scene.load.audio('eat', '/assets/audio/eat.mp3');
+  scene.load.audio('die', '/assets/audio/die.mp3');
+  scene.load.audio('applause', '/assets/audio/applause.mp3');
 
   // Load character sprites
   onProgress?.(25, 'بارگذاری شخصیت‌ها...');
@@ -490,19 +497,7 @@ function changeLane(scene: GameScene, newLane: number) {
 
 
 function startGameTimers(scene: GameScene) {
-  // Main game timer (120 seconds)
-  scene.gameTimer = scene.time.addEvent({
-    delay: 1000,
-    callback: () => {
-      scene.gameData.timeRemaining--;
-      scene.onUpdateGameData({ timeRemaining: scene.gameData.timeRemaining });
-      
-      if (scene.gameData.timeRemaining <= 0) {
-        endGame(scene, 'completed');
-      }
-    },
-    loop: true
-  });
+  // Removed time limit - game continues until month 18 is reached
 
   // Month progression timer (every 6-8 seconds)
   scene.monthTimer = scene.time.addEvent({
@@ -958,6 +953,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
           scene.physics.add.overlap(cub, deathZone, () => {
             // Double-check objects are still active before processing collision
             if (cub?.active && deathZone?.active && scene.cubs[index] === cub) {
+              // Play die sound when cub encounters lethal threat
+              scene.audioManager?.onHitObstacle(obstacleInfo.type);
+
               scene.gameData.cubs--;
               if (cub.active) cub.destroy();
               scene.cubs.splice(index, 1);
@@ -1047,6 +1045,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
           if (cub?.active && obstacle?.active && scene.cubs[index] === cub) {
             // Only remove cub for non-camel obstacles
             if (obstacleInfo.type !== 'camel') {
+              // Play die sound when cub encounters lethal threat
+              scene.audioManager?.onHitObstacle(obstacleInfo.type);
+
               // Remove one cub
               scene.gameData.cubs--;
               cub.destroy();
@@ -1162,6 +1163,9 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
           scene.physics.add.overlap(cub, car, () => {
             // Double-check objects are still active before processing collision
             if (cub?.active && car?.active && scene.cubs[index] === cub) {
+              // Play die sound when cub encounters lethal threat
+              scene.audioManager?.onHitObstacle('car');
+
               scene.gameData.cubs--;
               cub.destroy();
               scene.cubs.splice(index, 1);
@@ -1284,6 +1288,61 @@ function updateHealthAndEnergy(scene: GameScene) {
   }
 }
 
+function createVictoryConfetti(scene: GameScene) {
+  // Create colorful confetti particles for victory celebration
+  const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffa500, 0x800080];
+
+  // Create multiple particle emitters for different colors
+  const emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+
+  colors.forEach((color, index) => {
+    // Create particle texture (small rectangle for paper effect)
+    const particleTexture = scene.add.graphics();
+    particleTexture.fillStyle(color);
+    particleTexture.fillRect(0, 0, 8, 12); // Small rectangular paper pieces
+    particleTexture.generateTexture(`confetti-${index}`, 8, 12);
+
+    // Create particle emitter
+    const emitter = scene.add.particles(scene.scale.width / 2, -50, `confetti-${index}`, {
+      speed: { min: 100, max: 300 },
+      angle: { min: 80, max: 100 }, // Fall diagonally
+      scale: { start: 0.8, end: 0.2 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 4000, // 4 seconds
+      gravityY: 200, // Gravity effect
+      quantity: 2, // Emit 2 particles per frame
+      frequency: 100, // Every 100ms
+      rotate: { start: 0, end: 360 }, // Rotation for paper effect
+      blendMode: 'ADD'
+    });
+
+    // Set emitter to emit from random horizontal positions across the screen
+    emitter.setPosition(
+      Phaser.Math.Between(50, scene.scale.width - 50),
+      -50
+    );
+
+    emitters.push(emitter);
+
+    // Start emitting with delay for staggered effect
+    scene.time.delayedCall(index * 200, () => {
+      emitter.start();
+    });
+  });
+
+  // Stop all emitters after 5 seconds
+  scene.time.delayedCall(5000, () => {
+    emitters.forEach(emitter => {
+      emitter.stop();
+      // Clean up textures
+      const textureKey = emitter.texture.key;
+      if (scene.textures.exists(textureKey)) {
+        scene.textures.remove(textureKey);
+      }
+    });
+  });
+}
+
 function endGame(scene: GameScene, cause: string) {
   // Stop timers
   scene.gameTimer?.destroy();
@@ -1292,6 +1351,8 @@ function endGame(scene: GameScene, cause: string) {
   // Audio feedback
   if (cause === 'completed') {
     scene.audioManager?.onVictory();
+    // Add victory confetti effect
+    createVictoryConfetti(scene);
   } else {
     scene.audioManager?.onGameOver();
   }
@@ -1301,7 +1362,7 @@ function endGame(scene: GameScene, cause: string) {
     cubsSurvived: scene.gameData.cubs,
     monthsCompleted: scene.gameData.currentMonth,
     finalScore: scene.gameData.score,
-    gameTime: 120 - scene.gameData.timeRemaining,
+    gameTime: 0, // No time limit, so game time is not relevant
     deathCause: cause === 'completed' ? undefined : cause,
     achievements: []
   };
@@ -1333,11 +1394,12 @@ export function updateGame(scene: GameScene) {
   }
 
   // Play running sound periodically
-  if (scene.gameData.timeRemaining > 0 && !scene.isStopped) {
+  if (!scene.isStopped) {
     const currentTime = Date.now();
     // Play running sound every 2 seconds
-    if (currentTime % 2000 < 100) {
+    if (!scene.lastRunningSoundTime || currentTime - scene.lastRunningSoundTime >= 2000) {
       scene.audioManager?.startRunningSound();
+      scene.lastRunningSoundTime = currentTime;
     }
   }
 

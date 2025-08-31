@@ -21,7 +21,7 @@ export class AudioManager {
     console.log('🎵 Checking audio files...');
 
     // Check if audio files are already loaded (they should be loaded in gameEngine.ts)
-    const audioKeys = ['bg-music', 'car-horn', 'dog-bark', 'angry-grunt'];
+    const audioKeys = ['bg-music', 'car-horn', 'dog-bark', 'angry-grunt', 'applause'];
     let allLoaded = true;
 
     audioKeys.forEach(audioKey => {
@@ -172,11 +172,17 @@ export class AudioManager {
 
   // Game event audio triggers
   onCollectResource(resourceType: string) {
-    // Could add collection sounds here if needed
+    // Play eat sound when collecting any resource
+    this.playSound('eat');
   }
 
   onHitObstacle(obstacleType: string) {
-    // Play specific death sounds based on obstacle type
+    // Play die sound for lethal obstacles
+    if (obstacleType === 'car' || obstacleType === 'road' || obstacleType === 'dog' || obstacleType === 'smuggler') {
+      this.playSound('die');
+    }
+
+    // Also play specific sounds for some obstacles
     switch (obstacleType) {
       case 'car':
       case 'road':
@@ -209,7 +215,8 @@ export class AudioManager {
 
   onVictory() {
     this.stopAmbientSounds();
-    // Could add victory sound here if needed
+    // Play victory applause sound
+    this.playSound('applause', 0.8); // Slightly louder for celebration
   }
 
   onButtonClick() {

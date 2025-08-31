@@ -8,7 +8,6 @@ export interface GameState {
 export interface GameData {
   cubs: number;
   currentMonth: number;
-  timeRemaining: number;
   health: number;
   burstEnergy: number;
   score: number;
