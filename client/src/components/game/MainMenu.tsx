@@ -47,7 +47,6 @@ export default function MainMenu({ onStartGame, onShowTutorial, onShowLeaderboar
               <div className="absolute top-3 right-4 w-1 h-1 bg-primary rounded-full animate-pulse"></div>
               <div className="absolute top-3 left-4 w-1 h-1 bg-primary rounded-full animate-pulse"></div>
             </div>
-
             {/* Four cubs following with Material Design styling */}
             <div className="flex justify-center space-x-3 space-x-reverse">
               <div className="w-10 h-7 bg-tertiary cheetah-spots rounded-xl cub-follow shadow-md md-motion-standard"></div>
