@@ -10,7 +10,7 @@ interface GameOverProps {
 }
 
 export default function GameOver({ results, onPlayAgain, onBackToMenu, onShare }: GameOverProps) {
-  const [bestScore, setBestScore] = useState<GameResults | null>(null);
+  const [bestScore, setBestScore] = useState<any>(null);
 
   useEffect(() => {
     const savedBestScore = getBestScore();

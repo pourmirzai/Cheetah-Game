@@ -243,9 +243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 function getAchievementTitle(cubsSurvived: number, monthsCompleted: number): string {
   if (cubsSurvived === 4 && monthsCompleted >= 18) {
-    return "مادر خط‌شکن";
+    return "مادر قهرمان";
   } else if (cubsSurvived >= 2) {
-    return "نگهبان مسیر";
+    return "مادر نجات‌دهنده";
   } else {
     return "شاهد مسابقه";
   }
