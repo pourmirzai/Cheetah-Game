@@ -93,7 +93,14 @@ function TemplateSelector({ onSelect, selected }: { onSelect: (template: string)
 }
 
 interface ShareCardProps {
-  results: GameResults;
+  results?: GameResults;
+  bestScore?: {
+    cubsSurvived: number;
+    monthsCompleted: number;
+    finalScore: number;
+    achievementTitle: string;
+    date: string;
+  };
   onClose: () => void;
 }
 
@@ -157,27 +164,39 @@ function ClientSideSharePreview({ results, selectedTemplate, selectedStyle }: { 
   );
 }
 
-export default function ShareCard({ results, onClose }: ShareCardProps) {
+export default function ShareCard({ results, bestScore, onClose }: ShareCardProps) {
+  // Convert bestScore to GameResults format if provided
+  const gameResults: GameResults = results || {
+    cubsSurvived: bestScore!.cubsSurvived,
+    monthsCompleted: bestScore!.monthsCompleted,
+    finalScore: bestScore!.finalScore,
+    gameTime: 0, // Not available in bestScore
+    deathCause: undefined,
+    achievements: [],
+    achievementTitle: bestScore!.achievementTitle,
+    conservationMessage: 'یوزپلنگ آسیایی در معرض خطر انقراض است. با حمایت از حفاظت طبیعت به نجات این گونه کمک کنید.'
+  };
+
   const [isSharing, setIsSharing] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
-  const [showTemplateSelector, setShowTemplateSelector] = useState(results.monthsCompleted < 18);
-  const [showStyleSelector, setShowStyleSelector] = useState(results.monthsCompleted >= 18);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(gameResults.monthsCompleted < 18);
+  const [showStyleSelector, setShowStyleSelector] = useState(gameResults.monthsCompleted >= 18);
 
   const generateShareText = () => {
-    const motivationalText = getMotivationalText(results);
+    const motivationalText = getMotivationalText(gameResults);
 
-    if (results.monthsCompleted >= 18) {
-      return `${results.cubsSurvived} توله یوزپلنگ نجات یافت در ${results.monthsCompleted} ماه! ${results.achievementTitle}
+    if (gameResults.monthsCompleted >= 18) {
+      return `${gameResults.cubsSurvived} توله یوزپلنگ نجات یافت در ${gameResults.monthsCompleted} ماه! ${gameResults.achievementTitle}
 
 ${motivationalText}
 
 شما هم برای نجات یوزپلنگ آسیایی بازی کنید:
 #نجات_یوز_ایران #حفاظت_طبیعت #یوزپلنگ_آسیایی`;
     } else {
-      return `مقاومت ${results.monthsCompleted} ماهه در نجات خانواده یوزپلنگ!
+      return `مقاومت ${gameResults.monthsCompleted} ماهه در نجات خانواده یوزپلنگ!
 
 ${motivationalText}
 
@@ -191,13 +210,13 @@ ${motivationalText}
     // In a real implementation, you'd get the sessionId from props or context
     // For now, we'll use a placeholder
     const sessionId = 'placeholder-session-id';
-    const backgroundImage = getBackgroundForResults(results, selectedTemplate, selectedStyle);
-    const motivationalText = getMotivationalText(results);
+    const backgroundImage = getBackgroundForResults(gameResults, selectedTemplate, selectedStyle);
+    const motivationalText = getMotivationalText(gameResults);
 
     // For now, we'll use the client-side preview since we don't have server-side image generation
     // In production, this would call an API to generate the image with the selected background
     setShareImageUrl(`/api/share-card/${sessionId}?bg=${encodeURIComponent(backgroundImage)}&text=${encodeURIComponent(motivationalText)}&style=${selectedStyle}`);
-  }, [results, selectedTemplate, selectedStyle]);
+  }, [gameResults, selectedTemplate, selectedStyle]);
 
   const shareToTelegram = async () => {
     setIsSharing(true);
@@ -273,7 +292,7 @@ ${motivationalText}
               />
             ) : imageLoadFailed ? (
               // Fallback to client-side rendering on image error
-              <ClientSideSharePreview results={results} selectedTemplate={selectedTemplate} selectedStyle={selectedStyle} />
+              <ClientSideSharePreview results={gameResults} selectedTemplate={selectedTemplate} selectedStyle={selectedStyle} />
             ) : (
               // Loading state
               <div className="flex flex-col justify-center items-center h-full">
