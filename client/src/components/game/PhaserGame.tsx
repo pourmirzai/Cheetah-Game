@@ -177,6 +177,33 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
     }
   }, [gameStarted, sessionId]);
 
+  // Handle user interaction to unlock audio
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (phaserGameRef.current) {
+        const scene = phaserGameRef.current.scene.getScene('default');
+        if (scene && 'audioManager' in scene) {
+          const gameScene = scene as any;
+          if (gameScene.audioManager && gameScene.audioManager.initializeAudioContext) {
+            console.log('🎵 Unlocking audio on user interaction');
+            gameScene.audioManager.initializeAudioContext();
+          }
+        }
+      }
+    };
+
+    // Add event listeners for user interaction
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+    };
+  }, []);
+
   return (
     <div
       ref={gameRef}

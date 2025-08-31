@@ -5,11 +5,20 @@ import "@/styles/game-ui.css";
 interface GameUIProps {
   gameData: GameData;
   onTutorialComplete?: () => void;
+  gameStarted?: boolean;
 }
 
-export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
+export default function GameUI({ gameData, onTutorialComplete, gameStarted }: GameUIProps) {
   const [showLowHealthWarning, setShowLowHealthWarning] = useState(false);
-  const [showGuideModal, setShowGuideModal] = useState(true);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+
+  // Show guide modal when game hasn't started yet (tutorial not completed)
+  useEffect(() => {
+    if (gameStarted === false) {
+      setShowGuideModal(true);
+    }
+  }, [gameStarted]);
+
 
   // Handle low health warning animation
   useEffect(() => {
@@ -39,7 +48,7 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
     winter: 'زمستان'
   };
 
-  const healthWidth = `${gameData.health}%`;
+  const healthWidth = `${gameData?.health || 100}%`;
 
 
   return (
@@ -49,19 +58,55 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
         <div className="warning-overlay" />
       )}
 
-      {/* Consolidated Top UI Bar - Mobile Optimized */}
-      <div className="top-ui-bar-mobile">
+      {/* Lane Guides - Centered in Game Area */}
+      <div className="center-middle w-96 h-32 pointer-events-none">
+        <div className="flex h-full space-x-4 space-x-reverse justify-center items-end">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 lane-guide rounded-2xl transition-all duration-300 ${
+                i === (gameData?.lane || 1) ? 'active' : ''
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom UI Bar - All Information in Single Row */}
+      <div className="bottom-ui-bar-mobile">
         <div className="game-ui-card-mobile w-full max-w-none">
-          <div className="flex items-center justify-between px-2 py-1">
-            {/* Left Section: Health Bar - Mobile Compact */}
-            <div className="flex items-center space-x-1 space-x-reverse flex-1">
+          <div className="flex items-center justify-between px-3 py-2">
+            {/* Left Section: Month and Season */}
+            <div className="flex items-center space-x-3 space-x-reverse">
+              {/* Month */}
+              <div className="flex items-center space-x-1 space-x-reverse">
+                <span className="text-xs text-gray-600 font-medium">ماه</span>
+                <span className="text-base font-bold text-orange-600" data-testid="text-current-month">{gameData?.currentMonth || 1}</span>
+              </div>
+
+              {/* Season */}
+              <div className="flex items-center space-x-1 space-x-reverse">
+                <div className={`w-5 h-5 rounded border ${seasonColors[gameData?.season || 'spring']} flex items-center justify-center`} data-testid="season-indicator">
+                  <span className="text-xs">
+                    {(gameData?.season === 'spring' || !gameData?.season) && '🌸'}
+                    {gameData?.season === 'summer' && '☀️'}
+                    {gameData?.season === 'autumn' && '🍂'}
+                    {gameData?.season === 'winter' && '❄️'}
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-gray-600" data-testid="text-season-name">{seasonNames[gameData?.season || 'spring']}</span>
+              </div>
+            </div>
+
+            {/* Center Section: Health Bar */}
+            <div className="flex items-center space-x-2 space-x-reverse flex-1 max-w-xs">
               <div className="flex items-center space-x-1 space-x-reverse">
                 <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
                   <span className="text-green-600 text-xs">💚</span>
                 </div>
                 <span className="text-xs font-semibold text-gray-700">سلامت</span>
               </div>
-              <div className="flex-1 max-w-16">
+              <div className="flex-1">
                 <div className="health-bar-container-mobile">
                   <div
                     className={`health-bar-fill-mobile transition-all duration-300 ${
@@ -76,7 +121,7 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
                   />
                 </div>
               </div>
-              <span className={`text-xs font-bold min-w-[2rem] text-center ${
+              <span className={`text-xs font-bold min-w-[2.5rem] text-center ${
                 gameData.health < 25 ? 'text-red-600' :
                 gameData.health < 50 ? 'text-yellow-600' : 'text-green-600'
               }`} data-testid="text-health-percentage">
@@ -84,53 +129,13 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
               </span>
             </div>
 
-            {/* Center Section: Game Status - Mobile Compact */}
-            <div className="flex items-center space-x-2 space-x-reverse flex-1 justify-center">
-              {/* Month & Timer - Compact */}
-              <div className="flex items-center space-x-1 space-x-reverse">
-                <span className="text-xs text-gray-600 font-medium">ماه</span>
-                <span className="text-sm font-bold text-orange-600" data-testid="text-current-month">{gameData.currentMonth}</span>
-                <span className="text-xs text-gray-600 font-medium">زمان</span>
-                <span className="text-sm font-bold text-gray-800" data-testid="text-time-remaining">{gameData.timeRemaining}</span>
+            {/* Right Section: Low Health Warning */}
+            {gameData.health < 25 && (
+              <div className="flex items-center">
+                <span className="text-xs text-red-600 font-medium animate-pulse whitespace-nowrap">⚠️ خطر!</span>
               </div>
-
-              {/* Season - Compact */}
-              <div className="flex items-center space-x-1 space-x-reverse">
-                <div className={`w-5 h-5 rounded border ${seasonColors[gameData.season]} flex items-center justify-center`} data-testid="season-indicator">
-                  <span className="text-xs">
-                    {gameData.season === 'spring' && '🌸'}
-                    {gameData.season === 'summer' && '☀️'}
-                    {gameData.season === 'autumn' && '🍂'}
-                    {gameData.season === 'winter' && '❄️'}
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-gray-600" data-testid="text-season-name">{seasonNames[gameData.season]}</span>
-              </div>
-
-            </div>
-
+            )}
           </div>
-
-          {/* Low health warning - Mobile Compact */}
-          {gameData.health < 25 && (
-            <div className="mt-1 text-center border-t border-red-200 pt-1">
-              <span className="text-xs text-red-600 font-medium animate-pulse">⚠️ سلامت در وضعیت خطرناک!</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Lane Guides - Centered in Game Area */}
-      <div className="center-middle w-96 h-32 pointer-events-none">
-        <div className="flex h-full space-x-4 space-x-reverse justify-center items-end">
-          {Array.from({ length: 4 }, (_, i) => (
-            <div
-              key={i}
-              className={`flex-1 lane-guide rounded-2xl transition-all duration-300 ${
-                i === gameData.lane ? 'active' : ''
-              }`}
-            />
-          ))}
         </div>
       </div>
 
@@ -151,7 +156,7 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 text-sm">حرکت</h3>
-                  <p className="text-xs text-gray-600">برای تغییر مسیر مادر یوز و توله‌ها لمس کنید</p>
+                  <p className="text-xs text-gray-600">برای تغییر مسیر مادر یوز و توله‌ها را لمس کنید</p>
                 </div>
               </div>
 
@@ -218,15 +223,6 @@ export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
                 </p>
               </div>
 
-              <div className="flex items-center space-x-3 space-x-reverse p-3 bg-blue-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-sm">🎯</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800 text-sm">هدف</h3>
-                  <p className="text-xs text-gray-600">به مادر یوزها کمک کنید توله‌های بیشتری به ۱۸ ماهگی و سن استقلال برساند.</p>
-                </div>
-              </div>
             </div>
 
             <button

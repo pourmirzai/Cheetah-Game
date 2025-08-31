@@ -9,7 +9,7 @@ import PhaserGame from "./PhaserGame";
 import { GameState, GameData, GameResults } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
 import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
-import { updateBestScore } from "@/lib/cookieStorage";
+import { updateBestScore, incrementConsecutiveLosses, resetConsecutiveLosses } from "@/lib/cookieStorage";
 
 const initialGameState: GameState = {
   currentScreen: 'menu',
@@ -51,7 +51,7 @@ export default function GameContainer() {
     setGameState(prev => ({ ...prev, currentScreen: screenId }));
   }, []);
 
-  const startGame = useCallback(async () => {
+  const startGame = useCallback(async (preserveGameData: boolean = false) => {
     try {
       const response = await fetch('/api/game/start', {
         method: 'POST',
@@ -69,7 +69,10 @@ export default function GameContainer() {
         sessionId
       }));
 
-      setGameData(initialGameData);
+      // Only reset gameData if not preserving it (for playAgain)
+      if (!preserveGameData) {
+        setGameData(initialGameData);
+      }
       setGameStarted(false); // Reset game started flag
 
       trackEvent('game_start', { sessionId });
@@ -108,6 +111,17 @@ export default function GameContainer() {
         conservationMessage: getConservationMessage(results.deathCause)
       };
 
+      // Track consecutive losses
+      if (results.deathCause === undefined) {
+        // Game completed successfully - reset consecutive losses
+        resetConsecutiveLosses();
+        console.log('🎉 Game completed successfully - resetting consecutive losses');
+      } else {
+        // Game lost - increment consecutive losses
+        const newLossCount = incrementConsecutiveLosses();
+        console.log(`💔 Game lost - consecutive losses: ${newLossCount}`);
+      }
+
       // Save best score to cookies
       const isNewBest = updateBestScore({
         cubsSurvived: finalResults.cubsSurvived,
@@ -138,9 +152,14 @@ export default function GameContainer() {
   }, []);
 
   const playAgain = useCallback(() => {
-    setGameData(initialGameData);
+    // Reset all values including month to start fresh
+    const resetGameData: GameData = {
+      ...initialGameData
+    };
+
+    setGameData(resetGameData);
     setGameResults(null);
-    startGame();
+    startGame(true); // Preserve the gameData we just set
   }, [startGame]);
 
   const backToMenu = useCallback(() => {
@@ -188,6 +207,7 @@ export default function GameContainer() {
           <GameUI
             gameData={gameData}
             onTutorialComplete={onTutorialComplete}
+            gameStarted={gameStarted}
           />
         </>
       )}

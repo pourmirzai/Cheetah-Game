@@ -7,6 +7,7 @@ interface BestScore {
 }
 
 const BEST_SCORE_COOKIE = 'saveCheetah_bestScore';
+const CONSECUTIVE_LOSSES_COOKIE = 'saveCheetah_consecutiveLosses';
 const COOKIE_EXPIRES_DAYS = 365; // 1 year
 
 export function getBestScore(): BestScore | null {
@@ -82,4 +83,59 @@ export function clearBestScore(): void {
   expires.setDate(expires.getDate() - 1); // Set to past date to delete
 
   document.cookie = `${BEST_SCORE_COOKIE}=; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+}
+
+// Consecutive losses tracking functions
+export function getConsecutiveLosses(): number {
+  try {
+    const cookieValue = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(`${CONSECUTIVE_LOSSES_COOKIE}=`))
+      ?.split('=')[1];
+
+    if (!cookieValue) return 0;
+
+    const losses = parseInt(decodeURIComponent(cookieValue), 10);
+    return isNaN(losses) ? 0 : losses;
+  } catch (error) {
+    console.error('Error reading consecutive losses from cookie:', error);
+    return 0;
+  }
+}
+
+export function incrementConsecutiveLosses(): number {
+  const currentLosses = getConsecutiveLosses();
+  const newLosses = Math.min(currentLosses + 1, 4); // Cap at 4 as per requirements
+
+  try {
+    const encodedValue = encodeURIComponent(newLosses.toString());
+    const expires = new Date();
+    expires.setDate(expires.getDate() + COOKIE_EXPIRES_DAYS);
+
+    document.cookie = `${CONSECUTIVE_LOSSES_COOKIE}=${encodedValue}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+    return newLosses;
+  } catch (error) {
+    console.error('Error saving consecutive losses to cookie:', error);
+    return currentLosses;
+  }
+}
+
+export function resetConsecutiveLosses(): void {
+  try {
+    const expires = new Date();
+    expires.setDate(expires.getDate() + COOKIE_EXPIRES_DAYS);
+
+    document.cookie = `${CONSECUTIVE_LOSSES_COOKIE}=0; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+  } catch (error) {
+    console.error('Error resetting consecutive losses cookie:', error);
+  }
+}
+
+export function getThreatLevelMultiplier(): number {
+  const losses = getConsecutiveLosses();
+
+  // Reduce threat level by 10% per consecutive loss, minimum 60% (0.6)
+  // After 4 losses, no further reduction
+  const reduction = Math.min(losses * 0.1, 0.4); // Max 40% reduction
+  return Math.max(1.0 - reduction, 0.6); // Minimum 60% of original threat
 }

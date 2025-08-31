@@ -14,6 +14,7 @@ import {
 import { AudioManager } from "@/lib/audioManager";
 import { backgroundManager } from "@/lib/backgroundManager";
 import { GAME_ASSETS } from "@/lib/assetConfig";
+import { getThreatLevelMultiplier } from "@/lib/cookieStorage";
 
 const MOTHER_CHEETAH_SCALE = 0.6;
 const CUB_SCALE = 0.5;
@@ -126,7 +127,13 @@ export function startActualGame(scene: Phaser.Scene) {
     console.log('🚀 Setting gameStarted to true and starting timers...');
     gameScene.gameStarted = true;
     startGameTimers(gameScene);
-    console.log('🚀 Game timers started successfully!');
+
+    // Start ambient sounds
+    if (gameScene.audioManager) {
+      gameScene.audioManager.startAmbientSounds();
+    }
+
+    console.log('🚀 Game timers and ambient sounds started successfully!');
   } else {
     console.log('🚀 Game was already started, skipping...');
   }
@@ -140,6 +147,13 @@ function loadAssets(scene: Phaser.Scene) {
     console.error('Scene or scene.load is undefined in loadAssets');
     return;
   }
+
+  // Load audio files first
+  console.log('🎵 Loading audio files...');
+  scene.load.audio('bg-music', 'assets/audio/bg-music.mp3');
+  scene.load.audio('car-horn', 'assets/audio/car-horn.mp3');
+  scene.load.audio('dog-bark', 'assets/audio/dog-bark.mp3');
+  scene.load.audio('angry-grunt', 'assets/audio/angry-grunt.mp3');
 
   // Load character sprites
   GAME_ASSETS.loadConfig.characters.forEach(({ texture, path }) => {
@@ -164,6 +178,7 @@ function loadAssets(scene: Phaser.Scene) {
     console.log(`🔄 Loading seasonal background: ${path} → ${texture}`);
     scene.load.image(texture, path);
   });
+
 }
 
 
@@ -186,8 +201,11 @@ function createGameWorld(scene: GameScene) {
     return;
   }
 
-  // Initialize audio manager
-  scene.audioManager = new AudioManager(scene);
+  // Initialize audio manager (if not already created in preload)
+  if (!scene.audioManager) {
+    scene.audioManager = new AudioManager(scene);
+  }
+  scene.audioManager.initializeAudioContext();
   scene.audioManager.playMusic('ambient');
 
   // Set default season if not set
@@ -255,8 +273,8 @@ function createGameWorld(scene: GameScene) {
   // Remove farBackground to eliminate green overlay
   scene.farBackground = undefined;
 
-  // Create mother cheetah with enhanced visibility
-  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 150, 'mother-cheetah');
+  // Create mother cheetah with enhanced visibility - adjusted for bottom UI spacing
+  scene.motherCheetah = scene.add.sprite(scene.lanes[scene.currentLane], scene.scale.height - 200, 'mother-cheetah');
   scene.motherCheetah.setDepth(6); // Highest layer - above everything
 
   const motherScale = MOTHER_CHEETAH_SCALE; // Smooth scaling factor
@@ -264,11 +282,11 @@ function createGameWorld(scene: GameScene) {
 
   // Keep the mother cheetah image simple without extra effects
 
-  // Create cubs following behind with enhanced visibility
+  // Create cubs following behind with enhanced visibility - positioned much lower than mother
   for (let i = 0; i < scene.gameData.cubs; i++) {
     const cub = scene.add.sprite(
       scene.lanes[scene.currentLane] + (i % 2 === 0 ? -12.25 : 12.25), // 17.5 * 0.7 = 12.25 (additional 30% smaller)
-      scene.scale.height - 100 - (i * 17.15), // 24.5 * 0.7 = 17.15 (additional 30% smaller spacing)
+      scene.scale.height - 130 - (i * 17.15), // Positioned much lower than mother (130 vs 200) - closer to bottom
       'cub'
     );
     cub.setDepth(5); // Highest layer - above everything
@@ -343,7 +361,7 @@ function changeLane(scene: GameScene, newLane: number) {
   scene.cubs.forEach((cub, index) => {
     scene.tweens.add({
       targets: cub,
-      x: targetX + (index % 2 === 0 ? -9.8 : 9.8), // 14 * 0.7 = 9.8 (additional 30% smaller)
+      x: targetX + (index % 2 === 0 ? -12.25 : 12.25), // Match initial cub positioning
       duration: 250 + (index * 50),
       ease: 'Power2'
     });
@@ -506,9 +524,16 @@ function spawnGameObject(scene: GameScene) {
   const currentMonth = scene.gameData.currentMonth;
   const progressRatio = Math.min(currentMonth / 18, 1); // 0 to 1 based on progress
 
-  // Survival mode: High difficulty with multiple threats
-  const maxThreats = progressRatio > 0.15 ? (progressRatio > 0.4 ? (progressRatio > 0.7 ? 4 : 3) : 2) : 1;
-  const minThreats = progressRatio > 0.3 ? 2 : (progressRatio > 0.1 ? 1 : 1);
+  // Get threat level multiplier based on consecutive losses
+  const threatMultiplier = getThreatLevelMultiplier();
+
+  // Survival mode: High difficulty with multiple threats (adjusted by threat multiplier)
+  const baseMaxThreats = progressRatio > 0.15 ? (progressRatio > 0.4 ? (progressRatio > 0.7 ? 4 : 3) : 2) : 1;
+  const baseMinThreats = progressRatio > 0.3 ? 2 : (progressRatio > 0.1 ? 1 : 1);
+
+  // Apply threat level reduction
+  const maxThreats = Math.max(1, Math.floor(baseMaxThreats * threatMultiplier));
+  const minThreats = Math.max(1, Math.floor(baseMinThreats * threatMultiplier));
   const numThreats = Phaser.Math.Between(minThreats, maxThreats);
 
   // Removed screen color flashes - using subtle visual cues instead
@@ -522,9 +547,10 @@ function spawnGameObject(scene: GameScene) {
       const x = scene.lanes[lane];
       const y = -50;
 
-      // Survival mode: Harsh summer conditions
+      // Survival mode: Harsh summer conditions (adjusted by threat multiplier)
       const isSummer = scene.gameData.season === 'summer';
-      const obstacleChance = isSummer ? 0.6 : 0.56; // More obstacles in summer (20% reduction)
+      const baseObstacleChance = isSummer ? 0.6 : 0.56; // More obstacles in summer (20% reduction)
+      const obstacleChance = Math.max(0.3, baseObstacleChance * threatMultiplier); // Apply threat reduction, minimum 30%
 
       if (Math.random() < obstacleChance) {
         spawnObstacle(scene, x, y);
@@ -550,7 +576,154 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   let obstacle: Phaser.GameObjects.Sprite;
   const texture = obstacleInfo.texture;
 
-  if (obstacleInfo.type === 'camel' || obstacleInfo.type === 'poacher' || obstacleInfo.type === 'dog') {
+  if (obstacleInfo.type === 'camel') {
+    // Keep camel 80 pixels away from road
+    y = y - 80;
+    obstacle = scene.add.sprite(x, y, texture);
+
+    // Create circular warning zone around camel (yellow instead of red)
+    const warningZoneRadius = 19.6; // 28 * 0.7 = 19.6 (additional 30% smaller)
+    const warningZone = scene.add.circle(x, y, warningZoneRadius, 0xffff00, 0); // Invisible yellow circle
+    if (warningZone && scene.physics && scene.physics.world) {
+      scene.physics.world.enable(warningZone);
+      const warningZoneBody = warningZone.body as Phaser.Physics.Arcade.Body;
+      if (warningZoneBody) {
+        warningZoneBody.setCircle(warningZoneRadius);
+        warningZoneBody.setVelocityY(scene.gameSpeed); // Move with the obstacle
+      }
+    }
+
+    // Add visual indicator for warning zone (smaller pulsing yellow glow under obstacle)
+    const warningZoneGlow = scene.add.circle(x, y, warningZoneRadius, 0xffff00, 0.7);
+    if (warningZoneGlow) {
+      warningZoneGlow.setDepth(1); // Under obstacles for better visibility
+
+      // Add intense pulsing animation to make warning zone very visible
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: warningZoneGlow,
+          alpha: 1.0,
+          duration: 600,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Add warning border around warning zone (under obstacle)
+    const warningZoneBorder = scene.add.circle(x, y, warningZoneRadius, 0xffff00, 0);
+    if (warningZoneBorder) {
+      warningZoneBorder.setStrokeStyle(4, 0xffff00, 1.0);
+      warningZoneBorder.setDepth(2); // Under obstacle
+
+      // Add intense pulsing animation to the border
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: warningZoneBorder,
+          strokeAlpha: 0.5,
+          duration: 500,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Add a second inner border for extra visibility (under obstacle)
+    const innerBorder = scene.add.circle(x, y, warningZoneRadius - 4.9, 0xffaa00, 0); // 7 * 0.7 = 4.9, darker yellow
+    if (innerBorder) {
+      innerBorder.setStrokeStyle(2, 0xffaa00, 0.8);
+      innerBorder.setDepth(2);
+
+      // Pulse the inner border with different timing
+      if (scene.tweens) {
+        scene.tweens.add({
+          targets: innerBorder,
+          strokeAlpha: 0.3,
+          duration: 700,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Power2'
+        });
+      }
+    }
+
+    // Store inner border reference for cleanup
+    obstacle.setData('innerBorder', innerBorder);
+
+    // Store border reference for cleanup
+    obstacle.setData('warningZoneBorder', warningZoneBorder);
+
+    // Store references for cleanup
+    obstacle.setData('warningZone', warningZone);
+    obstacle.setData('warningZoneGlow', warningZoneGlow);
+
+    // Collision detection for warning zone (with enhanced safety checks)
+    if (scene.physics && scene.motherCheetah && warningZone && warningZone.active && scene.motherCheetah.active) {
+      scene.physics.add.overlap(scene.motherCheetah, warningZone, () => {
+        // Double-check objects are still active before processing collision
+        if (scene.motherCheetah?.active && warningZone?.active) {
+          if (scene.audioManager) scene.audioManager.onHitObstacle(obstacleInfo.type);
+
+          // Reduce health by 30% instead of ending game
+          const healthReduction = Math.floor(scene.gameData.health * 0.3);
+          scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+          scene.onUpdateGameData({ health: scene.gameData.health });
+
+          // Add screen flash effect (dark then light for 1 second)
+          addScreenFlash(scene);
+
+          trackEvent('collision', {
+            sessionId: scene.sessionId,
+            type: 'health_reduced',
+            obstacleType: obstacleInfo.type,
+            healthReduction: healthReduction,
+            month: scene.gameData.currentMonth
+          });
+
+          // Check for starvation after health reduction
+          if (scene.gameData.health <= 0) {
+            endGame(scene, 'starvation');
+          }
+        }
+      });
+    }
+
+    if (scene.cubs && scene.physics && warningZone && warningZone.active) {
+      scene.cubs.forEach((cub, index) => {
+        if (cub && cub.active) {
+          scene.physics.add.overlap(cub, warningZone, () => {
+            // Double-check objects are still active before processing collision
+            if (cub?.active && warningZone?.active && scene.cubs[index] === cub) {
+              // Reduce cub's health by 30% instead of removing cub
+              // Since cubs don't have individual health, we'll reduce overall health
+              const healthReduction = Math.floor(scene.gameData.health * 0.3);
+              scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+              scene.onUpdateGameData({ health: scene.gameData.health });
+
+              // Add screen flash effect
+              addScreenFlash(scene);
+
+              trackEvent('collision', {
+                sessionId: scene.sessionId,
+                type: 'cub_health_reduced',
+                obstacleType: obstacleInfo.type,
+                healthReduction: healthReduction,
+                month: scene.gameData.currentMonth
+              });
+
+              // Check for starvation after health reduction
+              if (scene.gameData.health <= 0) {
+                endGame(scene, 'starvation');
+              }
+            }
+          });
+        }
+      });
+    }
+
+  } else if (obstacleInfo.type === 'poacher' || obstacleInfo.type === 'dog') {
     // Keep dangerous obstacles 80 pixels away from road
     y = y - 80;
     obstacle = scene.add.sprite(x, y, texture);
@@ -595,7 +768,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       if (scene.tweens) {
         scene.tweens.add({
           targets: deathZoneBorder,
-          strokeAlpha: 0.5,
+            strokeAlpha: 0.5,
           duration: 500,
           yoyo: true,
           repeat: -1,
@@ -634,33 +807,39 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     obstacle.setData('deathZone', deathZone);
     obstacle.setData('deathZoneGlow', deathZoneGlow);
 
-    // Collision detection for death zone (with safety checks)
-    if (scene.physics && scene.motherCheetah && deathZone) {
+    // Collision detection for death zone (with enhanced safety checks)
+    if (scene.physics && scene.motherCheetah && deathZone && deathZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, deathZone, () => {
-        scene.audioManager?.onHitObstacle(obstacleInfo.type);
-        endGame(scene, obstacleInfo.type);
+        // Double-check objects are still active before processing collision
+        if (scene.motherCheetah?.active && deathZone?.active) {
+          if (scene.audioManager) scene.audioManager.onHitObstacle(obstacleInfo.type);
+          endGame(scene, obstacleInfo.type);
+        }
       });
     }
 
-    if (scene.cubs && scene.physics) {
+    if (scene.cubs && scene.physics && deathZone && deathZone.active) {
       scene.cubs.forEach((cub, index) => {
-        if (cub && deathZone) {
+        if (cub && cub.active) {
           scene.physics.add.overlap(cub, deathZone, () => {
-            scene.gameData.cubs--;
-            cub.destroy();
-            scene.cubs.splice(index, 1);
+            // Double-check objects are still active before processing collision
+            if (cub?.active && deathZone?.active && scene.cubs[index] === cub) {
+              scene.gameData.cubs--;
+              if (cub.active) cub.destroy();
+              scene.cubs.splice(index, 1);
 
-            scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
 
-            trackEvent('collision', {
-              sessionId: scene.sessionId,
-              type: 'cub_lost',
-              obstacleType: obstacleInfo.type,
-              month: scene.gameData.currentMonth
-            });
+              trackEvent('collision', {
+                sessionId: scene.sessionId,
+                type: 'cub_lost',
+                obstacleType: obstacleInfo.type,
+                month: scene.gameData.currentMonth
+              });
 
-            if (scene.gameData.cubs === 0) {
-              endGame(scene, 'all_cubs_lost');
+              if (scene.gameData.cubs === 0) {
+                endGame(scene, 'all_cubs_lost');
+              }
             }
           });
         }
@@ -707,34 +886,46 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   // Remove obstacle when it goes off screen
   obstacle.setData('isMoving', true);
 
-  // Collision detection (with safety checks)
-  if (scene.physics && scene.motherCheetah && obstacle) {
+  // Collision detection (with enhanced safety checks) - exclude camels from lethal behavior
+  if (scene.physics && scene.motherCheetah && obstacle && scene.motherCheetah.active && obstacle.active) {
     scene.physics.add.overlap(scene.motherCheetah, obstacle, () => {
-      scene.audioManager?.onHitObstacle(obstacleInfo.type);
-      endGame(scene, obstacleInfo.type);
+      // Double-check objects are still active before processing collision
+      if (scene.motherCheetah?.active && obstacle?.active) {
+        scene.audioManager?.onHitObstacle(obstacleInfo.type);
+        // Only end game for non-camel obstacles
+        if (obstacleInfo.type !== 'camel') {
+          endGame(scene, obstacleInfo.type);
+        }
+      }
     });
   }
 
-  if (scene.cubs && scene.physics) {
+  if (scene.cubs && scene.physics && obstacle && obstacle.active) {
     scene.cubs.forEach((cub, index) => {
-      if (cub && obstacle) {
+      if (cub && cub.active) {
         scene.physics.add.overlap(cub, obstacle, () => {
-          // Remove one cub
-          scene.gameData.cubs--;
-          cub.destroy();
-          scene.cubs.splice(index, 1);
+          // Double-check objects are still active before processing collision
+          if (cub?.active && obstacle?.active && scene.cubs[index] === cub) {
+            // Only remove cub for non-camel obstacles
+            if (obstacleInfo.type !== 'camel') {
+              // Remove one cub
+              scene.gameData.cubs--;
+              cub.destroy();
+              scene.cubs.splice(index, 1);
 
-          scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
 
-          trackEvent('collision', {
-            sessionId: scene.sessionId,
-            type: 'cub_lost',
-            obstacleType: obstacleInfo.type,
-            month: scene.gameData.currentMonth
-          });
+              trackEvent('collision', {
+                sessionId: scene.sessionId,
+                type: 'cub_lost',
+                obstacleType: obstacleInfo.type,
+                month: scene.gameData.currentMonth
+              });
 
-          if (scene.gameData.cubs === 0) {
-            endGame(scene, 'all_cubs_lost');
+              if (scene.gameData.cubs === 0) {
+                endGame(scene, 'all_cubs_lost');
+              }
+            }
           }
         });
       }
@@ -815,32 +1006,38 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     // Remove car when it goes off screen
     car.setData('isMoving', true);
 
-    // Car collision detection (with safety checks)
-    if (scene.physics && scene.motherCheetah && car) {
+    // Car collision detection (with enhanced safety checks)
+    if (scene.physics && scene.motherCheetah && car && scene.motherCheetah.active && car.active) {
       scene.physics.add.overlap(scene.motherCheetah, car, () => {
-        scene.audioManager?.onHitObstacle('road');
-        endGame(scene, 'road');
+        // Double-check objects are still active before processing collision
+        if (scene.motherCheetah?.active && car?.active) {
+          scene.audioManager?.onHitObstacle('road');
+          endGame(scene, 'road');
+        }
       });
     }
 
-    if (scene.cubs && scene.physics) {
+    if (scene.cubs && scene.physics && car && car.active) {
       scene.cubs.forEach((cub, index) => {
-        if (cub && car) {
+        if (cub && cub.active) {
           scene.physics.add.overlap(cub, car, () => {
-            scene.gameData.cubs--;
-            cub.destroy();
-            scene.cubs.splice(index, 1);
-            scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+            // Double-check objects are still active before processing collision
+            if (cub?.active && car?.active && scene.cubs[index] === cub) {
+              scene.gameData.cubs--;
+              cub.destroy();
+              scene.cubs.splice(index, 1);
+              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
 
-            trackEvent('collision', {
-              sessionId: scene.sessionId,
-              type: 'cub_lost',
-              obstacleType: 'car',
-              month: scene.gameData.currentMonth
-            });
+              trackEvent('collision', {
+                sessionId: scene.sessionId,
+                type: 'cub_lost',
+                obstacleType: 'car',
+                month: scene.gameData.currentMonth
+              });
 
-            if (scene.gameData.cubs === 0) {
-              endGame(scene, 'all_cubs_lost');
+              if (scene.gameData.cubs === 0) {
+                endGame(scene, 'all_cubs_lost');
+              }
             }
           });
         }
@@ -881,16 +1078,21 @@ function spawnResource(scene: GameScene, x: number, y: number) {
   // Remove resource when it goes off screen
   resource.setData('isMoving', true);
 
-  // Collection detection
-  scene.physics.add.overlap(scene.motherCheetah!, resource, () => {
-    collectResource(scene, resourceInfo.type);
-    trackEvent('pickup', { 
-      sessionId: scene.sessionId, 
-      resourceType: resourceInfo.type,
-      month: scene.gameData.currentMonth 
+  // Collection detection (with safety checks)
+  if (scene.motherCheetah && resource && scene.motherCheetah.active && resource.active) {
+    scene.physics.add.overlap(scene.motherCheetah, resource, () => {
+      // Double-check objects are still active before processing collision
+      if (scene.motherCheetah?.active && resource?.active) {
+        collectResource(scene, resourceInfo.type);
+        trackEvent('pickup', {
+          sessionId: scene.sessionId,
+          resourceType: resourceInfo.type,
+          month: scene.gameData.currentMonth
+        });
+        resource.destroy();
+      }
     });
-    resource.destroy();
-  });
+  }
 }
 
 function collectResource(scene: GameScene, type: string) {
@@ -912,6 +1114,46 @@ function collectResource(scene: GameScene, type: string) {
   });
 
   console.log(`📊 Resource collected: ${type}, Health: +${healthGain}, Total Health: ${scene.gameData.health}`);
+}
+
+function addScreenFlash(scene: GameScene) {
+  // Create a full-screen flash effect (dark then light for 1 second)
+  const flashRect = scene.add.rectangle(
+    scene.scale.width / 2,
+    scene.scale.height / 2,
+    scene.scale.width,
+    scene.scale.height,
+    0x000000,
+    0.8
+  );
+  flashRect.setDepth(10); // Above everything
+
+  // Flash sequence: dark (0.2s) -> light (0.3s) -> normal (0.5s)
+  scene.tweens.add({
+    targets: flashRect,
+    alpha: 0.9,
+    duration: 200,
+    ease: 'Power2',
+    onComplete: () => {
+      scene.tweens.add({
+        targets: flashRect,
+        alpha: 0.3,
+        duration: 300,
+        ease: 'Power2',
+        onComplete: () => {
+          scene.tweens.add({
+            targets: flashRect,
+            alpha: 0,
+            duration: 500,
+            ease: 'Power2',
+            onComplete: () => {
+              flashRect.destroy();
+            }
+          });
+        }
+      });
+    }
+  });
 }
 
 function updateHealthAndEnergy(scene: GameScene) {
@@ -1036,87 +1278,150 @@ export function updateGame(scene: GameScene) {
   }
 
   // Update velocities of all moving objects based on current speed
-  scene.obstacles.children.entries.forEach((obstacle: any) => {
-    if (obstacle.getData('isMoving') && obstacle.body) {
-      obstacle.body.setVelocityY(scene.gameSpeed);
+  if (scene.obstacles && scene.obstacles.children) {
+    scene.obstacles.children.entries.forEach((obstacle: any) => {
+      // Enhanced safety checks to prevent processing destroyed objects
+      if (obstacle && obstacle.active && !obstacle.destroyed && obstacle.getData && obstacle.getData('isMoving') && obstacle.body) {
+        try {
+          obstacle.body.setVelocityY(scene.gameSpeed);
 
-      // Update horizontal velocity for cars (scale with game speed) - right to left
-      if (obstacle.texture.key === 'car') {
-        const baseHorizontalSpeed = 30;
-        const scaledHorizontalSpeed = -(baseHorizontalSpeed * (scene.gameSpeed / 200)); // Negative for right-to-left movement
-        obstacle.body.setVelocityX(scaledHorizontalSpeed);
-      }
+          // Update horizontal velocity for cars (scale with game speed) - right to left
+          if (obstacle.texture && obstacle.texture.key === 'car') {
+            const baseHorizontalSpeed = 30;
+            const scaledHorizontalSpeed = -(baseHorizontalSpeed * (scene.gameSpeed / 200)); // Negative for right-to-left movement
+            obstacle.body.setVelocityX(scaledHorizontalSpeed);
+          }
 
-      // Update positions and velocities of danger halos to match obstacle
-      const deathZone = obstacle.getData('deathZone');
-      const deathZoneGlow = obstacle.getData('deathZoneGlow');
-      const deathZoneBorder = obstacle.getData('deathZoneBorder');
-      const innerBorder = obstacle.getData('innerBorder');
+          // Update positions and velocities of danger/warning halos to match obstacle
+          const deathZone = obstacle.getData('deathZone');
+          const deathZoneGlow = obstacle.getData('deathZoneGlow');
+          const deathZoneBorder = obstacle.getData('deathZoneBorder');
+          const warningZone = obstacle.getData('warningZone');
+          const warningZoneGlow = obstacle.getData('warningZoneGlow');
+          const warningZoneBorder = obstacle.getData('warningZoneBorder');
+          const innerBorder = obstacle.getData('innerBorder');
 
-      if (deathZone) {
-        deathZone.setPosition(obstacle.x, obstacle.y);
-        if (deathZone.body) {
-          (deathZone.body as Phaser.Physics.Arcade.Body).setVelocityY(scene.gameSpeed);
+          if (deathZone && deathZone.active && !deathZone.destroyed) {
+            deathZone.setPosition(obstacle.x, obstacle.y);
+            if (deathZone.body) {
+              (deathZone.body as Phaser.Physics.Arcade.Body).setVelocityY(scene.gameSpeed);
+            }
+          }
+          if (deathZoneGlow && deathZoneGlow.active && !deathZoneGlow.destroyed) {
+            deathZoneGlow.setPosition(obstacle.x, obstacle.y);
+          }
+          if (deathZoneBorder && deathZoneBorder.active && !deathZoneBorder.destroyed) {
+            deathZoneBorder.setPosition(obstacle.x, obstacle.y);
+          }
+          if (warningZone && warningZone.active && !warningZone.destroyed) {
+            warningZone.setPosition(obstacle.x, obstacle.y);
+            if (warningZone.body) {
+              (warningZone.body as Phaser.Physics.Arcade.Body).setVelocityY(scene.gameSpeed);
+            }
+          }
+          if (warningZoneGlow && warningZoneGlow.active && !warningZoneGlow.destroyed) {
+            warningZoneGlow.setPosition(obstacle.x, obstacle.y);
+          }
+          if (warningZoneBorder && warningZoneBorder.active && !warningZoneBorder.destroyed) {
+            warningZoneBorder.setPosition(obstacle.x, obstacle.y);
+          }
+          if (innerBorder && innerBorder.active && !innerBorder.destroyed) {
+            innerBorder.setPosition(obstacle.x, obstacle.y);
+          }
+
+          // Remove if off screen
+          if (obstacle.y > scene.scale.height + 100) {
+            // Clean up death zones for dangerous obstacles
+            if (deathZone && deathZone.active && !deathZone.destroyed) deathZone.destroy();
+            if (deathZoneGlow && deathZoneGlow.active && !deathZoneGlow.destroyed) deathZoneGlow.destroy();
+            if (deathZoneBorder && deathZoneBorder.active && !deathZoneBorder.destroyed) deathZoneBorder.destroy();
+            // Clean up warning zones for camels
+            if (warningZone && warningZone.active && !warningZone.destroyed) warningZone.destroy();
+            if (warningZoneGlow && warningZoneGlow.active && !warningZoneGlow.destroyed) warningZoneGlow.destroy();
+            if (warningZoneBorder && warningZoneBorder.active && !warningZoneBorder.destroyed) warningZoneBorder.destroy();
+            if (innerBorder && innerBorder.active && !innerBorder.destroyed) innerBorder.destroy();
+            if (obstacle.active && !obstacle.destroyed) obstacle.destroy();
+          }
+        } catch (error) {
+          console.warn('Error updating obstacle:', error);
+          // If there's an error, try to destroy the problematic object
+          if (obstacle && obstacle.active && !obstacle.destroyed) {
+            try {
+              obstacle.destroy();
+            } catch (destroyError) {
+              console.warn('Error destroying obstacle:', destroyError);
+            }
+          }
         }
       }
-      if (deathZoneGlow) {
-        deathZoneGlow.setPosition(obstacle.x, obstacle.y);
-      }
-      if (deathZoneBorder) {
-        deathZoneBorder.setPosition(obstacle.x, obstacle.y);
-      }
-      if (innerBorder) {
-        innerBorder.setPosition(obstacle.x, obstacle.y);
-      }
+    });
+  }
 
-      // Remove if off screen
-      if (obstacle.y > scene.scale.height + 100) {
-        // Clean up death zones for dangerous obstacles
-        if (deathZone) deathZone.destroy();
-        if (deathZoneGlow) deathZoneGlow.destroy();
-        if (deathZoneBorder) deathZoneBorder.destroy();
-
-        if (innerBorder) innerBorder.destroy();
-        obstacle.destroy();
+  if (scene.resources && scene.resources.children) {
+    scene.resources.children.entries.forEach((resource: any) => {
+      // Enhanced safety checks to prevent processing destroyed objects
+      if (resource && resource.active && !resource.destroyed && resource.getData && resource.getData('isMoving') && resource.body) {
+        try {
+          resource.body.setVelocityY(scene.gameSpeed);
+          // Remove if off screen
+          if (resource.y > scene.scale.height + 100) {
+            if (resource.active && !resource.destroyed) resource.destroy();
+          }
+        } catch (error) {
+          console.warn('Error updating resource:', error);
+          // If there's an error, try to destroy the problematic object
+          if (resource && resource.active && !resource.destroyed) {
+            try {
+              resource.destroy();
+            } catch (destroyError) {
+              console.warn('Error destroying resource:', destroyError);
+            }
+          }
+        }
       }
-    }
-  });
-
-  scene.resources.children.entries.forEach((resource: any) => {
-    if (resource.getData('isMoving') && resource.body) {
-      resource.body.setVelocityY(scene.gameSpeed);
-      // Remove if off screen
-      if (resource.y > scene.scale.height + 100) {
-        resource.destroy();
-      }
-    }
-  });
+    });
+  }
 
   // Update road markings and road surface position (they have no physics)
-  scene.children.list.forEach((child: any) => {
-    if (child.getData && child.getData('isMoving')) {
-      if (child.body) {
-        // Objects with physics bodies
-        if (child.fillColor !== undefined && child.fillColor === 0xffffff) {
-          // Road marking with physics (if any)
-          child.body.setVelocityY(scene.gameSpeed);
-        } else if (child.fillColor !== undefined && child.fillColor === 0x333333) {
-          // Road surface with physics (if any)
-          child.body.setVelocityY(scene.gameSpeed);
-        }
-      } else {
-        // Visual objects without physics
-        if (child.fillColor !== undefined && (child.fillColor === 0xffffff || child.fillColor === 0x333333)) {
-          child.y += scene.gameSpeed * (scene.game.loop.delta / 1000);
-        }
-      }
+  if (scene.children && scene.children.list) {
+    scene.children.list.forEach((child: any) => {
+      // Enhanced safety checks to prevent processing destroyed objects
+      if (child && child.active && !child.destroyed && child.getData && child.getData('isMoving')) {
+        try {
+          if (child.body) {
+            // Objects with physics bodies
+            if (child.fillColor !== undefined && child.fillColor === 0xffffff) {
+              // Road marking with physics (if any)
+              child.body.setVelocityY(scene.gameSpeed);
+            } else if (child.fillColor !== undefined && child.fillColor === 0x333333) {
+              // Road surface with physics (if any)
+              child.body.setVelocityY(scene.gameSpeed);
+            }
+          } else {
+            // Visual objects without physics
+            if (child.fillColor !== undefined && (child.fillColor === 0xffffff || child.fillColor === 0x333333)) {
+              child.y += scene.gameSpeed * (scene.game.loop.delta / 1000);
+            }
+          }
 
-      // Remove if off screen
-      if (child.y > scene.scale.height + 100) {
-        child.destroy();
+          // Remove if off screen
+          if (child.y > scene.scale.height + 100) {
+            if (child.active && !child.destroyed) child.destroy();
+          }
+        } catch (error) {
+          console.warn('Error updating road element:', error);
+          // If there's an error, try to destroy the problematic object
+          if (child && child.active && !child.destroyed) {
+            try {
+              child.destroy();
+            } catch (destroyError) {
+              console.warn('Error destroying road element:', destroyError);
+            }
+          }
+        }
       }
-    }
-  });
+    });
+  }
 
   // Background is static for proper full-screen coverage
   // Removed parallax effect to ensure consistent coverage

@@ -383,6 +383,71 @@
   z-index: 20;
 }
 
+.bottom-ui-bar-mobile {
+  position: absolute;
+  bottom: 16px; /* Increased spacing from bottom */
+  left: 8px;
+  right: 8px;
+  z-index: 20;
+  max-height: 25vh; /* Reduced to prevent overlap */
+}
+
+/* Responsive adjustments for bottom UI */
+@media (max-width: 480px) {
+  .bottom-ui-bar-mobile {
+    bottom: 12px; /* More spacing on small screens */
+    left: 6px;
+    right: 6px;
+    max-height: 30vh;
+  }
+
+  .bottom-ui-bar-mobile .game-ui-card-mobile {
+    padding: 6px 8px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .bottom-ui-bar-mobile {
+    bottom: 14px;
+    left: 8px;
+    right: 8px;
+    max-height: 28vh;
+  }
+
+  .bottom-ui-bar-mobile .game-ui-card-mobile {
+    padding: 8px 12px;
+  }
+}
+
+@media (min-width: 769px) {
+  .bottom-ui-bar-mobile {
+    bottom: 18px;
+    left: 12px;
+    right: 12px;
+    max-height: 25vh;
+  }
+
+  .bottom-ui-bar-mobile .game-ui-card-mobile {
+    padding: 10px 16px;
+  }
+}
+
+/* Ensure bottom UI doesn't interfere with game overlays */
+.bottom-ui-bar-mobile .game-ui-card-mobile {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Safe area adjustments for devices with notches */
+@supports (padding: max(0px)) {
+  .bottom-ui-bar-mobile {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
 .game-ui-card-mobile {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);

@@ -44,7 +44,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
   const backgroundStyle = currentBackground ? backgroundManager.getBackgroundStyle(currentBackground) : {};
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center p-2 sm:p-4 text-center md-motion-standard min-h-screen overflow-hidden" data-testid="main-menu">
+    <div className="absolute inset-0 flex flex-col items-center justify-center p-1 sm:p-2 md:p-4 text-center md-motion-standard min-h-screen overflow-hidden" data-testid="main-menu">
       {/* Dynamic background with enhanced overlay */}
       <div className="absolute inset-0" style={backgroundStyle}></div>
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
@@ -57,7 +57,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
       </div>
 
       {/* Main content container with enhanced animations */}
-      <div className={`relative z-10 w-full ${showBasicInfo ? 'max-w-5xl pt-4' : 'max-w-2xl'} space-y-6 sm:space-y-8 px-4 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div className={`relative z-10 w-full ${showBasicInfo ? 'max-w-5xl pt-2 sm:pt-4' : 'max-w-2xl'} space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10 px-2 sm:px-4 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         {/* Header section - only show when educational info is NOT shown */}
         {!showBasicInfo && (
           <>
@@ -66,8 +66,8 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
               {/* Subtle glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 rounded-lg blur-xl"></div>
 
-              <div className="relative space-y-4">
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-primary leading-tight md-motion-emphasized drop-shadow-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <div className="relative space-y-2 sm:space-y-3 md:space-y-4">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-primary leading-tight md-motion-emphasized drop-shadow-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   بازی حفاظت از یوزپلنگ آسیایی
                 </h1>
                 <p className="text-lg sm:text-xl md:text-2xl text-secondary font-semibold leading-relaxed animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -76,9 +76,9 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
               </div>
 
               {/* Enhanced cheetah family illustration with better animations */}
-              <div className="relative my-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <div className="relative my-4 sm:my-6 md:my-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
                 {/* Mother cheetah with enhanced styling and floating animation */}
-                <div className="w-48 h-32 bg-gradient-to-br from-tertiary/20 to-tertiary/10 mx-auto mb-8 relative rounded-2xl backdrop-blur-sm border border-tertiary/20 shadow-2xl animate-float">
+                <div className="w-32 h-20 sm:w-36 sm:h-24 md:w-40 md:h-28 bg-gradient-to-br from-tertiary/20 to-tertiary/10 mx-auto mb-6 sm:mb-8 relative rounded-2xl backdrop-blur-sm border border-tertiary/20 shadow-2xl animate-float">
                   <img
                     src="/assets/sprites/characters/mother-cheetah.png"
                     alt="Cheetah Mother"
@@ -86,29 +86,29 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
                   />
                 </div>
                 {/* Four cubs following with staggered animations */}
-                <div className="flex justify-center space-x-3 space-x-reverse">
+                <div className="flex justify-center space-x-2 sm:space-x-3 space-x-reverse">
                   <img
                     src="/assets/sprites/characters/cub.png"
                     alt="Cheetah Cub 1"
-                    className="w-12 h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-1 shadow-lg animate-bounce-gentle"
+                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
                     style={{ animationDelay: '0.8s' }}
                   />
                   <img
                     src="/assets/sprites/characters/cub.png"
                     alt="Cheetah Cub 2"
-                    className="w-12 h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-1 shadow-lg animate-bounce-gentle"
+                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
                     style={{ animationDelay: '1s' }}
                   />
                   <img
                     src="/assets/sprites/characters/cub.png"
                     alt="Cheetah Cub 3"
-                    className="w-12 h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-1 shadow-lg animate-bounce-gentle"
+                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
                     style={{ animationDelay: '1.2s' }}
                   />
                   <img
                     src="/assets/sprites/characters/cub.png"
                     alt="Cheetah Cub 4"
-                    className="w-12 h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-1 shadow-lg animate-bounce-gentle"
+                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
                     style={{ animationDelay: '1.4s' }}
                   />
                 </div>
@@ -130,7 +130,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
             <div className="flex justify-between items-center mb-6">
               <button
                 onClick={() => setShowBasicInfo(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                className="md-filled-button bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <span>←</span>
                 بازگشت به منوی اصلی
@@ -357,11 +357,11 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
 
         {/* Action buttons with enhanced styling and animations - only show when not showing educational info */}
         {!showBasicInfo && (
-          <div className="space-y-4 animate-fade-in" style={{ animationDelay: '1.1s' }}>
+          <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '1.1s' }}>
           {/* Primary action button with enhanced effects */}
           <button
             onClick={onStartGame}
-            className="md-filled-button w-full max-w-sm mx-auto text-lg sm:text-xl font-bold py-4 sm:py-5 px-8 sm:px-10 md-motion-emphasized shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary relative overflow-hidden group"
+            className="md-filled-button w-full max-w-sm mx-auto text-lg sm:text-xl font-bold py-4 sm:py-5 px-8 sm:px-10 md-motion-emphasized shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 bg-primary hover:bg-primary/90 relative overflow-hidden group"
             data-testid="button-start-game"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
@@ -374,7 +374,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
           {/* Cheetah educational info button */}
           <button
             onClick={() => setShowBasicInfo(!showBasicInfo)}
-            className="md-outlined-button w-full max-w-sm mx-auto px-6 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg hover:bg-primary hover:text-on-primary transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+            className="md-filled-button w-full max-w-sm mx-auto px-6 sm:px-8 py-4 sm:py-5 font-semibold text-base sm:text-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
             data-testid="button-cheetah-info"
           >
             <span className="text-xl">📚</span>
@@ -385,7 +385,7 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
           {bestScore && onDownloadStory && (
             <button
               onClick={() => onDownloadStory(bestScore)}
-              className="md-outlined-button w-full max-w-sm mx-auto text-base sm:text-lg font-semibold py-3 sm:py-4 px-6 sm:px-8 border-2 border-accent text-accent hover:bg-accent hover:text-on-accent transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse-gentle"
+              className="md-filled-button w-full max-w-sm mx-auto text-base sm:text-lg font-semibold py-4 sm:py-5 px-6 sm:px-8 bg-tertiary hover:bg-tertiary/90 text-tertiary-foreground transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse-gentle"
               data-testid="button-download-story"
             >
               <span className="flex items-center justify-center gap-2">
@@ -398,11 +398,11 @@ export default function MainMenu({ onStartGame, onShowTutorial, onDownloadStory 
         )}
 
         {/* Footer with enhanced styling */}
-        <div className="text-center mt-8 animate-fade-in" style={{ animationDelay: '1.3s' }}>
-          <p className="text-base text-on-surface-variant font-medium bg-background/60 backdrop-blur-sm rounded-lg px-4 py-2 inline-block">
+        <div className="text-center mt-4 sm:mt-6 md:mt-8 animate-fade-in" style={{ animationDelay: '1.3s' }}>
+          <p className="text-base text-white font-medium bg-background/60 backdrop-blur-sm rounded-lg px-4 py-2 inline-block">
             حافظان حیات‌وحش سَروین
           </p>
-          <div className="mt-4 flex justify-center space-x-6 space-x-reverse text-sm text-on-surface-variant/70">
+          <div className="mt-4 flex justify-center space-x-6 space-x-reverse text-sm text-white/70">
             <span>نسخه ۱.۴.۰</span>
             <span>۹ شهریور ۱۴۰۴</span>
           </div>

@@ -50,6 +50,8 @@ export default function Tutorial({ onClose, onSkip }: TutorialProps) {
                   <p className="text-sm leading-relaxed bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
                     نزدیک شدن به این تهدیدها باعث کاهش شدید سلامتی، آسیب یا حتی مرگ مادر یوزپلنگ و توله‌ها می‌شود.
                     همیشه فاصله خود را حفظ کنید و از مسیرهای امن استفاده نمایید.
+                    <br /><br />
+                    <strong className="text-yellow-600">نکته مهم:</strong> برخی تهدیدها مانند شتر فقط سلامتی را کاهش می‌دهند (۳۰٪) و باعث مرگ نمی‌شوند، اما همچنان باید از آن‌ها دوری کنید.
                   </p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -69,10 +71,11 @@ export default function Tutorial({ onClose, onSkip }: TutorialProps) {
                       <div className="font-semibold text-red-600">ماشین</div>
                       <div className="text-xs text-muted-foreground">جاده‌های خطرناک</div>
                     </div>
-                    <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg shadow-md border-2 border-yellow-200">
                       <img src="/assets/sprites/obstacles/camel.png" alt="Camel" className="w-16 h-16 mx-auto mb-2 object-contain" />
-                      <div className="font-semibold text-red-600">شتر</div>
-                      <div className="text-xs text-muted-foreground">حیوانات وحشی</div>
+                      <div className="font-semibold text-yellow-600">شتر</div>
+                      <div className="text-xs text-muted-foreground">حیوانات وحشی - کاهش سلامتی</div>
+                      <div className="text-xs text-yellow-600 font-medium mt-1">⚠️ کاهش ۳۰٪ سلامتی</div>
                     </div>
                   </div>
 
@@ -93,6 +96,8 @@ export default function Tutorial({ onClose, onSkip }: TutorialProps) {
                         <li>• سگ‌های گله اغلب در مناطق کشاورزی دیده می‌شوند</li>
                         <li>• جاده‌ها در ساعات شب خطرناک‌تر هستند</li>
                         <li>• شترها ممکن است در مسیرهای آبی حضور داشته باشند</li>
+                        <li className="text-yellow-600 font-medium">• شترها باعث کاهش ۳۰٪ سلامتی می‌شوند اما مرگ آور نیستند</li>
+                        <li className="text-yellow-600 font-medium">• برخورد با شتر باعث فلش صفحه برای یک ثانیه می‌شود</li>
                       </ul>
                     </div>
                   )}
