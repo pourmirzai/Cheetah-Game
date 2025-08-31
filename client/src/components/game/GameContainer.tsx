@@ -18,6 +18,14 @@ const initialGameState: GameState = {
   sessionId: null
 };
 
+interface BestScore {
+  cubsSurvived: number;
+  monthsCompleted: number;
+  finalScore: number;
+  achievementTitle: string;
+  date: string;
+}
+
 const initialGameData: GameData = {
   cubs: 4,
   currentMonth: 1,
@@ -37,6 +45,7 @@ export default function GameContainer() {
   const [gameData, setGameData] = useState<GameData>(initialGameData);
   const [gameResults, setGameResults] = useState<GameResults | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [bestScoreForDownload, setBestScoreForDownload] = useState<BestScore | null>(null);
 
   const showScreen = useCallback((screenId: GameState['currentScreen']) => {
     setGameState(prev => ({ ...prev, currentScreen: screenId }));
@@ -141,6 +150,11 @@ export default function GameContainer() {
     setGameStarted(false);
   }, []);
 
+  const handleDownloadStory = useCallback((bestScore: BestScore) => {
+    setBestScoreForDownload(bestScore);
+    setGameState(prev => ({ ...prev, currentScreen: 'downloadStory' }));
+  }, []);
+
   const onTutorialComplete = useCallback(() => {
     console.log('🎯 onTutorialComplete called in GameContainer');
     console.log('Setting game state to playing...');
@@ -157,6 +171,7 @@ export default function GameContainer() {
         <MainMenu
           onStartGame={startGame}
           onShowTutorial={() => showScreen('tutorial')}
+          onDownloadStory={handleDownloadStory}
         />
       )}
 
@@ -198,6 +213,14 @@ export default function GameContainer() {
         <ShareCard
           results={gameResults}
           onClose={() => showScreen('gameOver')}
+        />
+      )}
+
+      {/* Download Story Screen */}
+      {gameState.currentScreen === 'downloadStory' && bestScoreForDownload && (
+        <ShareCard
+          bestScore={bestScoreForDownload}
+          onClose={() => showScreen('menu')}
         />
       )}
     </div>

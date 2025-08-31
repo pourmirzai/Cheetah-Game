@@ -1,5 +1,5 @@
 export interface GameState {
-  currentScreen: 'menu' | 'game' | 'tutorial' | 'gameOver' | 'shareCard';
+  currentScreen: 'menu' | 'game' | 'tutorial' | 'gameOver' | 'shareCard' | 'downloadStory';
   isPlaying: boolean;
   isPaused: boolean;
   sessionId: string | null;
