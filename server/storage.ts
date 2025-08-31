@@ -4,32 +4,9 @@ import {
   type GameEvent, type InsertGameEvent,
   type GameStats, type InsertGameStats
 } from "@shared/schema";
-// Temporarily disabled database imports for in-memory storage
+// Database imports disabled - using in-memory storage only
 // import { db } from "./db";
 // import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
-import * as fs from "fs";
-import * as path from "path";
-
-const STATS_FILE = path.join(__dirname, 'globalStats.json');
-
-async function loadGlobalStats(): Promise<any> {
-  try {
-    const data = fs.readFileSync(STATS_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    return {
-      uniqueUsers: 0,
-      totalGames: 0,
-      totalStoryDownloads: 0,
-      totalCheetahsSaved: 0,
-      userIPs: []
-    };
-  }
-}
-
-async function saveGlobalStats(stats: any): Promise<void> {
-  fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
-}
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -63,6 +40,13 @@ export class InMemoryStorage implements IStorage {
   private gameSessions: GameSession[] = [];
   private gameEvents: GameEvent[] = [];
   private gameStatsData: GameStats[] = [];
+  private globalStats: any = {
+    uniqueUsers: 0,
+    totalGames: 0,
+    totalStoryDownloads: 0,
+    totalCheetahsSaved: 0,
+    userIPs: []
+  };
 
   async getUser(id: string): Promise<User | undefined> {
     return this.users.find(user => user.id === id);
@@ -201,34 +185,26 @@ export class InMemoryStorage implements IStorage {
   }
 
   async incrementUniqueUsers(ip: string): Promise<void> {
-    const stats = await loadGlobalStats();
-    if (!stats.userIPs.includes(ip)) {
-      stats.userIPs.push(ip);
-      stats.uniqueUsers++;
-      await saveGlobalStats(stats);
+    if (!this.globalStats.userIPs.includes(ip)) {
+      this.globalStats.userIPs.push(ip);
+      this.globalStats.uniqueUsers++;
     }
   }
 
   async incrementTotalGames(): Promise<void> {
-    const stats = await loadGlobalStats();
-    stats.totalGames++;
-    await saveGlobalStats(stats);
+    this.globalStats.totalGames++;
   }
 
   async incrementTotalCheetahsSaved(count: number): Promise<void> {
-    const stats = await loadGlobalStats();
-    stats.totalCheetahsSaved += count;
-    await saveGlobalStats(stats);
+    this.globalStats.totalCheetahsSaved += count;
   }
 
   async incrementTotalStoryDownloads(): Promise<void> {
-    const stats = await loadGlobalStats();
-    stats.totalStoryDownloads++;
-    await saveGlobalStats(stats);
+    this.globalStats.totalStoryDownloads++;
   }
 
   async getGlobalStats(): Promise<any> {
-    return await loadGlobalStats();
+    return this.globalStats;
   }
 }
 
