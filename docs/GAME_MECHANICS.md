@@ -112,8 +112,8 @@ const obstacleInfo = {
 #### ۳. شکارچیان (Poachers)
 ```typescript
 const obstacleInfo = {
-  type: 'poacher',
-  texture: 'poacher',
+  type: 'smuggler',
+  texture: 'smuggler',
   healthDamage: 50,
   speedMultiplier: 1.2
 };

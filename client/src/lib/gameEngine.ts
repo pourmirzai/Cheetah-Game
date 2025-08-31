@@ -64,7 +64,9 @@ export function initializeGame(
   gameData: GameData,
   onUpdateGameData: (updates: Partial<GameData>) => void,
   onGameEnd: (results: Partial<GameResults>) => void,
-  sessionId: string
+  sessionId: string,
+  onLoadingProgress?: (progress: number, message: string) => void,
+  onLoadingComplete?: () => void
 ) {
   // Safety check for scene
   if (!scene) {
@@ -97,13 +99,17 @@ export function initializeGame(
   gameScene.startX = 0;
   gameScene.gameStarted = false; // Game starts paused until tutorial is completed
 
-  // Load game assets first
-  loadAssets(scene);
+  // Store progress callback for event handlers
+  const progressCallback = onLoadingProgress;
+
+  // Load game assets first with progress tracking
+  loadAssets(scene, progressCallback);
 
   // Wait for all assets to load before creating the game world
   scene.load.on('complete', () => {
     try {
       console.log('🎮 All assets loaded, creating game world...');
+      onLoadingComplete?.();
       createGameWorld(gameScene);
       setupInput(gameScene);
       // Don't start timers yet - wait for tutorial completion
@@ -119,7 +125,88 @@ export function initializeGame(
 
   scene.load.on('filecomplete-failed', (key: string) => {
     console.error(`❌ Failed to load asset: ${key}`);
+    // Try to retry loading the asset
+    retryAssetLoad(scene, key, progressCallback);
   });
+
+  // Add progress tracking
+  scene.load.on('progress', (progress: number) => {
+    const progressPercent = Math.round(progress * 100);
+    progressCallback?.(progressPercent, `بارگذاری دارایی‌ها... ${progressPercent}%`);
+  });
+}
+
+function retryAssetLoad(scene: Phaser.Scene, key: string, progressCallback?: (progress: number, message: string) => void, retryCount: number = 0) {
+  const maxRetries = 3;
+  const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
+
+  if (retryCount >= maxRetries) {
+    console.error(`❌ Max retries reached for asset: ${key}, creating fallback texture`);
+    // Create fallback texture
+    if (!scene.textures.exists(key)) {
+      scene.add.graphics()
+        .fillStyle(0xff6b6b) // Red fallback color
+        .fillRect(0, 0, 32, 32)
+        .generateTexture(key, 32, 32);
+    }
+    return;
+  }
+
+  console.log(`🔄 Retrying asset load (${retryCount + 1}/${maxRetries}): ${key}`);
+
+  // Find the asset path from our configuration
+  let assetPath = '';
+  let assetType = '';
+
+  // Check characters
+  const characterAsset = GAME_ASSETS.loadConfig.characters.find(c => c.texture === key);
+  if (characterAsset) {
+    assetPath = characterAsset.path;
+    assetType = 'image';
+  }
+
+  // Check obstacles
+  const obstacleAsset = GAME_ASSETS.loadConfig.obstacles.find(o => o.texture === key);
+  if (obstacleAsset) {
+    assetPath = obstacleAsset.path;
+    assetType = 'image';
+  }
+
+  // Check resources
+  const resourceAsset = GAME_ASSETS.loadConfig.resources.find(r => r.texture === key);
+  if (resourceAsset) {
+    assetPath = resourceAsset.path;
+    assetType = 'image';
+  }
+
+  // Check backgrounds
+  const backgroundAsset = GAME_ASSETS.loadConfig.backgrounds.find(b => b.texture === key);
+  if (backgroundAsset) {
+    assetPath = backgroundAsset.path;
+    assetType = 'image';
+  }
+
+  if (assetPath && assetType === 'image') {
+    // Retry loading after delay
+    scene.time.delayedCall(retryDelay, () => {
+      scene.load.image(key, assetPath);
+      scene.load.once(`filecomplete-${key}`, () => {
+        console.log(`✅ Asset retry successful: ${key}`);
+      });
+      scene.load.once(`filecomplete-failed-${key}`, () => {
+        retryAssetLoad(scene, key, progressCallback, retryCount + 1);
+      });
+      scene.load.start();
+    });
+  } else {
+    // If we can't find the asset path, create fallback immediately
+    if (!scene.textures.exists(key)) {
+      scene.add.graphics()
+        .fillStyle(0xff6b6b)
+        .fillRect(0, 0, 32, 32)
+        .generateTexture(key, 32, 32);
+    }
+  }
 }
 
 export function startActualGame(scene: Phaser.Scene) {
@@ -143,7 +230,7 @@ export function startActualGame(scene: Phaser.Scene) {
   }
 }
 
-function loadAssets(scene: Phaser.Scene) {
+function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message: string) => void) {
   console.log('🎮 Loading game assets from centralized configuration...');
 
   // Safety check for scene
@@ -152,32 +239,55 @@ function loadAssets(scene: Phaser.Scene) {
     return;
   }
 
+  // Initialize progress tracking
+  let loadedCount = 0;
+  let totalAssets = 0;
+
+  // Count total assets to load
+  totalAssets += GAME_ASSETS.loadConfig.characters.length;
+  totalAssets += GAME_ASSETS.loadConfig.obstacles.length;
+  totalAssets += GAME_ASSETS.loadConfig.resources.length;
+  totalAssets += GAME_ASSETS.loadConfig.backgrounds.length;
+  totalAssets += 4; // Audio files
+
+  // Progress callback function
+  const updateProgress = (message: string) => {
+    loadedCount++;
+    const progress = Math.min((loadedCount / totalAssets) * 100, 100);
+    onProgress?.(progress, message);
+  };
+
   // Load audio files first
   console.log('🎵 Loading audio files...');
+  onProgress?.(10, 'بارگذاری فایل‌های صوتی...');
   scene.load.audio('bg-music', 'assets/audio/bg-music.mp3');
   scene.load.audio('car-horn', 'assets/audio/car-horn.mp3');
   scene.load.audio('dog-bark', 'assets/audio/dog-bark.mp3');
   scene.load.audio('angry-grunt', 'assets/audio/angry-grunt.mp3');
 
   // Load character sprites
+  onProgress?.(25, 'بارگذاری شخصیت‌ها...');
   GAME_ASSETS.loadConfig.characters.forEach(({ texture, path }) => {
     console.log(`🔄 Loading character: ${path} → ${texture}`);
     scene.load.image(texture, path);
   });
 
   // Load obstacle sprites
+  onProgress?.(50, 'بارگذاری موانع...');
   GAME_ASSETS.loadConfig.obstacles.forEach(({ texture, path }) => {
     console.log(`🔄 Loading obstacle: ${path} → ${texture}`);
     scene.load.image(texture, path);
   });
 
   // Load resource sprites
+  onProgress?.(75, 'بارگذاری منابع...');
   GAME_ASSETS.loadConfig.resources.forEach(({ texture, path }) => {
     console.log(`🔄 Loading resource: ${path} → ${texture}`);
     scene.load.image(texture, path);
   });
 
   // Load background images
+  onProgress?.(90, 'بارگذاری پس‌زمینه‌ها...');
   GAME_ASSETS.loadConfig.backgrounds.forEach(({ texture, path }) => {
     console.log(`🔄 Loading seasonal background: ${path} → ${texture}`);
     scene.load.image(texture, path);
@@ -576,7 +686,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
 
   const obstacleInfo = GAME_ASSETS.obstacles.types[Phaser.Math.Between(0, GAME_ASSETS.obstacles.types.length - 1)];
 
-  // Dangerous obstacles (camel, poacher, dog) spawn at least 80 pixels away from road
+  // Dangerous obstacles (camel, smuggler, dog) spawn at least 80 pixels away from road
   let obstacle: Phaser.GameObjects.Sprite;
   const texture = obstacleInfo.texture;
 
@@ -747,7 +857,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       });
     }
 
-  } else if (obstacleInfo.type === 'poacher' || obstacleInfo.type === 'dog') {
+  } else if (obstacleInfo.type === 'smuggler' || obstacleInfo.type === 'dog') {
     // Keep dangerous obstacles 80 pixels away from road
     y = y - 80;
     obstacle = scene.add.sprite(x, y, texture);
@@ -897,7 +1007,7 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   const specialBehavior = GAME_ASSETS.obstacles.specialBehaviors[obstacleInfo.type as keyof typeof GAME_ASSETS.obstacles.specialBehaviors];
 
   if (specialBehavior) {
-    // Removed poacher spotlight/cone effect completely
+    // Removed smuggler spotlight/cone effect completely
 
     if (specialBehavior.speedMultiplier && specialBehavior.speedMultiplier !== 1.0 && obstacle.body) {
       const body = obstacle.body as Phaser.Physics.Arcade.Body;

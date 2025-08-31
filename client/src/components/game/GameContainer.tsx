@@ -45,6 +45,9 @@ export default function GameContainer() {
   const [gameResults, setGameResults] = useState<GameResults | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [bestScoreForDownload, setBestScoreForDownload] = useState<BestScore | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("در حال بارگذاری...");
 
   const showScreen = useCallback((screenId: GameState['currentScreen']) => {
     setGameState(prev => ({ ...prev, currentScreen: screenId }));
@@ -52,6 +55,11 @@ export default function GameContainer() {
 
   const startGame = useCallback(async (preserveGameData: boolean = false) => {
     try {
+      // Set loading state
+      setIsLoading(true);
+      setLoadingProgress(0);
+      setLoadingMessage("شروع بارگذاری بازی...");
+
       const response = await fetch('/api/game/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -77,6 +85,7 @@ export default function GameContainer() {
       trackEvent('game_start', { sessionId });
     } catch (error) {
       console.error('Error starting game:', error);
+      setIsLoading(false);
     }
   }, []);
 
@@ -182,6 +191,17 @@ export default function GameContainer() {
     console.log('✅ Tutorial completion process finished');
   }, []);
 
+  const handleLoadingProgress = useCallback((progress: number, message: string) => {
+    setLoadingProgress(progress);
+    setLoadingMessage(message);
+  }, []);
+
+  const handleLoadingComplete = useCallback(() => {
+    setIsLoading(false);
+    setLoadingProgress(100);
+    setLoadingMessage("بارگذاری کامل شد!");
+  }, []);
+
   return (
     <div className="relative w-full h-dvh overflow-hidden" data-testid="game-container">
       {/* Main Menu Screen */}
@@ -201,11 +221,16 @@ export default function GameContainer() {
             onGameEnd={endGame}
             sessionId={gameState.sessionId!}
             gameStarted={gameStarted}
+            onLoadingProgress={handleLoadingProgress}
+            onLoadingComplete={handleLoadingComplete}
           />
           <GameUI
             gameData={gameData}
             onTutorialComplete={onTutorialComplete}
             gameStarted={gameStarted}
+            isLoading={isLoading}
+            loadingProgress={loadingProgress}
+            loadingMessage={loadingMessage}
           />
         </>
       )}
@@ -245,7 +270,7 @@ function getConservationMessage(deathCause?: string): string {
   switch (deathCause) {
     case 'road':
       return 'جاده‌ها، خط پایان بسیاری از یوزها هستند. ایمن‌سازی جاده‌ها یکی از مهمترین اقدامات برای نجات یوزپلنگ است.';
-    case 'poacher':
+    case 'smuggler':
       return 'حذف توله‌ها از طبیعت توسط قاچاقچیان و افراد نا‌اگاه یکی از مهمترین عوامل تهدید یوزپلنگ در جهان است.';
     case 'dog':
       return 'سگ‌های رها شده و سگ گله، بلای جان توله یوزها. کنترل جمعیت سگ‌های رها‌شده در زیستگاه ضروری است.';

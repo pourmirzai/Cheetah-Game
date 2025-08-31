@@ -134,7 +134,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                 <span>←</span>
                 بازگشت به منوی اصلی
               </button>
-              <h3 className="text-2xl font-bold text-primary">آموزش و حفاظت از یوزپلنگ ایرانی</h3>
+              <h3 className="text-2xl font-bold text-primary">آموزش و حفاظت از یوزپلنگ آسیایی</h3>
               <div></div> {/* Spacer for centering */}
             </div>
             <Accordion type="single" collapsible className="w-full space-y-4">
@@ -144,7 +144,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                   <div className="flex items-center space-x-3 space-x-reverse">
                     <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">🐆</div>
                     <div className="text-right">
-                      <h3 className="font-bold text-lg">وضعیت یوزپلنگ ایرانی</h3>
+                      <h3 className="font-bold text-lg">وضعیت یوزپلنگ آسیایی</h3>
                       <p className="text-sm text-muted-foreground">جمعیت، پراکندگی و چالش‌های کنونی</p>
                     </div>
                   </div>
@@ -155,13 +155,13 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                       <h4 className="font-semibold mb-3 text-red-700 dark:text-red-400">وضعیت بحرانی</h4>
                       <p className="text-sm leading-relaxed mb-3">
                         یوزپلنگ آسیایی (Acinonyx jubatus venaticus) یکی از نادرترین زیرگونه‌های یوزپلنگ در جهان است.
-                        این گونه در فهرست IUCN به عنوان "در معرض انقراض بسیار شدید" (Critically Endangered) قرار دارد.
+                        این گونه در فهرست IUCN به عنوان "به شدت در معرض انقراض" (Critically Endangered) قرار دارد.
                       </p>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="bg-white dark:bg-gray-800 p-3 rounded">
                           <div className="font-medium text-red-600">جمعیت در جهان</div>
-                          <div className="text-2xl font-bold">فقط در </div>
-                          <div className="text-xs text-muted-foreground"><strong>ایران</strong></div>
+                          <div className="text-2xl font-bold">فقط در ایران </div>
+                          <div className="text-xs text-muted-foreground"><strong>منقرض شده در دیگر نقاط</strong></div>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-3 rounded">
                           <div className="font-medium text-red-600">در ایران</div>
@@ -183,7 +183,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                     <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-yellow-700 dark:text-yellow-400">علل کاهش جمعیت</h4>
                       <p className="text-sm leading-relaxed">
-                        جمعیت یوزپلنگ ایرانی از حدود ۱۰۰-۲۰۰ عدد در دهه ۱۹۷۰ به کمتر از ۳۰ عدد در سال ۲۰۲۴ کاهش یافته است.
+                        جمعیت یوزپلنگ آسیایی از حدود ۱۰۰-۲۰۰ عدد در دهه ۱۹۷۰ به کمتر از ۳۰ عدد در سال ۲۰۲۴ کاهش یافته است.
                         این کاهش شدید به دلیل ترکیب عوامل انسانی و طبیعی رخ داده است.
                       </p>
                     </div>
@@ -198,7 +198,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                     <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-bold">⚠️</div>
                     <div className="text-right">
                       <h3 className="font-bold text-lg">تهدیدها و عوامل تأثیرگذار</h3>
-                      <p className="text-sm text-muted-foreground">تمام عوامل تهدیدکننده یوزپلنگ ایرانی</p>
+                      <p className="text-sm text-muted-foreground">تمام عوامل تهدیدکننده یوزپلنگ آسیایی</p>
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -340,7 +340,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                     <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-yellow-700 dark:text-yellow-400">چشم‌انداز آینده</h4>
                       <p className="text-sm leading-relaxed mb-3">
-                        با اقدامات مناسب و حمایت عمومی، می‌توان جمعیت یوزپلنگ ایرانی را از وضعیت بحرانی خارج کرد.
+                        با اقدامات مناسب و حمایت عمومی، می‌توان جمعیت یوزپلنگ آسیایی را از وضعیت بحرانی خارج کرد.
                         هر فرد با اقدامات کوچک خود می‌تواند به نجات این گونه ارزشمند کمک کند.
                       </p>
                       <div className="bg-white dark:bg-gray-800 p-3 rounded text-center">

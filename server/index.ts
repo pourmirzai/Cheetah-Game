@@ -6,6 +6,14 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add caching headers for static assets
+app.use('/assets', (req, res, next) => {
+  // Cache static assets for 1 hour
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.setHeader('Expires', new Date(Date.now() + 3600000).toUTCString());
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

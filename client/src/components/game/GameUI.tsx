@@ -6,9 +6,12 @@ interface GameUIProps {
   gameData: GameData;
   onTutorialComplete?: () => void;
   gameStarted?: boolean;
+  isLoading?: boolean;
+  loadingProgress?: number;
+  loadingMessage?: string;
 }
 
-export default function GameUI({ gameData, onTutorialComplete, gameStarted }: GameUIProps) {
+export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLoading = false, loadingProgress = 0, loadingMessage = "در حال بارگذاری..." }: GameUIProps) {
   const [showLowHealthWarning, setShowLowHealthWarning] = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
@@ -88,6 +91,44 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted }: Ga
 
   return (
     <div className="game-ui-container" data-testid="game-ui">
+      {/* Loading Screen */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center z-50">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              {/* Loading Icon */}
+              <div className="mb-6">
+                <div className="w-16 h-16 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 border-4 border-orange-300 border-t-orange-600 rounded-full animate-spin"></div>
+                </div>
+              </div>
+
+              {/* Loading Message */}
+              <h2 className="text-xl font-bold text-gray-800 mb-2">بارگذاری بازی</h2>
+              <p className="text-sm text-gray-600 mb-6">{loadingMessage}</p>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                <div
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
+                ></div>
+              </div>
+
+              {/* Progress Percentage */}
+              <p className="text-sm font-semibold text-orange-600">{Math.round(loadingProgress)}%</p>
+
+              {/* Loading Tips */}
+              <div className="mt-6 p-4 bg-orange-50 rounded-lg">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  💡 <strong>نکته:</strong> برای بهترین تجربه، اتصال اینترنت پایدار داشته باشید
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Low health warning overlay */}
       {showLowHealthWarning && (
         <div className="warning-overlay" />
@@ -202,7 +243,7 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted }: Ga
                   خطرات
                 </h3>
                 <div className="flex justify-center space-x-2 space-x-reverse mb-1">
-                  <img src="/assets/sprites/obstacles/pocher.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
+                  <img src="/assets/sprites/obstacles/smugller.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/car.png" alt="ماشین" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/camel.png" alt="شتر" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/dog.png" alt="سگ" className="w-6 h-6 object-contain" />

@@ -166,7 +166,7 @@ export class AudioManager {
       case 'dog':
         this.playSound('dog-bark');
         break;
-      case 'poacher':
+      case 'smuggler':
         this.playSound('angry-grunt');
         break;
       default:

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Persian web-based game called "نجات یوز ایران" (Save Iran's Cheetah) designed for Persian Cheetah National Day. The game is an interactive vertical scroller similar to River Raid where players control a mother cheetah trying to guide her 4 cubs to independence over 120 seconds (representing 18 months). Players must avoid obstacles like dogs, traps, poachers, and roads while collecting resources like water and prey to keep the family alive. The game features seasonal changes, different difficulty paths, speed burst mechanics, and aims to raise awareness about Asian cheetah conservation in Iran.
+This is a Persian web-based game called "نجات یوز ایران" (Save Iran's Cheetah) designed for Persian Cheetah National Day. The game is an interactive vertical scroller similar to River Raid where players control a mother cheetah trying to guide her 4 cubs to independence over 120 seconds (representing 18 months). Players must avoid obstacles like dogs, traps, smugglers, and roads while collecting resources like water and prey to keep the family alive. The game features seasonal changes, different difficulty paths, speed burst mechanics, and aims to raise awareness about Asian cheetah conservation in Iran.
 
 ## User Preferences
 

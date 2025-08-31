@@ -13,7 +13,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sessionId = nanoid();
       const deviceType = req.headers['user-agent']?.includes('Mobile') ? 'mobile' : 'desktop';
-      
+      const ip = req.ip || req.connection.remoteAddress || 'unknown';
+
       const session = await storage.createGameSession({
         sessionId,
         cubsSurvived: 4,
@@ -30,6 +31,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eventType: 'game_start',
         eventData: { deviceType }
       });
+
+      // Update global stats
+      await storage.incrementUniqueUsers(ip);
+      await storage.incrementTotalGames();
 
       res.json({ sessionId, success: true });
     } catch (error) {
@@ -61,6 +66,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update daily stats
       const today = new Date().toISOString().split('T')[0];
       await storage.updateDailyStats(today);
+
+      // Update global stats
+      await storage.incrementTotalCheetahsSaved(session.cubsSurvived);
 
       res.json({ success: true, session, achievementTitle });
     } catch (error) {
@@ -118,6 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!session) {
         return res.status(404).json({ error: 'Session not found' });
       }
+
+      // Update global stats
+      await storage.incrementTotalStoryDownloads();
 
       // Create canvas for share card (1080x1920 as per documentation)
       const canvas = createCanvas(1080, 1920);
@@ -212,6 +223,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating share card image:', error);
       res.status(500).json({ error: 'Failed to generate share card image' });
+    }
+  });
+
+  // Global stats endpoint
+  app.get("/api/stats/global", async (req, res) => {
+    try {
+      const stats = await storage.getGlobalStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching global stats:', error);
+      res.status(500).json({ error: 'Failed to fetch global stats' });
     }
   });
 

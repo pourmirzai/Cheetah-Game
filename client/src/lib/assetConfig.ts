@@ -13,7 +13,7 @@ export const ASSET_PATHS = {
   // Obstacle Images
   obstacles: {
     dog: '/assets/sprites/obstacles/dog.png',
-    poacher: '/assets/sprites/obstacles/pocher.png',
+    smuggler: '/assets/sprites/obstacles/smugller.png',
     camel: '/assets/sprites/obstacles/camel.png',
     car: '/assets/sprites/obstacles/car.png'
   },
@@ -36,7 +36,7 @@ export const ASSET_PATHS = {
 export const ASSET_LOAD_CONFIG = {
   obstacles: [
     { texture: 'dog-obstacle', path: ASSET_PATHS.obstacles.dog },
-    { texture: 'poacher', path: ASSET_PATHS.obstacles.poacher },
+    { texture: 'smuggler', path: ASSET_PATHS.obstacles.smuggler },
     { texture: 'car', path: ASSET_PATHS.obstacles.car },
     { texture: 'camel-obstacle', path: ASSET_PATHS.obstacles.camel }
   ],
@@ -64,18 +64,18 @@ export const ASSET_LOAD_CONFIG = {
 export const OBSTACLE_CONFIG = {
   types: [
     { type: 'dog', texture: 'dog-obstacle' },
-    { type: 'poacher', texture: 'poacher' },
+    { type: 'smuggler', texture: 'smuggler' },
     { type: 'camel', texture: 'camel-obstacle' }
   ],
 
   sizes: {
     dog: 62,
-    poacher: 68,
+    smuggler: 68,
     camel: 85
   },
 
   specialBehaviors: {
-    poacher: { hasSpotlight: true, speedMultiplier: 1.0 },
+    smuggler: { hasSpotlight: true, speedMultiplier: 1.0 },
     camel: { hasSpotlight: false, speedMultiplier: 0.8 },
     dog: { hasSpotlight: false, speedMultiplier: 1.0 }
   }

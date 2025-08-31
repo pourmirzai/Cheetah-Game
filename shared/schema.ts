@@ -17,7 +17,7 @@ export const gameSessions = pgTable("game_sessions", {
   monthsCompleted: integer("months_completed").notNull().default(0),
   finalScore: integer("final_score").notNull().default(0),
   gameTime: integer("game_time").notNull().default(0), // in seconds
-  deathCause: text("death_cause"), // 'road', 'poacher', 'dog', 'starvation', 'completed'
+  deathCause: text("death_cause"), // 'road', 'smuggler', 'dog', 'starvation', 'completed'
   deviceType: text("device_type"), // 'mobile', 'desktop'
   province: text("province"), // Optional for regional stats
   achievements: jsonb("achievements").default('[]'), // Array of achievement names

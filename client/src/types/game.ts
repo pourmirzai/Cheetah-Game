@@ -45,7 +45,7 @@ export interface GameObject {
 
 export interface Obstacle extends GameObject {
   type: 'obstacle';
-  subtype: 'dog' | 'trap' | 'fence' | 'poacher' | 'road';
+  subtype: 'dog' | 'smuggler' | 'road';
   dangerous: boolean;
 }
 

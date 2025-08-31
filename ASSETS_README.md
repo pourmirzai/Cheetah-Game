@@ -26,9 +26,7 @@ public/assets/
 
 ### ⚠️ Obstacles (`public/assets/sprites/obstacles/`)
 - `dog.png` or `dog.webp` - Guard dog threat (24x20 pixels)
-- `trap.png` or `trap.webp` - Hunting trap (20x20 pixels)
-- `fence.png` or `fence.webp` - Farm fence (30x40 pixels)
-- `poacher.png` or `poacher.webp` - Hunter with spotlight (24x32 pixels)
+- `smuggler.png` or `smuggler.webp` - Smuggler wolf with spotlight (24x32 pixels)
 - `car.png` or `car.webp` - Road vehicle (40x20 pixels)
 
 ### 🏞️ Backgrounds (`public/assets/backgrounds/`)

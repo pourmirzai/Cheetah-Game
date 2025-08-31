@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { GameData, GameResults } from "@/types/game";
 import { initializeGame, updateGame, startActualGame } from "@/lib/gameEngine";
@@ -9,9 +9,11 @@ interface PhaserGameProps {
   onGameEnd: (results: Partial<GameResults>) => void;
   sessionId: string;
   gameStarted: boolean;
+  onLoadingProgress?: (progress: number, message: string) => void;
+  onLoadingComplete?: () => void;
 }
 
-export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sessionId, gameStarted }: PhaserGameProps) {
+export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sessionId, gameStarted, onLoadingProgress, onLoadingComplete }: PhaserGameProps) {
   const gameRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
 
@@ -49,7 +51,7 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
         scene: {
           preload: function() {
             try {
-              initializeGame(this, gameData, onUpdateGameData, onGameEnd, sessionId);
+              initializeGame(this, gameData, onUpdateGameData, onGameEnd, sessionId, onLoadingProgress, onLoadingComplete);
             } catch (error) {
               console.error('Error in preload:', error);
             }

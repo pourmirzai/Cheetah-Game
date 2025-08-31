@@ -33,23 +33,17 @@ export const OBSTACLE_SPRITES: Record<string, SpriteConfig> = {
     height: 20,
     color: 0x8b4513 // Brown
   },
-  trap: {
-    key: 'trap',
-    width: 20,
-    height: 20,
-    color: 0x696969 // Gray
-  },
-  fence: {
-    key: 'fence',
-    width: 30,
-    height: 40,
-    color: 0x654321 // Dark brown
-  },
-  poacher: {
-    key: 'poacher',
+  smuggler: {
+    key: 'smuggler',
     width: 24,
     height: 32,
     color: 0x000000 // Black
+  },
+  camel: {
+    key: 'camel-obstacle',
+    width: 32,
+    height: 24,
+    color: 0xd2b48c // Tan
   },
   road: {
     key: 'road',
@@ -120,28 +114,24 @@ export const RESOURCE_VALUES = {
 export const OBSTACLE_SPAWN_RATES = {
   spring: {
     dog: 0.4,
-    trap: 0.2,
-    fence: 0.3,
-    poacher: 0.1
+    smuggler: 0.1,
+    camel: 0.2
   },
   summer: {
     dog: 0.2,
-    trap: 0.3,
-    fence: 0.2,
-    poacher: 0.3,
+    smuggler: 0.3,
+    camel: 0.3,
     road: 0.2
   },
   autumn: {
     dog: 0.3,
-    trap: 0.3,
-    fence: 0.3,
-    poacher: 0.1
+    smuggler: 0.1,
+    camel: 0.1
   },
   winter: {
     dog: 0.5,
-    trap: 0.2,
-    fence: 0.2,
-    poacher: 0.1
+    smuggler: 0.1,
+    camel: 0.2
   }
 };
 
