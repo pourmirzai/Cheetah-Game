@@ -8,7 +8,7 @@ function toPersianDigits(num: number): string {
 }
 
 // Background selection logic
-function getBackgroundForResults(results: GameResults, selectedTemplate?: string | null, style?: 'digital' | 'miniature'): string {
+function getBackgroundForResults(results: GameResults, style?: 'digital' | 'miniature'): string {
   const selectedStyle = style || 'digital'; // Default to digital style
 
   if (results.monthsCompleted >= 18) {
@@ -16,8 +16,8 @@ function getBackgroundForResults(results: GameResults, selectedTemplate?: string
     const cubCount = Math.min(results.cubsSurvived, 4); // Ensure max 4
     return `/assets/ShareCards/${selectedStyle}-${cubCount}cub.png`;
   } else {
-    // For users who didn't reach 18 months, use 0cub template or selected template
-    return selectedTemplate || `/assets/ShareCards/${selectedStyle}-0cub.png`;
+    // For users who didn't reach 18 months, use 0cub template
+    return `/assets/ShareCards/${selectedStyle}-0cub.png`;
   }
 }
 
@@ -62,40 +62,6 @@ function StyleSelector({ onSelect, selected }: { onSelect: (style: 'digital' | '
   );
 }
 
-// Template selection component for users who didn't reach 18 months
-function TemplateSelector({ onSelect, selected }: { onSelect: (template: string) => void, selected: string | null }) {
-  const templates = [
-    { id: 'digital-0cub', name: 'دیجیتال', image: '/assets/ShareCards/digital-0cub.png' },
-    { id: 'miniature-0cub', name: 'نگارگری ایرانی', image: '/assets/ShareCards/miniature-0cub.png' },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <h4 className="text-lg font-semibold text-center text-primary">انتخاب تصویر پس‌زمینه</h4>
-      <p className="text-sm text-center text-muted-foreground">برای رسیدن به تصاویر بهتر، دوباره بازی کنید!</p>
-      <div className="grid grid-cols-2 gap-3">
-        {templates.map((template) => (
-          <button
-            key={template.id}
-            onClick={() => onSelect(template.image)}
-            className={`p-2 rounded-lg border-2 transition-all ${
-              selected === template.image
-                ? 'border-accent bg-accent/10'
-                : 'border-muted hover:border-accent/50'
-            }`}
-          >
-            <img
-              src={template.image}
-              alt={template.name}
-              className="w-full h-32 object-contain rounded"
-            />
-            <p className="text-xs text-center mt-1">{template.name}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 interface ShareCardProps {
   results?: GameResults;
@@ -110,8 +76,8 @@ interface ShareCardProps {
 }
 
 // A new component for client-side fallback preview
-function ClientSideSharePreview({ results, selectedTemplate, selectedStyle }: { results: GameResults, selectedTemplate?: string | null, selectedStyle?: 'digital' | 'miniature' }) {
-  const backgroundImage = getBackgroundForResults(results, selectedTemplate, selectedStyle);
+function ClientSideSharePreview({ results, selectedStyle }: { results: GameResults, selectedStyle?: 'digital' | 'miniature' }) {
+  const backgroundImage = getBackgroundForResults(results, selectedStyle);
   const motivationalText = getMotivationalText(results);
 
   return (
@@ -123,10 +89,7 @@ function ClientSideSharePreview({ results, selectedTemplate, selectedStyle }: { 
       <div className="absolute left-1/2 transform -translate-x-1/2 top-[100px] w-11/12 max-w-md">
         <div className=" p-2 shadow-xl  ">
 
-              
-            
-
-            <div className="text-xs text-white font-bold leading-relaxed border border-black/50 rounded p-1 bg-black/20" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.9), 0px 0px 4px rgba(0,0,0,1)' }}>
+            <div className="text-xs text-white font-bold leading-relaxed border border-black/50 rounded p-1 bg-black/20 text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.9), 0px 0px 4px rgba(0,0,0,1)', textAlign: 'center' }}>
               {motivationalText}
             </div>
           </div>
@@ -135,7 +98,7 @@ function ClientSideSharePreview({ results, selectedTemplate, selectedStyle }: { 
 
       {/* Footer at 1240px from top */}
       <div className="absolute left-1/2 transform -translate-x-1/2 top-[430px] text-center">
-        <div className="text-xs text-white/90 font-small  py-1 border border-white/10">۹ شهریور <br/>روز ملی یوزپلنگ ایرانی</div>
+        <div className="text-xs text-white/90 font-small py-1 border border-white/10 text-center">۹ شهریور <br/>روز ملی یوزپلنگ ایرانی</div>
       </div>
     </div>
   );
@@ -157,10 +120,7 @@ export default function ShareCard({ results, bestScore, onClose }: ShareCardProp
   const [isSharing, setIsSharing] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
-  const [showTemplateSelector, setShowTemplateSelector] = useState(gameResults.monthsCompleted < 18);
-  const [showStyleSelector, setShowStyleSelector] = useState(gameResults.monthsCompleted >= 18);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const generateShareText = () => {
@@ -188,13 +148,13 @@ ${motivationalText}
     // In a real implementation, you'd get the sessionId from props or context
     // For now, we'll use a placeholder
     const sessionId = 'placeholder-session-id';
-    const backgroundImage = getBackgroundForResults(gameResults, selectedTemplate, selectedStyle);
+    const backgroundImage = getBackgroundForResults(gameResults, selectedStyle);
     const motivationalText = getMotivationalText(gameResults);
 
     // For now, we'll use the client-side preview since we don't have server-side image generation
     // In production, this would call an API to generate the image with the selected background
     setShareImageUrl(`/api/share-card/${sessionId}?bg=${encodeURIComponent(backgroundImage)}&text=${encodeURIComponent(motivationalText)}&style=${selectedStyle}`);
-  }, [gameResults, selectedTemplate, selectedStyle]);
+  }, [gameResults, selectedStyle]);
 
   const shareToInstagram = async () => {
     setIsSharing(true);
@@ -268,111 +228,80 @@ ${motivationalText}
       <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4">
         <h3 className="text-xl font-bold text-center text-primary">اشتراک‌گذاری نتایج</h3>
 
-        {/* Style selector for users who reached 18 months */}
-        {showStyleSelector && (
-          <StyleSelector
-            onSelect={(style) => {
-              setSelectedStyle(style);
-              setShowStyleSelector(false);
-            }}
-            selected={selectedStyle}
-          />
-        )}
-
-        {/* Template selector for users who didn't reach 18 months */}
-        {showTemplateSelector && (
-          <TemplateSelector
-            onSelect={(template) => {
-              setSelectedTemplate(template);
-              setShowTemplateSelector(false);
-            }}
-            selected={selectedTemplate}
-          />
-        )}
+        {/* Style selector - always visible for all users */}
+        <StyleSelector
+          onSelect={setSelectedStyle}
+          selected={selectedStyle}
+        />
 
         {/* Generated story card preview (9:16 aspect ratio) */}
-        {!showTemplateSelector && (
-          <div ref={previewRef} className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
-            {shareImageUrl && !imageLoadFailed ? (
-              <img
-                src={shareImageUrl}
-                alt="Share Card"
-                className="w-full h-full object-contain rounded-lg shadow-lg"
-                onError={() => setImageLoadFailed(true)}
-              />
-            ) : imageLoadFailed ? (
-              // Fallback to client-side rendering on image error
-              <ClientSideSharePreview results={gameResults} selectedTemplate={selectedTemplate} selectedStyle={selectedStyle} />
-            ) : (
-              // Loading state
-              <div className="flex flex-col justify-center items-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="text-sm text-muted-foreground mt-2">در حال تولید تصویر...</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Share buttons - only show when selections are complete */}
-        {!showTemplateSelector && !showStyleSelector && (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={shareToInstagram}
-                disabled={isSharing}
-                className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
-                data-testid="button-share-instagram"
-              >
-                اینستاگرام
-              </button>
-              <button
-                onClick={downloadImage}
-                disabled={isSharing}
-                className="bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
-                data-testid="button-download-image"
-              >
-                دانلود تصویر
-              </button>
+        <div ref={previewRef} className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
+          {shareImageUrl && !imageLoadFailed ? (
+            <img
+              src={shareImageUrl}
+              alt="Share Card"
+              className="w-full h-full object-contain rounded-lg shadow-lg"
+              onError={() => setImageLoadFailed(true)}
+            />
+          ) : imageLoadFailed ? (
+            // Fallback to client-side rendering on image error
+            <ClientSideSharePreview results={gameResults} selectedStyle={selectedStyle} />
+          ) : (
+            // Loading state
+            <div className="flex flex-col justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground mt-2">در حال تولید تصویر...</p>
             </div>
+          )}
+        </div>
 
-            {/* Game link section */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-center text-primary">لینک بازی</h4>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value="https://game.sarvinwildlife.com/"
-                  readOnly
-                  className="flex-1 px-3 py-2 text-sm border rounded-lg bg-muted"
-                />
-                <button
-                  onClick={copyGameLink}
-                  className="bg-primary text-primary-foreground font-medium py-2 px-4 rounded-lg text-sm hover:bg-primary/90"
-                >
-                  کپی
-                </button>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="bg-muted hover:bg-muted/90 text-muted-foreground font-medium py-2 px-4 rounded-lg w-full"
-              data-testid="button-close-share-card"
-            >
-              بستن
-            </button>
-          </>
-        )}
-
-        {/* Back button for selections */}
-        {(showTemplateSelector || showStyleSelector) && (
+        {/* Share buttons - always show */}
+        <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={onClose}
-            className="bg-muted hover:bg-muted/90 text-muted-foreground font-medium py-2 px-4 rounded-lg w-full"
+            onClick={shareToInstagram}
+            disabled={isSharing}
+            className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
+            data-testid="button-share-instagram"
           >
-            بازگشت
+            اینستاگرام
           </button>
-        )}
+          <button
+            onClick={downloadImage}
+            disabled={isSharing}
+            className="bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
+            data-testid="button-download-image"
+          >
+            دانلود تصویر
+          </button>
+        </div>
+
+        {/* Game link section */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold text-center text-primary">لینک بازی</h4>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value="https://game.sarvinwildlife.com/"
+              readOnly
+              className="flex-1 px-3 py-2 text-sm border rounded-lg bg-muted"
+            />
+            <button
+              onClick={copyGameLink}
+              className="bg-primary text-primary-foreground font-medium py-2 px-4 rounded-lg text-sm hover:bg-primary/90"
+            >
+              کپی
+            </button>
+          </div>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="bg-muted hover:bg-muted/90 text-muted-foreground font-medium py-2 px-4 rounded-lg w-full"
+          data-testid="button-close-share-card"
+        >
+          بستن
+        </button>
       </div>
     </div>
   );
