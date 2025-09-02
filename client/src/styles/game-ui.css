@@ -393,20 +393,22 @@
 }
 
 .bottom-ui-bar-mobile {
-  position: sticky;
-  bottom: 0;
-  margin: 0 8px 8px 8px;
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
   z-index: 20;
-  max-height: 25vh; /* Reduced to prevent overlap */
+  max-height: 18vh; /* Reduced to prevent covering game characters */
   padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); /* Additional padding for safe area */
 }
 
 /* Responsive adjustments for bottom UI */
 @media (max-width: 480px) {
   .bottom-ui-bar-mobile {
-    bottom: 0;
-    margin: 0 6px 6px 6px;
-    max-height: 30vh;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    max-height: 20vh;
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
   }
 
@@ -417,9 +419,10 @@
 
 @media (min-width: 481px) and (max-width: 768px) {
   .bottom-ui-bar-mobile {
-    bottom: 0;
-    margin: 0 8px 8px 8px;
-    max-height: 28vh;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    max-height: 18vh;
     padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
   }
 
@@ -430,9 +433,10 @@
 
 @media (min-width: 769px) {
   .bottom-ui-bar-mobile {
-    bottom: 0;
-    margin: 0 12px 12px 12px;
-    max-height: 25vh;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    max-height: 16vh;
     padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   }
 
