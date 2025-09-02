@@ -43,7 +43,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
   const backgroundStyle = currentBackground ? backgroundManager.getBackgroundStyle(currentBackground) : {};
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center p-1 sm:p-2 md:p-4 text-center md-motion-standard min-h-screen overflow-hidden" data-testid="main-menu">
+    <div className="relative flex flex-col items-center justify-center p-1 sm:p-2 md:p-4 text-center md-motion-standard min-h-dvh overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }} data-testid="main-menu">
       {/* Dynamic background with enhanced overlay */}
       <div className="absolute inset-0" style={backgroundStyle}></div>
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
@@ -403,7 +403,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
             حافظان حیات‌وحش سَروین
           </p>
           <div className="mt-4 flex justify-center space-x-6 space-x-reverse text-sm text-white/70">
-            <span>نسخه ۱.۴.۰</span>
+            <span>نسخه ۱.۶.۰</span>
             <span>۹ شهریور ۱۴۰۴</span>
           </div>
         </div>

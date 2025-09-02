@@ -283,6 +283,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New endpoint for client-side image download
+  app.post("/api/download-client-image", async (req, res) => {
+    try {
+      const { imageDataUrl, filename } = req.body;
+
+      if (!imageDataUrl || !filename) {
+        return res.status(400).json({ error: 'Image data URL and filename are required' });
+      }
+
+      // Decode base64 image data
+      const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // Force download by setting Content-Type to application/octet-stream
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error downloading client image:', error);
+      res.status(500).json({ error: 'Failed to download client image' });
+    }
+  });
+
   // Global stats endpoint
   app.get("/api/stats/global", async (req, res) => {
     try {

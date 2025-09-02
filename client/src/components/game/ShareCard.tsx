@@ -120,8 +120,12 @@ export default function ShareCard({ results, bestScore, onClose, onPlayAgain, on
 
   const [isSharing, setIsSharing] = useState(false);
   const [shareImageDataUrl, setShareImageDataUrl] = useState<string | null>(null);
+  const [shareBlobUrl, setShareBlobUrl] = useState<string | null>(null);
+  const [shareBlob, setShareBlob] = useState<Blob | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+
 
   const generateShareText = () => {
     const motivationalText = getMotivationalText(gameResults);
@@ -207,6 +211,37 @@ ${motivationalText}
 
           const dataUrl = canvas.toDataURL('image/png');
           setShareImageDataUrl(dataUrl);
+
+          // Create Blob and ObjectURL without fetching data URL (better for Safari/iOS)
+          if (canvas.toBlob) {
+            canvas.toBlob((b) => {
+              if (!b) return;
+              // Revoke previous URL to avoid leaks
+              if (shareBlobUrl) {
+                try { URL.revokeObjectURL(shareBlobUrl); } catch {}
+              }
+              const url = URL.createObjectURL(b);
+              setShareBlob(b);
+              setShareBlobUrl(url);
+            }, 'image/png');
+          } else {
+            // Fallback: convert dataURL to Blob
+            try {
+              const parts = dataUrl.split(',');
+              const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+              const byteString = atob(parts[1]);
+              const ab = new ArrayBuffer(byteString.length);
+              const ia = new Uint8Array(ab);
+              for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+              const b = new Blob([ab], { type: mime });
+              if (shareBlobUrl) {
+                try { URL.revokeObjectURL(shareBlobUrl); } catch {}
+              }
+              const url = URL.createObjectURL(b);
+              setShareBlob(b);
+              setShareBlobUrl(url);
+            } catch {}
+          }
           resolve();
         };
         img.onerror = () => reject(new Error('failed to load background'));
@@ -215,25 +250,18 @@ ${motivationalText}
     };
 
     composeHighResShare().catch(() => setShareImageDataUrl(null));
+    return () => {
+      // Cleanup blob URL on unmount/regen
+      if (shareBlobUrl) {
+        try { URL.revokeObjectURL(shareBlobUrl); } catch {}
+      }
+    };
   }, [gameResults, selectedStyle]);
 
 
-  const downloadImage = async () => {
-    setIsSharing(true);
-    try {
-      if (!shareImageDataUrl) return;
-      const a = document.createElement('a');
-      a.href = shareImageDataUrl;
-      a.download = 'share-card.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading image:', error);
-      alert('خطا در دانلود تصویر');
-    } finally {
-      setIsSharing(false);
-    }
+  const downloadImage = () => {
+    if (!shareImageDataUrl) return;
+    setShowDownloadModal(true);
   };
 
   const copyGameLink = async () => {
@@ -278,9 +306,38 @@ ${motivationalText}
     }
   };
 
+  const shareImage = async () => {
+    setIsSharing(true);
+    try {
+      if (!shareImageDataUrl) return;
+
+      // Convert data URL to Blob and create File for sharing
+      const res = await fetch(shareImageDataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], 'share-card.png', { type: 'image/png' });
+
+      const canShareFile = (navigator as any).canShare && (navigator as any).canShare({ files: [file] });
+      if ((navigator as any).share && canShareFile) {
+        await (navigator as any).share({ files: [file], title: 'Save Cheetah', text: generateShareText() });
+        return;
+      }
+
+      // Fallback: open image in new tab for manual share/save
+      const opened = window.open(shareImageDataUrl, '_blank');
+      if (!opened) {
+        alert('برای اشتراک‌گذاری، تصویر را در تب جدید باز کرده و از منوی اشتراک استفاده کنید.');
+      }
+    } catch (error) {
+      console.error('Error sharing image:', error);
+      alert('خطا در اشتراک‌گذاری تصویر');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
-    <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto" data-testid="share-card-screen">
-      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4 overflow-y-auto">
+    <div className="relative w-full min-h-dvh bg-background/95 backdrop-blur-sm flex justify-start items-center p-4 sm:p-6 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }} data-testid="share-card-screen">
+      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4 overflow-y-auto max-h-[92dvh]">
         <h3 className="text-xl font-bold text-center text-primary">اشتراک‌گذاری نتایج</h3>
 
         {/* Style selector - always visible for all users */}
@@ -306,26 +363,39 @@ ${motivationalText}
           )}
         </div>
 
-        {/* Share buttons - always show */}
+        {/* Share & Download buttons */}
         <div className="grid grid-cols-2 gap-3">
-          <a
-            href="https://www.instagram.com/sarvinwildlife/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm text-center hover:from-purple-600 hover:to-pink-600 transition-all"
-            data-testid="button-follow-instagram"
+          <button
+            onClick={shareImage}
+            disabled={isSharing}
+            className="bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+            data-testid="button-share-image"
           >
-              اینستاگرام ما
-          </a>
+            <span aria-hidden>📤</span>
+            اشتراک‌گذاری
+          </button>
           <button
             onClick={downloadImage}
             disabled={isSharing}
-            className="bg-green-500 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50"
+            className="bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-sm disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
             data-testid="button-download-image"
           >
+            <span aria-hidden>⬇️</span>
             دانلود تصویر
           </button>
         </div>
+
+        {/* Instagram follow button */}
+        <a
+          href="https://www.instagram.com/sarvinwildlife/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold py-3 px-4 rounded-lg text-sm text-center hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
+          data-testid="button-follow-instagram"
+        >
+          <span aria-hidden>📷</span>
+          اینستاگرام ما
+        </a>
 
         {/* Game link section */}
         <div className="space-y-2">
@@ -370,6 +440,33 @@ ${motivationalText}
         )}
 
       </div>
+
+      {/* Download Modal */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg p-6 max-w-md w-full space-y-4">
+            <h3 className="text-lg font-bold text-center text-primary">دانلود تصویر</h3>
+            <p className="text-sm text-muted-foreground text-center">
+              روی تصویر کلیک راست کرده و "Save image as..." را انتخاب کنید تا تصویر را ذخیره کنید.
+            </p>
+            {shareImageDataUrl && (
+              <img
+                src={shareImageDataUrl}
+                alt="Share Card for Download"
+                className="w-full rounded-lg shadow-lg"
+              />
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium py-2 px-4 rounded-lg text-sm"
+              >
+                بستن
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,9 +14,9 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100dvh;
-  height: 100vh; /* Fallback for browsers that don't support dvh */
-  height: calc(var(--vh, 1vh) * 100); /* JavaScript-controlled fallback */
+  min-height: 100dvh;
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: calc(var(--vh, 1vh) * 100); /* JavaScript-controlled fallback */
   pointer-events: none;
   z-index: 100;
 }
@@ -393,23 +393,21 @@
 }
 
 .bottom-ui-bar-mobile {
-  position: absolute;
-  bottom: max(16px, env(safe-area-inset-bottom, 16px)); /* Use safe area or fallback */
-  left: 8px;
-  right: 8px;
+  position: sticky;
+  bottom: 0;
+  margin: 0 8px 8px 8px;
   z-index: 20;
   max-height: 25vh; /* Reduced to prevent overlap */
-  padding-bottom: env(safe-area-inset-bottom, 0px); /* Additional padding for safe area */
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); /* Additional padding for safe area */
 }
 
 /* Responsive adjustments for bottom UI */
 @media (max-width: 480px) {
   .bottom-ui-bar-mobile {
-    bottom: max(12px, env(safe-area-inset-bottom, 12px)); /* Safe area aware */
-    left: 6px;
-    right: 6px;
+    bottom: 0;
+    margin: 0 6px 6px 6px;
     max-height: 30vh;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
   }
 
   .bottom-ui-bar-mobile .game-ui-card-mobile {
@@ -419,11 +417,10 @@
 
 @media (min-width: 481px) and (max-width: 768px) {
   .bottom-ui-bar-mobile {
-    bottom: max(14px, env(safe-area-inset-bottom, 14px)); /* Safe area aware */
-    left: 8px;
-    right: 8px;
+    bottom: 0;
+    margin: 0 8px 8px 8px;
     max-height: 28vh;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
   }
 
   .bottom-ui-bar-mobile .game-ui-card-mobile {
@@ -433,11 +430,10 @@
 
 @media (min-width: 769px) {
   .bottom-ui-bar-mobile {
-    bottom: max(18px, env(safe-area-inset-bottom, 18px)); /* Safe area aware */
-    left: 12px;
-    right: 12px;
+    bottom: 0;
+    margin: 0 12px 12px 12px;
     max-height: 25vh;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   }
 
   .bottom-ui-bar-mobile .game-ui-card-mobile {

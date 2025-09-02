@@ -279,7 +279,7 @@ export default function GameContainer() {
   }, []);
 
   return (
-    <div className="relative w-full h-dvh overflow-hidden" data-testid="game-container">
+    <div className="relative w-full min-h-dvh overflow-x-hidden md:overflow-hidden" data-testid="game-container">
       {/* Main Menu Screen */}
       {gameState.currentScreen === 'menu' && (
         <MainMenu
