@@ -128,11 +128,12 @@ interface GameUIProps {
 ```
 
 **ویژگی‌ها:**
-- نوار وضعیت در پایین (ماه، فصل، سلامتی)
+- نوار وضعیت در پایین (ماه، فصل، سلامتی) با موقعیت‌یابی responsive
 - راهنمای مسیرها در مرکز
 - مدال آموزش تعاملی قبل از شروع بازی
 - هشدار سلامتی کم با کاهش سرعت
-- پشتیبانی کامل از موبایل و دسکتاپ
+- پشتیبانی کامل از موبایل و دسکتاپ با طراحی adaptive
+- نوار وضعیت با ارتفاع بهینه برای جلوگیری از پوشش شخصیت‌ها
 
 **State:**
 ```typescript
@@ -359,6 +360,14 @@ audioManager.onCollectResource('water');
 
 .center-bottom {
   @apply absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10;
+}
+
+.bottom-ui-bar-mobile {
+  @apply absolute z-20;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  max-height: 18vh; /* بهینه‌سازی برای جلوگیری از پوشش شخصیت‌ها */
 }
 ```
 
