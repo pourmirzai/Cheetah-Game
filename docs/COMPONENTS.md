@@ -15,14 +15,56 @@ client/src/components/
 │   ├── GameUI.tsx          # رابط کاربری بازی
 │   ├── MainMenu.tsx        # منوی اصلی
 │   ├── PhaserGame.tsx      # wrapper برای Phaser
-│   ├── Tutorial.tsx        # آموزش بازی
 │   ├── GameOver.tsx        # صفحه پایان بازی
-│   ├── Leaderboard.tsx     # جدول امتیازات
 │   └── ShareCard.tsx       # کارت اشتراک‌گذاری
 ├── ui/                     # کامپوننت‌های UI عمومی
+│   ├── accordion.tsx
+│   ├── alert-dialog.tsx
+│   ├── alert.tsx
+│   ├── aspect-ratio.tsx
+│   ├── avatar.tsx
+│   ├── badge.tsx
+│   ├── breadcrumb.tsx
 │   ├── button.tsx
+│   ├── calendar.tsx
 │   ├── card.tsx
+│   ├── carousel.tsx
+│   ├── chart.tsx
+│   ├── checkbox.tsx
+│   ├── collapsible.tsx
+│   ├── command.tsx
+│   ├── context-menu.tsx
 │   ├── dialog.tsx
+│   ├── drawer.tsx
+│   ├── dropdown-menu.tsx
+│   ├── form.tsx
+│   ├── hover-card.tsx
+│   ├── input-otp.tsx
+│   ├── input.tsx
+│   ├── label.tsx
+│   ├── menubar.tsx
+│   ├── navigation-menu.tsx
+│   ├── pagination.tsx
+│   ├── popover.tsx
+│   ├── progress.tsx
+│   ├── radio-group.tsx
+│   ├── resizable.tsx
+│   ├── scroll-area.tsx
+│   ├── select.tsx
+│   ├── separator.tsx
+│   ├── sheet.tsx
+│   ├── sidebar.tsx
+│   ├── skeleton.tsx
+│   ├── slider.tsx
+│   ├── switch.tsx
+│   ├── table.tsx
+│   ├── tabs.tsx
+│   ├── textarea.tsx
+│   ├── toast.tsx
+│   ├── toaster.tsx
+│   ├── toggle-group.tsx
+│   ├── toggle.tsx
+│   ├── tooltip.tsx
 │   └── ...
 └── pages/                  # صفحات اصلی
     ├── game.tsx
@@ -53,15 +95,15 @@ interface GameState {
 }
 
 interface GameData {
-  cubs: number;
-  currentMonth: number;
-  timeRemaining: number;
-  health: number;
-  burstEnergy: number;
-  score: number;
-  season: string;
-  lane: number;
-  rabbitsCollected?: number;
+  cubs: number;              // تعداد توله‌های زنده (۱-۴)
+  currentMonth: number;      // ماه فعلی (۱-۱۸)
+  health: number;            // سلامتی مادر (۰-۱۰۰)
+  score: number;             // امتیاز کل
+  season: 'spring' | 'summer' | 'autumn' | 'winter';
+  position: { x: number; y: number };
+  lane: number;              // مسیر فعلی (۰-۳)
+  speed: number;             // سرعت فعلی
+  speedBurstActive: boolean; // وضعیت جهش سرعت (deprecated)
 }
 ```
 
@@ -86,11 +128,11 @@ interface GameUIProps {
 ```
 
 **ویژگی‌ها:**
-- نوار وضعیت جمع و جور در بالا
-- نوار سلامتی و انرژی در چپ
-- نوار خرگوش‌ها در راست
-- کنترل‌های بازی در پایین
-- مدال آموزش تعاملی
+- نوار وضعیت در پایین (ماه، فصل، سلامتی)
+- راهنمای مسیرها در مرکز
+- مدال آموزش تعاملی قبل از شروع بازی
+- هشدار سلامتی کم با کاهش سرعت
+- پشتیبانی کامل از موبایل و دسکتاپ
 
 **State:**
 ```typescript
@@ -109,17 +151,17 @@ const [showGuideModal, setShowGuideModal] = useState(true);
 ```typescript
 interface MainMenuProps {
   onStartGame: () => void;
-  onShowTutorial: () => void;
-  onShowLeaderboard: () => void;
+  onDownloadStory?: (bestScore: BestScore) => void;
 }
 ```
 
 **ویژگی‌ها:**
-- عنوان و توضیح بازی
-- تصویر مادر یوز و توله‌ها با انیمیشن
+- عنوان و توضیح بازی با انیمیشن
+- تصویر مادر یوز و توله‌ها با انیمیشن شناور
 - دکمه شروع بازی
-- دکمه‌های آموزش و جدول امتیازات
-- انتخاب‌گر پس‌زمینه
+- دکمه اطلاعات آموزشی یوزپلنگ (اکordion)
+- دکمه دانلود استوری برای کاربران بازگشته
+- پس‌زمینه پویا با سیستم مدیریت پس‌زمینه
 
 ### PhaserGame
 
@@ -253,7 +295,7 @@ const obstacle = GAME_ASSETS.obstacles.dog;
 
 **مسیر:** `client/src/lib/gameEngine.ts`
 
-**توضیحات:** منطق اصلی بازی و فیزیک
+**توضیحات:** منطق اصلی بازی، فیزیک و مدیریت موجودیت‌ها
 
 **کلاس GameScene:**
 ```typescript
@@ -263,14 +305,25 @@ interface GameScene extends Phaser.Scene {
   onGameEnd: (results: Partial<GameResults>) => void;
   sessionId: string;
   gameStarted: boolean;
+  audioManager?: AudioManager;
+  motherCheetah?: Phaser.GameObjects.Sprite;
+  cubs: Phaser.GameObjects.Sprite[];
+  obstacles: Phaser.GameObjects.Group;
+  resources: Phaser.GameObjects.Group;
+  lanes: number[];
+  currentLane: number;
+  gameSpeed: number;
   // ... سایر فیلدها
 }
 ```
 
 **متدها:**
-- `initializeGame()`: راه‌اندازی بازی
+- `initializeGame()`: راه‌اندازی بازی و بارگذاری assetها
 - `startActualGame()`: شروع واقعی بازی پس از آموزش
 - `updateGame()`: بروزرسانی هر فریم
+- `spawnGameObject()`: تولید موانع و منابع
+- `updateHealthAndEnergy()`: مدیریت سلامتی
+- `changeLane()`: تغییر مسیر
 
 ### Audio Manager
 
@@ -331,17 +384,20 @@ audioManager.onCollectResource('water');
 ### Game Start
 1. کاربر روی "شروع بازی" کلیک می‌کند
 2. `startGame()` فراخوانی می‌شود
-3. `GameUI` با `showGuideModal: true` render می‌شود
-4. کاربر آموزش را می‌خواند و کلیک می‌کند
-5. `onTutorialComplete()` فراخوانی می‌شود
-6. `gameStarted` به `true` تغییر می‌کند
-7. `PhaserGame` بازی را شروع می‌کند
+3. API call برای ایجاد session
+4. `PhaserGame` بارگذاری و راه‌اندازی می‌شود
+5. `GameUI` با `showGuideModal: true` render می‌شود
+6. کاربر آموزش را می‌خواند و کلیک می‌کند
+7. `onTutorialComplete()` فراخوانی می‌شود
+8. `gameStarted` به `true` تغییر می‌کند
+9. بازی واقعی شروع می‌شود
 
 ### Game End
-1. شرایط پایان بازی برآورده می‌شود
+1. شرایط پایان بازی برآورده می‌شود (ماه ۱۸ یا مرگ)
 2. `endGame()` فراخوانی می‌شود
-3. `GameOver` component نمایش داده می‌شود
-4. نتایج ذخیره می‌شوند
+3. API call برای ذخیره نتایج
+4. `GameOver` component نمایش داده می‌شود
+5. بهترین امتیاز در cookie ذخیره می‌شود
 
 ## 📊 Performance Considerations
 

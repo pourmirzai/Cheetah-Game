@@ -82,9 +82,8 @@ const { sessionId } = await response.json();
 **انواع رویداد:**
 - `lane_change`: تغییر مسیر
 - `resource_collected`: جمع‌آوری منبع
-- `obstacle_hit`: برخورد با مانع
-- `speed_burst`: استفاده از جهش سرعت
-- `month_completed`: تکمیل ماه
+- `collision`: برخورد با مانع (شامل نوع آسیب)
+- `month_reached`: رسیدن به ماه جدید
 
 ### پایان بازی
 
@@ -178,13 +177,13 @@ const { sessionId } = await response.json();
 interface GameData {
   cubs: number;              // تعداد توله‌های زنده (۱-۴)
   currentMonth: number;      // ماه فعلی (۱-۱۸)
-  timeRemaining: number;     // زمان باقی‌مانده (ثانیه)
   health: number;            // سلامتی مادر (۰-۱۰۰)
-  burstEnergy: number;       // انرژی جهش سرعت (۰-۱۰۰)
   score: number;             // امتیاز کل
   season: 'spring' | 'summer' | 'autumn' | 'winter';
+  position: { x: number; y: number };
   lane: number;              // مسیر فعلی (۰-۳)
-  rabbitsCollected?: number; // خرگوش‌های جمع‌آوری شده (۰-۳)
+  speed: number;             // سرعت فعلی
+  speedBurstActive: boolean; // وضعیت جهش سرعت (deprecated)
 }
 ```
 
@@ -205,7 +204,6 @@ interface GameResults {
 type AchievementType =
   | 'perfect_family'     // تمام توله‌ها زنده ماندند
   | 'survivor'          // بازی تا پایان تکمیل شد
-  | 'speed_demon'       // استفاده زیاد از جهش سرعت
   | 'resource_master'   // جمع‌آوری تمام منابع ممکن
   | 'season_explorer';  // تجربه تمام فصل‌ها
 ```

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { GameResults } from "@/types/game";
-import html2canvas from "html2canvas";
 
 // Helper function to convert numbers to Persian digits
 function toPersianDigits(num: number): string {
@@ -87,11 +86,11 @@ function ClientSideSharePreview({ results, selectedStyle }: { results: GameResul
       className="relative w-full h-full bg-cover bg-center"
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
-      {/* Main message box with black glassmorphism - positioned at 100px from top */}
+      {/* Main message box - positioned at 100px from top */}
       <div className="absolute left-1/2 transform -translate-x-1/2 top-[100px] w-11/12 max-w-md">
-        <div className=" p-2 shadow-xl  ">
+        <div className="p-2">
 
-            <div className="text-xs text-white font-bold leading-relaxed border border-black/50 rounded p-1 bg-black/20 text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.9), 0px 0px 4px rgba(0,0,0,1)', textAlign: 'center' }}>
+            <div className="text-xs text-white font-bold leading-relaxed text-center" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.9), 0px 0px 4px rgba(0,0,0,1)', textAlign: 'center' }}>
               {motivationalText}
             </div>
           </div>
@@ -100,7 +99,7 @@ function ClientSideSharePreview({ results, selectedStyle }: { results: GameResul
 
       {/* Footer at 1240px from top */}
       <div className="absolute left-1/2 transform -translate-x-1/2 top-[430px] text-center">
-        <div className="text-xs text-white/90 font-small py-1 border border-white/10 text-center">۹ شهریور <br/>روز ملی یوزپلنگ ایرانی</div>
+        <div className="text-xs text-white/90 font-small py-1 text-center">۹ شهریور <br/>روز ملی یوزپلنگ ایرانی</div>
       </div>
     </div>
   );
@@ -120,8 +119,7 @@ export default function ShareCard({ results, bestScore, onClose, onPlayAgain, on
   } : results!;
 
   const [isSharing, setIsSharing] = useState(false);
-  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
-  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+  const [shareImageDataUrl, setShareImageDataUrl] = useState<string | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -145,47 +143,91 @@ ${motivationalText}
     }
   };
 
-  // Generate share image URL when component mounts or selections change
+  // Compose a high-resolution image (768x1344) entirely on the client to avoid downscaling
   useEffect(() => {
-    // In a real implementation, you'd get the sessionId from props or context
-    // For now, we'll use a placeholder
-    const sessionId = 'placeholder-session-id';
-    const backgroundImage = getBackgroundForResults(gameResults, selectedStyle);
-    const motivationalText = getMotivationalText(gameResults);
+    const composeHighResShare = async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 768;
+      canvas.height = 1344;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // For now, we'll use the client-side preview since we don't have server-side image generation
-    // In production, this would call an API to generate the image with the selected background
-    setShareImageUrl(`/api/share-card/${sessionId}?bg=${encodeURIComponent(backgroundImage)}&text=${encodeURIComponent(motivationalText)}&style=${selectedStyle}`);
+      ctx.imageSmoothingEnabled = true;
+
+      const backgroundPath = getBackgroundForResults(gameResults, selectedStyle);
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, 768, 1344);
+
+          // Draw motivational text block
+          const text = getMotivationalText(gameResults);
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.direction = 'rtl';
+          ctx.shadowColor = 'rgba(0,0,0,0.9)';
+          ctx.shadowBlur = 5;
+          ctx.font = 'bold 36px Vazirmatn, IRANSans, Arial';
+
+          // Simple word wrap
+          const maxWidth = 640; // a bit of margin
+          const lineHeight = 50;
+          const words = text.split(' ');
+          const lines: string[] = [];
+          let currentLine = '';
+          for (const w of words) {
+            const test = currentLine ? `${currentLine} ${w}` : w;
+            const m = ctx.measureText(test);
+            if (m.width > maxWidth) {
+              if (currentLine) lines.push(currentLine);
+              currentLine = w;
+            } else {
+              currentLine = test;
+            }
+          }
+          if (currentLine) lines.push(currentLine);
+
+          // Draw lines centered around y=340 (roughly matching template)
+          const startY = 400 - Math.floor(lines.length / 2) * lineHeight;
+          lines.forEach((ln, idx) => ctx.fillText(ln, 384, startY + idx * lineHeight));
+          ctx.restore();
+
+          // Footer
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.direction = 'rtl';
+          ctx.font = 'bold 32px Vazirmatn, IRANSans, Arial';
+          ctx.fillText('۹ شهریور', 384, 1180);
+          ctx.font = 'bold 32px Vazirmatn, IRANSans, Arial';
+          ctx.fillText('روز ملی یوزپلنگ ایرانی', 384, 1228);
+          ctx.restore();
+
+          const dataUrl = canvas.toDataURL('image/png');
+          setShareImageDataUrl(dataUrl);
+          resolve();
+        };
+        img.onerror = () => reject(new Error('failed to load background'));
+        img.src = backgroundPath;
+      });
+    };
+
+    composeHighResShare().catch(() => setShareImageDataUrl(null));
   }, [gameResults, selectedStyle]);
 
 
   const downloadImage = async () => {
     setIsSharing(true);
     try {
-      if (shareImageUrl && !imageLoadFailed) {
-        // Download the image from URL
-        const response = await fetch(shareImageUrl);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'share-card.png';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else if (previewRef.current) {
-        // Use html2canvas for fallback preview
-        const canvas = await html2canvas(previewRef.current, {
-          backgroundColor: null,
-          scale: 2,
-          useCORS: true,
-        });
-        const link = document.createElement('a');
-        link.download = 'share-card.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }
+      if (!shareImageDataUrl) return;
+      const a = document.createElement('a');
+      a.href = shareImageDataUrl;
+      a.download = 'share-card.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading image:', error);
       alert('خطا در دانلود تصویر');
@@ -238,7 +280,7 @@ ${motivationalText}
 
   return (
     <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto" data-testid="share-card-screen">
-      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-background rounded-lg shadow-xl max-w-sm w-full p-6 space-y-4 overflow-y-auto">
         <h3 className="text-xl font-bold text-center text-primary">اشتراک‌گذاری نتایج</h3>
 
         {/* Style selector - always visible for all users */}
@@ -249,16 +291,12 @@ ${motivationalText}
 
         {/* Generated story card preview (9:16 aspect ratio) */}
         <div ref={previewRef} className="bg-gradient-to-b from-accent/20 to-secondary/20 rounded-lg p-4 aspect-[9/16] flex flex-col justify-center items-center">
-          {shareImageUrl && !imageLoadFailed ? (
+          {shareImageDataUrl ? (
             <img
-              src={shareImageUrl}
+              src={shareImageDataUrl}
               alt="Share Card"
               className="w-full h-full object-contain rounded-lg shadow-lg"
-              onError={() => setImageLoadFailed(true)}
             />
-          ) : imageLoadFailed ? (
-            // Fallback to client-side rendering on image error
-            <ClientSideSharePreview results={gameResults} selectedStyle={selectedStyle} />
           ) : (
             // Loading state
             <div className="flex flex-col justify-center items-center h-full">

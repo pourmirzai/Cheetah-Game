@@ -16,12 +16,16 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
-  // Show guide modal when game hasn't started yet (tutorial not completed)
+  // Show guide modal when game hasn't started yet (tutorial not completed) and loading is complete
   useEffect(() => {
-    if (gameStarted === false) {
+    if (gameStarted === false && isLoading === false) {
+      console.log('🎮 Showing tutorial modal (game not started and loading complete)');
       setShowGuideModal(true);
+    } else if (gameStarted === true) {
+      console.log('🎮 Hiding tutorial modal (game started)');
+      setShowGuideModal(false);
     }
-  }, [gameStarted]);
+  }, [gameStarted, isLoading]);
 
 
   // Handle low health warning animation
@@ -218,16 +222,16 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
 
       {/* Guide Modal - Show before game starts */}
       {showGuideModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <div className="text-center mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="text-center p-4 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-1">آموزش بازی</h2>
               <p className="text-sm text-gray-600">قبل از شروع بازی، کنترل‌ها را یاد بگیرید</p>
             </div>
 
-            <div className="space-y-3 mb-6">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
               <div className="flex items-center space-x-3 space-x-reverse p-3 bg-orange-50 rounded-lg">
-                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-orange-600 font-bold text-sm">👆</span>
                 </div>
                 <div className="flex-1">
@@ -237,18 +241,18 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
               </div>
 
               {/* Dangers Section - Ultra Compact */}
-              <div className="p-2 bg-red-50 rounded-lg border border-red-200">
-                <h3 className="font-semibold text-red-800 mb-1 flex items-center text-sm">
+              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                <h3 className="font-semibold text-red-800 mb-2 flex items-center text-sm">
                   <span className="text-base mr-1">⚠️</span>
                   خطرات
                 </h3>
-                <div className="flex justify-center space-x-2 space-x-reverse mb-1">
+                <div className="flex justify-center space-x-2 space-x-reverse mb-2">
                   <img src="/assets/sprites/obstacles/smugller.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/car.png" alt="ماشین" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/camel.png" alt="شتر" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/obstacles/dog.png" alt="سگ" className="w-6 h-6 object-contain" />
                 </div>
-                <p className="text-xs text-red-700 text-center font-medium leading-tight">
+                <p className="text-xs text-red-700 text-center font-medium leading-relaxed">
                   ⚠️ شتر، قاچاقچی و سگ دارای منطقه مرگ دایره‌ای هستند<br/>
                   از فاصله دور اجتناب کنید!<br/>
                   برخورد توله‌ها = مرگ<br/>
@@ -257,12 +261,12 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
               </div>
 
               {/* Resources Section - Ultra Compact */}
-              <div className="p-2 bg-green-50 rounded-lg border border-green-200">
-                <h3 className="font-semibold text-green-800 mb-1 flex items-center text-sm">
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-2 flex items-center text-sm">
                   <span className="text-base mr-1">🌿</span>
                   منابع غذایی، آب و سلامت خانواده
                 </h3>
-                <div className="flex justify-center space-x-2 space-x-reverse mb-1">
+                <div className="flex justify-center space-x-2 space-x-reverse mb-2">
                   <img src="/assets/sprites/resources/gazelle.png" alt="آهو" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/resources/rabbit.png" alt="خرگوش" className="w-6 h-6 object-contain" />
                   <img src="/assets/sprites/resources/water.png" alt="آب" className="w-6 h-6 object-contain" />
@@ -277,42 +281,43 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
                 <p className="text-xs text-red-600 text-center font-medium mb-1">
                   ⚠️ حواستان به سلامتی خانواده باشد!
                 </p>
-                <p className="text-xs text-green-700 text-center font-medium">
-دریافت منابع غذایی  و آب، نمودار سلامت را پر می‌کند. اگر آب و غذا نخورید، خانواده ضعیف می‌شود.
+                <p className="text-xs text-green-700 text-center font-medium leading-relaxed">
+                  دریافت منابع غذایی و آب، نمودار سلامت را پر می‌کند. اگر آب و غذا نخورید، خانواده ضعیف می‌شود.
                 </p>
               </div>
 
               {/* Seasons Section */}
-              <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-800 mb-1 flex items-center text-sm">
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-blue-800 mb-2 flex items-center text-sm">
                   <span className="text-base mr-1">🌸</span>
                   تغییر فصل‌ها
                 </h3>
-                <div className="flex justify-center space-x-1 space-x-reverse mb-1">
-                  <img src="/assets/backgrounds/spring-bg.png" alt="بهار" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/summer-bg.png" alt="تابستان" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/autumn-bg.png" alt="پاییز" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/winter-bg.png" alt="زمستان" className="w-8 h-6 object-cover rounded" />
+                <div className="flex justify-center space-x-1 space-x-reverse mb-2">
+                  <img src="/assets/backgrounds/spring-bg.webp" alt="بهار" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/summer-bg.webp" alt="تابستان" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/autumn-bg.webp" alt="پاییز" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/winter-bg.webp" alt="زمستان" className="w-8 h-6 object-cover rounded" />
                 </div>
-                <p className="text-xs text-blue-700 text-center font-medium">
+                <p className="text-xs text-blue-700 text-center font-medium leading-relaxed">
                   در فصول مختلف منابع و تهدیدات کم یا زیاد می‌شوند. تغییر فصل را در پس زمینه بازی مشاهده کنید.
                 </p>
               </div>
-
             </div>
 
-            <button
-              onClick={() => {
-                console.log('Tutorial button clicked!');
-                setShowGuideModal(false);
-                console.log('Calling onTutorialComplete...');
-                onTutorialComplete?.();
-                console.log('Tutorial completed successfully');
-              }}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-sm"
-            >
-              شروع بازی! 🎮
-            </button>
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  console.log('Tutorial button clicked!');
+                  setShowGuideModal(false);
+                  console.log('Calling onTutorialComplete...');
+                  onTutorialComplete?.();
+                  console.log('Tutorial completed successfully');
+                }}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-sm"
+              >
+                شروع بازی! 🎮
+              </button>
+            </div>
           </div>
         </div>
       )}

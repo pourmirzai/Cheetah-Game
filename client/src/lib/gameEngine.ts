@@ -18,9 +18,9 @@ import { getThreatLevelMultiplier } from "@/lib/cookieStorage";
 
 const MOTHER_CHEETAH_SCALE = 0.6;
 const CUB_SCALE = 0.5;
-const OBSTACLE_SCALE = 0.25; // 0.56 * 0.7 = 0.392 (additional 30% smaller)
-const RESOURCE_SCALE = 0.25; // 0.42 * 0.7 = 0.294 (additional 30% smaller)
-const CAR_SCALE = 0.25; // 0.343 * 0.8 = 0.274 (additional 20% smaller)
+const OBSTACLE_SCALE = 0.25; 
+const RESOURCE_SCALE = 0.25; 
+const CAR_SCALE = 0.25; 
 
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
@@ -51,6 +51,7 @@ interface GameScene extends Phaser.Scene {
 
   // Game control
   gameStarted: boolean;
+  isVictoryMode?: boolean; // Flag to indicate victory sequence is active
 
   // Audio timing
   lastRunningSoundTime?: number;
@@ -125,12 +126,23 @@ export function initializeGame(
   // Add error handling for asset loading failures
   scene.load.on('filecomplete', (key: string) => {
     console.log(`✅ Asset loaded: ${key}`);
+    // Verify texture exists for critical assets
+    if (key === 'cub' || key === 'mother-cheetah') {
+      if (!scene.textures.exists(key)) {
+        console.error(`❌ Critical asset texture missing after load: ${key}`);
+      }
+    }
   });
 
   scene.load.on('filecomplete-failed', (key: string) => {
     console.error(`❌ Failed to load asset: ${key}`);
-    // Try to retry loading the asset
-    retryAssetLoad(scene, key, progressCallback);
+    // Enhanced retry for critical assets
+    if (key === 'cub' || key === 'mother-cheetah') {
+      console.log(`🔄 Critical asset failed, immediate retry: ${key}`);
+      retryAssetLoad(scene, key, progressCallback, 0, true); // Force immediate retry for critical assets
+    } else {
+      retryAssetLoad(scene, key, progressCallback);
+    }
   });
 
   // Add progress tracking
@@ -140,16 +152,19 @@ export function initializeGame(
   });
 }
 
-function retryAssetLoad(scene: Phaser.Scene, key: string, progressCallback?: (progress: number, message: string) => void, retryCount: number = 0) {
-  const maxRetries = 3;
-  const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
+function retryAssetLoad(scene: Phaser.Scene, key: string, progressCallback?: (progress: number, message: string) => void, retryCount: number = 0, isCritical: boolean = false) {
+  const maxRetries = isCritical ? 5 : 3; // More retries for critical assets
+  const retryDelay = isCritical ? 500 * (retryCount + 1) : 1000 * (retryCount + 1); // Faster retries for critical assets
 
   if (retryCount >= maxRetries) {
     console.error(`❌ Max retries reached for asset: ${key}, creating fallback texture`);
-    // Create fallback texture
+    // Create fallback texture with appropriate color
     if (!scene.textures.exists(key)) {
+      const fallbackColor = key === 'cub' ? 0xffa500 : // Orange for cub
+                           key === 'mother-cheetah' ? 0x8B4513 : // Brown for mother cheetah
+                           0xff6b6b; // Red for others
       scene.add.graphics()
-        .fillStyle(0xff6b6b) // Red fallback color
+        .fillStyle(fallbackColor)
         .fillRect(0, 0, 32, 32)
         .generateTexture(key, 32, 32);
     }
@@ -198,7 +213,7 @@ function retryAssetLoad(scene: Phaser.Scene, key: string, progressCallback?: (pr
         console.log(`✅ Asset retry successful: ${key}`);
       });
       scene.load.once(`filecomplete-failed-${key}`, () => {
-        retryAssetLoad(scene, key, progressCallback, retryCount + 1);
+        retryAssetLoad(scene, key, progressCallback, retryCount + 1, key === 'cub');
       });
       scene.load.start();
     });
@@ -232,6 +247,14 @@ export function startActualGame(scene: Phaser.Scene) {
   } else {
     console.log('🚀 Game was already started, skipping...');
   }
+}
+
+// Test function to trigger victory sequence manually
+export function testVictorySequence(scene: Phaser.Scene) {
+  const gameScene = scene as GameScene;
+  console.log('🧪 Testing victory sequence...');
+  console.log('🧪 Current game data:', gameScene.gameData);
+  endGame(gameScene, 'completed');
 }
 
 function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message: string) => void) {
@@ -272,11 +295,36 @@ function loadAssets(scene: Phaser.Scene, onProgress?: (progress: number, message
   scene.load.audio('die', '/assets/audio/die.mp3');
   scene.load.audio('applause', '/assets/audio/applause.mp3');
 
-  // Load character sprites
+  // Load character sprites with enhanced error handling
   onProgress?.(25, 'بارگذاری شخصیت‌ها...');
   GAME_ASSETS.loadConfig.characters.forEach(({ texture, path }) => {
     console.log(`🔄 Loading character: ${path} → ${texture}`);
     scene.load.image(texture, path);
+
+    // Add specific error handling for critical assets like cub
+    if (texture === 'cub') {
+      scene.load.once(`filecomplete-${texture}`, () => {
+        console.log(`✅ Critical asset loaded: ${texture}`);
+        // Verify the texture was loaded correctly
+        if (!scene.textures.exists(texture)) {
+          console.error(`❌ Critical asset failed to load: ${texture}, creating fallback`);
+          scene.add.graphics()
+            .fillStyle(0xffa500) // Orange fallback for cub
+            .fillRect(0, 0, 32, 32)
+            .generateTexture(texture, 32, 32);
+        }
+      });
+
+      scene.load.once(`filecomplete-failed-${texture}`, () => {
+        console.error(`❌ Critical asset failed to load: ${texture}, creating fallback`);
+        if (!scene.textures.exists(texture)) {
+          scene.add.graphics()
+            .fillStyle(0xffa500) // Orange fallback for cub
+            .fillRect(0, 0, 32, 32)
+            .generateTexture(texture, 32, 32);
+        }
+      });
+    }
   });
 
   // Load obstacle sprites
@@ -405,6 +453,15 @@ function createGameWorld(scene: GameScene) {
 
   // Create cubs following behind with enhanced visibility - positioned much lower than mother
   for (let i = 0; i < scene.gameData.cubs; i++) {
+    // Ensure cub texture exists, create fallback if needed
+    if (!scene.textures.exists('cub')) {
+      console.warn('Cub texture not found, creating fallback');
+      scene.add.graphics()
+        .fillStyle(0xffa500) // Orange fallback
+        .fillRect(0, 0, 32, 32)
+        .generateTexture('cub', 32, 32);
+    }
+
     const cub = scene.add.sprite(
       scene.lanes[scene.currentLane] + (i % 2 === 0 ? -12.25 : 12.25), // 17.5 * 0.7 = 12.25 (additional 30% smaller)
       scene.scale.height - 130 - (i * 17.15), // Positioned much lower than mother (130 vs 200) - closer to bottom
@@ -499,32 +556,44 @@ function changeLane(scene: GameScene, newLane: number) {
 function startGameTimers(scene: GameScene) {
   // Removed time limit - game continues until month 18 is reached
 
-  // Month progression timer (every 6-8 seconds)
+  // Month progression timer (every 6-8 seconds) - but only after tutorial is completed
   scene.monthTimer = scene.time.addEvent({
     delay: Phaser.Math.Between(6000, 8000),
     callback: () => {
-      scene.gameData.currentMonth++;
-      updateSeason(scene);
-      scene.onUpdateGameData({ 
-        currentMonth: scene.gameData.currentMonth,
-        season: scene.gameData.season 
-      });
-      
-      trackEvent('month_reached', { 
-        sessionId: scene.sessionId, 
-        month: scene.gameData.currentMonth 
-      });
-      
-      // Check for victory condition - reached month 18 (independence)
-      if (scene.gameData.currentMonth >= 18) {
-        endGame(scene, 'completed');
+      // Only progress months if game has actually started (tutorial completed)
+      if (scene.gameStarted) {
+        scene.gameData.currentMonth++;
+        updateSeason(scene);
+        scene.onUpdateGameData({
+          currentMonth: scene.gameData.currentMonth,
+          season: scene.gameData.season
+        });
+
+        trackEvent('month_reached', {
+          sessionId: scene.sessionId,
+          month: scene.gameData.currentMonth
+        });
+
+        // Check for victory condition - reached month 18 (independence)
+        if (scene.gameData.currentMonth >= 18) {
+          console.log('🎉 Victory condition met! Current month:', scene.gameData.currentMonth);
+          console.log('🎉 Game data:', scene.gameData);
+          endGame(scene, 'completed');
+        }
       }
     },
     loop: true
   });
 
-  // Spawn obstacles and resources (progressive difficulty)
+  // Spawn obstacles and resources (progressive difficulty) - but only after tutorial is completed
   const spawnGameObjectsProgressive = () => {
+    // Only spawn objects if game has actually started (tutorial completed)
+    if (!scene.gameStarted) {
+      // If tutorial not completed, wait and check again
+      scene.time.delayedCall(1000, spawnGameObjectsProgressive);
+      return;
+    }
+
     const currentMonth = scene.gameData.currentMonth;
     const progressRatio = Math.min(currentMonth / 18, 1);
 
@@ -539,13 +608,18 @@ function startGameTimers(scene: GameScene) {
     scene.time.delayedCall(currentDelay, spawnGameObjectsProgressive);
   };
 
-  // Start the progressive spawning
+  // Start the progressive spawning (will wait for tutorial completion)
   spawnGameObjectsProgressive();
 
-  // Update health
+  // Update health - but only after tutorial is completed
   scene.time.addEvent({
     delay: 3000,
-    callback: () => updateHealthAndEnergy(scene),
+    callback: () => {
+      // Only update health if game has actually started (tutorial completed)
+      if (scene.gameStarted) {
+        updateHealthAndEnergy(scene);
+      }
+    },
     loop: true
   });
 }
@@ -777,6 +851,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     // Collision detection for warning zone (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && warningZone && warningZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, warningZone, () => {
+        // Skip collision detection during victory mode
+        if (scene.isVictoryMode) return;
+
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && warningZone?.active) {
           // Check if 3 seconds have passed since last damage from this camel
@@ -939,6 +1016,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     // Collision detection for death zone (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && deathZone && deathZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, deathZone, () => {
+        // Skip collision detection during victory mode
+        if (scene.isVictoryMode) return;
+
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && deathZone?.active) {
           if (scene.audioManager) scene.audioManager.onHitObstacle(obstacleInfo.type);
@@ -1026,6 +1106,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   // Collision detection (with enhanced safety checks) - exclude camels from lethal behavior
   if (scene.physics && scene.motherCheetah && obstacle && scene.motherCheetah.active && obstacle.active) {
     scene.physics.add.overlap(scene.motherCheetah, obstacle, () => {
+      // Skip collision detection during victory mode
+      if (scene.isVictoryMode) return;
+
       // Double-check objects are still active before processing collision
       if (scene.motherCheetah?.active && obstacle?.active) {
         scene.audioManager?.onHitObstacle(obstacleInfo.type);
@@ -1149,6 +1232,9 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     // Car collision detection (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && car && scene.motherCheetah.active && car.active) {
       scene.physics.add.overlap(scene.motherCheetah, car, () => {
+        // Skip collision detection during victory mode
+        if (scene.isVictoryMode) return;
+
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && car?.active) {
           scene.audioManager?.onHitObstacle('road');
@@ -1348,14 +1434,14 @@ function endGame(scene: GameScene, cause: string) {
   scene.gameTimer?.destroy();
   scene.monthTimer?.destroy();
 
-  // Audio feedback
+  // Handle victory sequence if game completed
   if (cause === 'completed') {
-    scene.audioManager?.onVictory();
-    // Add victory confetti effect
-    createVictoryConfetti(scene);
-  } else {
-    scene.audioManager?.onGameOver();
+    startVictorySequence(scene);
+    return; // Don't proceed with normal game end
   }
+
+  // Normal game over handling for non-victory cases
+  scene.audioManager?.onGameOver();
 
   // Calculate final results
   const results: Partial<GameResults> = {
@@ -1381,6 +1467,562 @@ function endGame(scene: GameScene, cause: string) {
   scene.onGameEnd(results);
 }
 
+function startVictorySequence(scene: GameScene) {
+  console.log('🎉 Starting victory sequence...');
+  console.log('🎉 Scene objects:', {
+    motherCheetah: !!scene.motherCheetah,
+    cubs: scene.cubs?.length || 0,
+    obstacles: scene.obstacles?.children?.entries?.length || 0,
+    resources: scene.resources?.children?.entries?.length || 0
+  });
+
+  // Step 1: Stop spawning new enemies/resources
+  scene.spawnTimer?.destroy();
+  scene.gameStarted = false; // Prevent any new spawning
+
+  // Step 2: Set victory mode flag (but keep user controls active until all elements exit)
+  scene.isVictoryMode = true; // Set victory mode flag
+
+  // Step 3: Play applause sound
+  scene.audioManager?.onVictory();
+
+  // Step 4: Wait for all existing elements to exit naturally, then disable controls and start victory animations
+  waitForElementsToExit(scene);
+}
+
+function waitForElementsToExit(scene: GameScene, waitCount: number = 0) {
+  const maxWaitTime = 100; // Maximum 50 seconds (100 * 500ms)
+  const checkInterval = 500; // Check every 500ms
+
+  console.log(`⏳ Waiting for existing elements to exit naturally... (attempt ${waitCount + 1})`);
+
+  // Count elements that need to exit
+  let obstacleCount = 0;
+  let resourceCount = 0;
+  let roadCount = 0;
+
+  if (scene.obstacles?.children?.entries) {
+    const obstaclesOnScreen = scene.obstacles.children.entries.filter((obstacle: any) =>
+      obstacle && obstacle.active && !obstacle.destroyed && obstacle.y < scene.scale.height + 50
+    );
+    obstacleCount = obstaclesOnScreen.length;
+
+    // Debug: Log obstacle positions
+    if (obstaclesOnScreen.length > 0) {
+      console.log('🚧 Obstacles on screen:', obstaclesOnScreen.map((obs: any) => ({
+        y: obs.y,
+        velocityY: obs.body?.velocity?.y || 'no body'
+      })));
+    }
+  }
+
+  if (scene.resources?.children?.entries) {
+    const resourcesOnScreen = scene.resources.children.entries.filter((resource: any) =>
+      resource && resource.active && !resource.destroyed && resource.y < scene.scale.height + 50
+    );
+    resourceCount = resourcesOnScreen.length;
+
+    // Debug: Log resource positions
+    if (resourcesOnScreen.length > 0) {
+      console.log('🌿 Resources on screen:', resourcesOnScreen.map((res: any) => ({
+        y: res.y,
+        velocityY: res.body?.velocity?.y || 'no body'
+      })));
+    }
+  }
+
+  if (scene.children?.list) {
+    const roadsOnScreen = scene.children.list.filter((child: any) =>
+      child && child.active && !child.destroyed &&
+      (child.fillColor === 0x333333 || child.fillColor === 0xffffff) &&
+      child.y < scene.scale.height + 50
+    );
+    roadCount = roadsOnScreen.length;
+
+    // Debug: Log road positions
+    if (roadsOnScreen.length > 0) {
+      console.log('🛣️ Road elements on screen:', roadsOnScreen.map((road: any) => ({
+        y: road.y,
+        fillColor: road.fillColor,
+        type: road.type || 'unknown'
+      })));
+    }
+  }
+
+  // Also check for danger zones (warning zones, death zones)
+  let dangerZoneCount = 0;
+  if (scene.children?.list) {
+    const dangerZonesOnScreen = scene.children.list.filter((child: any) =>
+      child && child.active && !child.destroyed &&
+      child.type === 'Arc' && // Phaser circles are Arc type
+      child.y < scene.scale.height + 50
+    );
+    dangerZoneCount = dangerZonesOnScreen.length;
+
+    if (dangerZonesOnScreen.length > 0) {
+      console.log('⚠️ Danger zones on screen:', dangerZonesOnScreen.length);
+    }
+  }
+
+  const totalElements = obstacleCount + resourceCount + roadCount + dangerZoneCount;
+  console.log(`📊 Elements remaining: ${totalElements} (obstacles: ${obstacleCount}, resources: ${resourceCount}, roads: ${roadCount}, danger zones: ${dangerZoneCount})`);
+
+  if (totalElements > 0 && waitCount < maxWaitTime) {
+    // Check again in 500ms
+    scene.time.delayedCall(checkInterval, () => waitForElementsToExit(scene, waitCount + 1));
+  } else {
+    if (totalElements > 0) {
+      console.log('⚠️ Timeout reached, forcing remaining elements to exit...');
+      forceElementsToExit(scene);
+    } else {
+      console.log('✅ All elements have exited naturally, starting victory animations...');
+    }
+
+    // Now disable controls and start victory animations
+    disableControlsAndStartVictory(scene);
+  }
+}
+
+function disableControlsAndStartVictory(scene: GameScene) {
+  console.log('🎮 Disabling user controls and starting victory animations...');
+
+  // Disable user controls now that all elements have exited
+  scene.isStopped = true;
+
+  // Disable physics to prevent any further collisions
+  if (scene.physics && scene.physics.world) {
+    scene.physics.world.pause();
+  }
+
+  // Start victory animations immediately
+  console.log('🎯 Starting family movement to center...');
+  moveFamilyToCenter(scene);
+}
+
+function forceElementsToExit(scene: GameScene) {
+  console.log('🔧 Forcing remaining elements to exit...');
+
+  // Force obstacles to exit
+  if (scene.obstacles?.children?.entries) {
+    scene.obstacles.children.entries.forEach((obstacle: any) => {
+      if (obstacle && obstacle.active && !obstacle.destroyed && obstacle.y < scene.scale.height + 50) {
+        console.log('🏃 Forcing obstacle to exit');
+        scene.tweens.add({
+          targets: obstacle,
+          y: scene.scale.height + 100,
+          duration: 1000,
+          ease: 'Power2',
+          onComplete: () => {
+            if (obstacle && obstacle.active && !obstacle.destroyed) {
+              obstacle.destroy();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Force resources to exit
+  if (scene.resources?.children?.entries) {
+    scene.resources.children.entries.forEach((resource: any) => {
+      if (resource && resource.active && !resource.destroyed && resource.y < scene.scale.height + 50) {
+        console.log('🌿 Forcing resource to exit');
+        scene.tweens.add({
+          targets: resource,
+          y: scene.scale.height + 100,
+          duration: 1000,
+          ease: 'Power2',
+          onComplete: () => {
+            if (resource && resource.active && !resource.destroyed) {
+              resource.destroy();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Force all remaining visual elements to exit
+  if (scene.children?.list) {
+    scene.children.list.forEach((child: any) => {
+      if (child && child.active && !child.destroyed && child.y < scene.scale.height + 50) {
+        // Force road elements to exit
+        if (child.fillColor === 0x333333 || child.fillColor === 0xffffff) {
+          console.log('🛣️ Forcing road element to exit');
+          scene.tweens.add({
+            targets: child,
+            y: scene.scale.height + 100,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+              if (child && child.active && !child.destroyed) {
+                child.destroy();
+              }
+            }
+          });
+        }
+
+        // Force danger zones to exit (warning zones, death zones)
+        else if (child.type === 'Arc') {
+          console.log('⚠️ Forcing danger zone to exit');
+          scene.tweens.add({
+            targets: child,
+            y: scene.scale.height + 100,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+              if (child && child.active && !child.destroyed) {
+                child.destroy();
+              }
+            }
+          });
+        }
+
+        // Force any other visual elements that might be stuck
+        else if (child.getData && child.getData('isMoving')) {
+          console.log('🎭 Forcing unknown moving element to exit');
+          scene.tweens.add({
+            targets: child,
+            y: scene.scale.height + 100,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+              if (child && child.active && !child.destroyed) {
+                child.destroy();
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+function clearExistingElements(scene: GameScene) {
+  console.log('🧹 Clearing existing elements from screen...');
+
+  // Clear obstacles
+  if (scene.obstacles && scene.obstacles.children) {
+    scene.obstacles.children.entries.forEach((obstacle: any) => {
+      if (obstacle && obstacle.active && !obstacle.destroyed) {
+        // Animate obstacles moving off screen
+        scene.tweens.add({
+          targets: obstacle,
+          y: scene.scale.height + 100,
+          duration: Phaser.Math.Between(1000, 2000),
+          ease: 'Power2',
+          onComplete: () => {
+            if (obstacle && obstacle.active && !obstacle.destroyed) {
+              obstacle.destroy();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Clear resources
+  if (scene.resources && scene.resources.children) {
+    scene.resources.children.entries.forEach((resource: any) => {
+      if (resource && resource.active && !resource.destroyed) {
+        // Animate resources moving off screen
+        scene.tweens.add({
+          targets: resource,
+          y: scene.scale.height + 100,
+          duration: Phaser.Math.Between(800, 1500),
+          ease: 'Power2',
+          onComplete: () => {
+            if (resource && resource.active && !resource.destroyed) {
+              resource.destroy();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Clear road elements
+  scene.children.list.forEach((child: any) => {
+    if (child && child.active && !child.destroyed &&
+        (child.fillColor === 0x333333 || child.fillColor === 0xffffff)) {
+      scene.tweens.add({
+        targets: child,
+        y: scene.scale.height + 100,
+        duration: Phaser.Math.Between(1200, 1800),
+        ease: 'Power2',
+        onComplete: () => {
+          if (child && child.active && !child.destroyed) {
+            child.destroy();
+          }
+        }
+      });
+    }
+  });
+}
+
+function moveFamilyToCenter(scene: GameScene) {
+  console.log('🎯 Moving family to center...');
+
+  const centerX = scene.scale.width / 2;
+  const centerY = scene.scale.height / 2;
+
+  // Move mother cheetah to center
+  if (scene.motherCheetah) {
+    scene.tweens.add({
+      targets: scene.motherCheetah,
+      x: centerX,
+      y: centerY,
+      duration: 2000,
+      ease: 'Power2'
+    });
+  }
+
+  // Move cubs to form a horizontal line centered around mother
+  const cubSpacing = 40; // Space between cubs
+  const totalWidth = (scene.cubs.length - 1) * cubSpacing;
+  const startX = centerX - totalWidth / 2;
+
+  scene.cubs.forEach((cub, index) => {
+    if (cub && cub.active) {
+      scene.tweens.add({
+        targets: cub,
+        x: startX + (index * cubSpacing),
+        y: centerY + 20,
+        duration: 2000,
+        ease: 'Power2',
+        onComplete: () => {
+          // Start rotation animation after all cubs are in position
+          if (index === scene.cubs.length - 1) {
+            startCubRotation(scene);
+          }
+        }
+      });
+    }
+  });
+}
+
+function startCubRotation(scene: GameScene) {
+  console.log('🔄 Starting cub rotation around mother...');
+
+  const centerX = scene.scale.width / 2;
+  const centerY = scene.scale.height / 2;
+  const rotationRadius = 60;
+  const rotationDuration = 4000; // 4 seconds
+
+  // Start particle effects
+  createVictoryParticles(scene);
+
+  scene.cubs.forEach((cub, index) => {
+    if (cub && cub.active) {
+      const angleOffset = (index * 360) / scene.cubs.length;
+      const startAngle = angleOffset * (Math.PI / 180);
+
+      // Create circular path for each cub
+      scene.tweens.add({
+        targets: cub,
+        duration: rotationDuration,
+        ease: 'Linear',
+        onUpdate: (tween) => {
+          const progress = tween.progress;
+          const currentAngle = startAngle + (progress * 2 * Math.PI);
+          const x = centerX + Math.cos(currentAngle) * rotationRadius;
+          const y = centerY + Math.sin(currentAngle) * rotationRadius;
+          cub.setPosition(x, y);
+        },
+        onComplete: () => {
+          // Start cub exit animation
+          exitCub(scene, cub, index);
+        }
+      });
+    }
+  });
+
+  // After rotation completes, start mother exit
+  setTimeout(() => {
+    exitMother(scene);
+  }, rotationDuration + 500);
+}
+
+function createVictoryParticles(scene: GameScene) {
+  console.log('✨ Creating victory particles...');
+
+  const centerX = scene.scale.width / 2;
+  const centerY = scene.scale.height / 2;
+  const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffa500, 0x800080];
+  const particles: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+
+  colors.forEach((color, index) => {
+    // Create particle texture
+    const particleTexture = scene.add.graphics();
+    particleTexture.fillStyle(color);
+    particleTexture.fillRect(0, 0, 6, 10); // Small rectangular particles
+    particleTexture.generateTexture(`victory-particle-${index}`, 6, 10);
+
+    // Create particle emitter
+    const emitter = scene.add.particles(centerX, centerY, `victory-particle-${index}`, {
+      speed: { min: 50, max: 200 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.8, end: 0.2 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 3000,
+      gravityY: 100,
+      quantity: 1,
+      frequency: 150,
+      rotate: { start: 0, end: 360 },
+      blendMode: 'ADD'
+    });
+
+    emitter.setDepth(1);
+    particles.push(emitter);
+
+    // Start emitting with delay
+    scene.time.delayedCall(index * 300, () => {
+      emitter.start();
+    });
+  });
+
+  // Stop and destroy particles after 4 seconds
+  scene.time.delayedCall(4000, () => {
+    console.log('✨ Stopping victory particles...');
+    particles.forEach((emitter, index) => {
+      try {
+        if (emitter && typeof emitter.stop === 'function') {
+          emitter.stop();
+          console.log(`✅ Stopped particle emitter ${index}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error stopping particle emitter ${index}:`, error);
+      }
+    });
+
+    // Destroy emitters and clean up textures after a longer delay
+    scene.time.delayedCall(1500, () => {
+      particles.forEach((emitter, index) => {
+        try {
+          // Destroy the emitter completely
+          if (emitter && typeof emitter.destroy === 'function') {
+            emitter.destroy();
+            console.log(`💥 Destroyed particle emitter ${index}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error destroying particle emitter ${index}:`, error);
+        }
+
+        // Clean up texture if it still exists
+        try {
+          if (emitter && emitter.texture && emitter.texture.key &&
+              typeof emitter.texture.key === 'string' &&
+              scene.textures.exists(emitter.texture.key)) {
+            const textureKey = emitter.texture.key;
+            scene.textures.remove(textureKey);
+            console.log(`🗑️ Cleaned up particle texture ${index}: ${textureKey}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error cleaning up particle texture ${index}:`, error);
+        }
+      });
+      console.log('✨ Particle cleanup completed');
+
+      // Clear the particles array to prevent any further references
+      particles.length = 0;
+    });
+  });
+}
+
+function exitCub(scene: GameScene, cub: Phaser.GameObjects.Sprite, index: number) {
+  console.log(`🏃 Cub ${index} exiting in random direction...`);
+
+  const centerX = scene.scale.width / 2;
+  const centerY = scene.scale.height / 2;
+
+  // Define exit directions: left, right, up, down
+  const exitDirections = [
+    { x: -100, y: centerY }, // Left
+    { x: scene.scale.width + 100, y: centerY }, // Right
+    { x: centerX, y: -100 }, // Up
+    { x: centerX, y: scene.scale.height + 100 } // Down
+  ];
+
+  // Assign each cub to a different direction
+  const directionIndex = index % exitDirections.length;
+  const exitDirection = exitDirections[directionIndex];
+
+  // Add some variation to make it more natural
+  const variationX = Phaser.Math.Between(-30, 30);
+  const variationY = Phaser.Math.Between(-30, 30);
+
+  scene.tweens.add({
+    targets: cub,
+    x: exitDirection.x + variationX,
+    y: exitDirection.y + variationY,
+    duration: Phaser.Math.Between(2500, 3500),
+    ease: 'Power2',
+    onComplete: () => {
+      if (cub && cub.active) {
+        cub.destroy();
+      }
+    }
+  });
+}
+
+function exitMother(scene: GameScene) {
+  console.log('👩 Mother cheetah exiting screen...');
+
+  if (scene.motherCheetah) {
+    // Mother exits upwards
+    scene.tweens.add({
+      targets: scene.motherCheetah,
+      y: -100,
+      duration: 2500,
+      ease: 'Power2',
+      onComplete: () => {
+        if (scene.motherCheetah && scene.motherCheetah.active) {
+          scene.motherCheetah.destroy();
+        }
+        // Show results immediately after mother exits
+        showVictoryResults(scene);
+      }
+    });
+  } else {
+    // If mother is not available, show results immediately
+    showVictoryResults(scene);
+  }
+}
+
+function showVictoryResults(scene: GameScene) {
+  console.log('🏆 Showing victory results...');
+  console.log('🏆 Final game data:', {
+    cubs: scene.gameData.cubs,
+    months: scene.gameData.currentMonth,
+    score: scene.gameData.score,
+    health: scene.gameData.health
+  });
+
+  // Calculate final results
+  const results: Partial<GameResults> = {
+    cubsSurvived: scene.gameData.cubs,
+    monthsCompleted: scene.gameData.currentMonth,
+    finalScore: scene.gameData.score,
+    gameTime: 0,
+    deathCause: undefined,
+    achievements: []
+  };
+
+  // Add achievements
+  if (results.cubsSurvived === 4 && results.monthsCompleted! >= 18) {
+    results.achievements!.push('perfect_family');
+  }
+  results.achievements!.push('survivor');
+
+  console.log('🏆 Victory results:', results);
+
+  // Cleanup audio
+  scene.audioManager?.destroy();
+
+  // Call the game end callback to show results screen
+  scene.onGameEnd(results);
+}
+
 // Update scene every frame
 export function updateGame(scene: GameScene) {
   // Safety check for scene
@@ -1388,8 +2030,8 @@ export function updateGame(scene: GameScene) {
     return;
   }
 
-  // Only run game logic if the game has started (tutorial completed)
-  if (!scene.gameStarted) {
+  // Only run game logic if the game has started (tutorial completed) or in victory mode
+  if (!scene.gameStarted && !scene.isVictoryMode) {
     return;
   }
 
@@ -1403,28 +2045,28 @@ export function updateGame(scene: GameScene) {
     }
   }
 
-  // Process keyboard input
-  if (scene.cursors) {
+  // Process keyboard input (allow during victory mode until controls are disabled)
+  if (scene.cursors && (!scene.isVictoryMode || !scene.isStopped)) {
     const currentTime = Date.now();
     const timeSinceLastMove = currentTime - (scene.lastLaneChange || 0);
-    
+
     // Left arrow key - move left
     if (scene.cursors.left?.isDown && scene.currentLane > 0 && timeSinceLastMove > 300) {
       changeLane(scene, scene.currentLane - 1);
       scene.lastLaneChange = currentTime;
     }
-    
-    // Right arrow key - move right  
+
+    // Right arrow key - move right
     if (scene.cursors.right?.isDown && scene.currentLane < scene.lanes.length - 1 && timeSinceLastMove > 300) {
       changeLane(scene, scene.currentLane + 1);
       scene.lastLaneChange = currentTime;
     }
-    
+
     // Up arrow key - increase speed
     if (scene.cursors.up?.isDown && !scene.isStopped) {
       scene.gameSpeed = Math.min(scene.gameSpeed * 1.5, 400);
     }
-    
+
     // Down arrow key - stop/slow down
     if (scene.cursors.down?.isDown) {
       scene.isStopped = true;
@@ -1435,7 +2077,13 @@ export function updateGame(scene: GameScene) {
         scene.gameSpeed = 200; // Resume normal speed
       }
     }
-    
+
+    // Space key - test victory sequence (for development)
+    if (Phaser.Input.Keyboard.JustDown(scene.cursors.space)) {
+      console.log('🎯 Space key pressed - testing victory sequence');
+      endGame(scene, 'completed');
+    }
+
     // Space key - removed speed burst functionality
   }
 
@@ -1594,8 +2242,8 @@ export function updateGame(scene: GameScene) {
   // Background is static for proper full-screen coverage
   // Removed parallax effect to ensure consistent coverage
   
-  // Apply health effects based on specifications
-  if (scene.gameData.health < 25) {
+  // Apply health effects based on specifications (skip during victory mode)
+  if (scene.gameData.health < 25 && !scene.isVictoryMode) {
     // Reduce speed to 0.5x when health is low
     scene.gameSpeed = Math.max(scene.gameSpeed * 0.5, 100);
     // Add vignette effect for low health

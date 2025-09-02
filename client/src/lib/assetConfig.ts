@@ -4,10 +4,10 @@
 export const ASSET_PATHS = {
   // Background Images
   backgrounds: {
-    spring: '/assets/backgrounds/spring-bg.png',
-    summer: '/assets/backgrounds/summer-bg.png',
-    autumn: '/assets/backgrounds/autumn-bg.png',
-    winter: '/assets/backgrounds/winter-bg.png'
+    spring: '/assets/backgrounds/spring-bg.webp',
+    summer: '/assets/backgrounds/summer-bg.webp',
+    autumn: '/assets/backgrounds/autumn-bg.webp',
+    winter: '/assets/backgrounds/winter-bg.webp'
   },
 
   // Obstacle Images

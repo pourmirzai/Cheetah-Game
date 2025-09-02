@@ -182,6 +182,18 @@ export default function PhaserGame({ gameData, onUpdateGameData, onGameEnd, sess
     }
   }, [gameStarted, sessionId]);
 
+  // Update game data in Phaser scene when it changes
+  useEffect(() => {
+    if (phaserGameRef.current) {
+      const scene = phaserGameRef.current.scene.getScene('default');
+      if (scene && 'gameData' in scene) {
+        const gameScene = scene as any;
+        gameScene.gameData = { ...gameScene.gameData, ...gameData };
+        console.log('🎮 Updated Phaser scene gameData:', gameScene.gameData);
+      }
+    }
+  }, [gameData]);
+
 
   return (
     <div

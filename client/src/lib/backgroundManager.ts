@@ -27,28 +27,28 @@ export class BackgroundManager {
       {
         id: 'spring-bg',
         name: 'بهار',
-        path: '/assets/backgrounds/spring-bg.png',
+        path: '/assets/backgrounds/spring-bg.webp',
         type: 'image',
         season: 'spring'
       },
       {
         id: 'summer-bg',
         name: 'تابستان',
-        path: '/assets/backgrounds/summer-bg.png',
+        path: '/assets/backgrounds/summer-bg.webp',
         type: 'image',
         season: 'summer'
       },
       {
         id: 'autumn-bg',
         name: 'پاییز',
-        path: '/assets/backgrounds/autumn-bg.png',
+        path: '/assets/backgrounds/autumn-bg.webp',
         type: 'image',
         season: 'autumn'
       },
       {
         id: 'winter-bg',
         name: 'زمستان',
-        path: '/assets/backgrounds/winter-bg.png',
+        path: '/assets/backgrounds/winter-bg.webp',
         type: 'image',
         season: 'winter'
       }

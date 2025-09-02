@@ -13,7 +13,7 @@
 **ویژگی‌ها:**
 - **حرکت**: کنترل با لمس/کلیک چپ و راست
 - **سرعت پایه**: ۲۰۰ پیکسل بر ثانیه
-- **جهش سرعت**: ۲ برابر سرعت پایه (۴۰۰ پیکسل بر ثانیه)
+- **سرعت در سلامتی کم**: ۵۰% کاهش (۱۰۰ پیکسل بر ثانیه)
 - **سلامتی**: ۱۰۰ امتیاز اولیه
 - **اندازه**: ۶۴×۴۸ پیکسل (بهبود یافته برای دید بهتر)
 
@@ -89,55 +89,107 @@ function updateSeason(scene: GameScene) {
 
 ### انواع موانع
 
-#### ۱. سگ‌ها (Dogs)
+#### ۱. شترها (Camels)
 ```typescript
-const obstacleInfo = {
-  type: 'dog',
-  texture: 'dog-obstacle-pixel',
-  healthDamage: 25,
-  speedMultiplier: 1.0
+// شتر دارای منطقه هشدار زرد و مرگ قرمز است
+// منطقه هشدار: کاهش ۳۰% سلامتی مادر/توله
+// منطقه مرگ: پایان بازی برای مادر، مرگ توله
+const camelInfo = {
+  type: 'camel',
+  texture: 'camel-obstacle',
+  warningZone: true,      // منطقه هشدار زرد
+  deathZone: false,       // بدون منطقه مرگ مستقیم
+  healthDamage: 30,       // کاهش سلامتی در منطقه هشدار
+  cooldown: 3000          // cooldown ۳ ثانیه بین آسیب‌ها
 };
 ```
 
-#### ۲. تله‌ها (Traps)
+#### ۲. شکارچیان (Poachers/Smugglers)
 ```typescript
-const obstacleInfo = {
-  type: 'trap',
-  texture: 'trap',
-  healthDamage: 30,
-  speedMultiplier: 0.8
-};
-```
-
-#### ۳. شکارچیان (Poachers)
-```typescript
-const obstacleInfo = {
+// شکارچی دارای منطقه مرگ قرمز است
+const smugglerInfo = {
   type: 'smuggler',
-  texture: 'smuggler',
-  healthDamage: 50,
-  speedMultiplier: 1.2
+  texture: 'smuggler-obstacle',
+  warningZone: false,
+  deathZone: true,        // منطقه مرگ قرمز
+  instantDeath: true      // مرگ فوری
 };
 ```
 
-#### ۴. جاده‌ها (Roads)
-- **ویژگی خاص**: امتداد تمام مسیرها
-- **ماشین‌ها**: حرکت افقی تصادفی
-- **خطر بالا**: برخورد با ماشین = پایان بازی
+#### ۳. سگ‌ها (Dogs)
+```typescript
+// سگ دارای منطقه مرگ قرمز است
+const dogInfo = {
+  type: 'dog',
+  texture: 'dog-obstacle',
+  warningZone: false,
+  deathZone: true,        // منطقه مرگ قرمز
+  instantDeath: true      // مرگ فوری
+};
+```
+
+#### ۴. جاده‌ها و ماشین‌ها (Roads & Cars)
+```typescript
+// جاده‌ها خود خطر ندارند اما ماشین‌ها مرگبار هستند
+const roadInfo = {
+  type: 'road',
+  texture: 'road-surface',
+  spansAllLanes: true,    // امتداد تمام مسیرها
+  cars: {
+    count: '2-6',        // تعداد ماشین‌ها در هر جاده
+    movement: 'right-to-left', // جهت حرکت
+    speed: 'base + 30',  // سرعت پایه + ۳۰
+    lethal: true         // برخورد = مرگ فوری
+  }
+};
+```
 
 ### مکانیک برخورد
 
 **برخورد با مادر:**
+
+**شتر (منطقه هشدار):**
 ```typescript
-scene.physics.add.overlap(scene.motherCheetah, obstacle, () => {
+// کاهش ۳۰% سلامتی با cooldown ۳ ثانیه
+scene.physics.add.overlap(scene.motherCheetah, camelWarningZone, () => {
+  if (timeSinceLastDamage >= 3000) {
+    const healthReduction = Math.floor(scene.gameData.health * 0.3);
+    scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+    lastDamageTime = Date.now();
+  }
+});
+```
+
+**شکارچی/سگ/ماشین (منطقه مرگ):**
+```typescript
+// مرگ فوری
+scene.physics.add.overlap(scene.motherCheetah, deathZone, () => {
   scene.audioManager?.onHitObstacle(obstacleInfo.type);
   endGame(scene, obstacleInfo.type);
 });
 ```
 
 **برخورد با توله:**
+
+**شتر (منطقه هشدار):**
 ```typescript
+// کاهش ۳۰% سلامتی مادر (توله‌ها آسیب مستقیم نمی‌بینند)
 scene.cubs.forEach((cub, index) => {
-  scene.physics.add.overlap(cub, obstacle, () => {
+  scene.physics.add.overlap(cub, camelWarningZone, () => {
+    if (timeSinceLastDamage >= 3000) {
+      const healthReduction = Math.floor(scene.gameData.health * 0.3);
+      scene.gameData.health = Math.max(0, scene.gameData.health - healthReduction);
+      lastDamageTime = Date.now();
+    }
+  });
+});
+```
+
+**شکارچی/سگ/ماشین (منطقه مرگ):**
+```typescript
+// مرگ توله
+scene.cubs.forEach((cub, index) => {
+  scene.physics.add.overlap(cub, deathZone, () => {
     scene.gameData.cubs--;
     cub.destroy();
     scene.cubs.splice(index, 1);
@@ -173,20 +225,19 @@ const resourceInfo = {
 };
 ```
 
-#### ۳. خرگوش (Rabbit) - ویژه
+#### ۳. خرگوش (Rabbit)
 ```typescript
 const resourceInfo = {
   type: 'rabbit',
   texture: 'rabbit-resource-pixel',
   healthGain: 10,
-  points: 100,
-  specialEffect: 'speed_burst_charge'
+  points: 100
 };
 ```
 
 ### مکانیک جمع‌آوری
 
-**جمع‌آوری عادی:**
+**جمع‌آوری منابع:**
 ```typescript
 scene.physics.add.overlap(scene.motherCheetah, resource, () => {
   collectResource(scene, resourceInfo.type);
@@ -194,80 +245,47 @@ scene.physics.add.overlap(scene.motherCheetah, resource, () => {
 });
 ```
 
-**خرگوش ویژه:**
+**افزایش سلامتی:**
 ```typescript
-if (type === 'rabbit') {
-  scene.gameData.rabbitsCollected += 1;
+function collectResource(scene: GameScene, type: string) {
+  const resourceConfig = GAME_ASSETS.resources.types.find(r => r.type === type);
+  const healthGain = resourceConfig?.healthGain || 0;
 
-  if (scene.gameData.rabbitsCollected >= 3) {
-    scene.gameData.burstEnergy = 100;
-    scene.gameData.rabbitsCollected = 0;
-  }
+  scene.gameData.health = Math.min(100, scene.gameData.health + healthGain);
+  scene.gameData.score += healthGain * 10;
 }
 ```
 
-## ⚡ سیستم جهش سرعت (Speed Burst)
-
-### مکانیک کارکرد
-
-**شرط فعال‌سازی:**
-- ۳ خرگوش جمع‌آوری شده
-- انرژی جهش = ۱۰۰%
-
-**ویژگی‌ها:**
-- **مدت زمان**: ۲ ثانیه
-- **ضریب سرعت**: ۲ برابر
-- **هزینه**: تمام انرژی جهش
-- **cooldown**: شارژ مجدد در طول زمان
-
-**فعال‌سازی:**
-```typescript
-function triggerSpeedBurst(scene: GameScene) {
-  if (scene.gameData.burstEnergy >= 100) {
-    scene.gameData.speedBurstActive = true;
-    scene.gameSpeed *= 2;
-
-    // پایان جهش بعد از ۲ ثانیه
-    scene.time.delayedCall(2000, () => {
-      scene.gameData.speedBurstActive = false;
-      scene.gameSpeed /= 2;
-    });
-  }
-}
-```
 
 ## ⏰ سیستم زمان و پیشرفت
 
 ### چرخه زمانی
 
-**کل مدت بازی:** ۱۲۰ ثانیه = ۱۸ ماه
+**کل مدت بازی:** نامحدود - تا رسیدن به ماه ۱۸
 
 **تقسیم زمانی:**
 - **هر ماه**: ۶-۸ ثانیه واقعی
 - **هر فصل**: ۳ ماه
 - **تغییر فصل**: خودکار با ماه جدید
+- **پایان بازی**: رسیدن به ماه ۱۸ یا مرگ تمام خانواده
 
 ### پیشرفت بازی
 
 **شاخص‌های پیشرفت:**
 - **ماه فعلی**: ۱ تا ۱۸
 - **فصل فعلی**: بر اساس ماه
-- **زمان باقی‌مانده**: شمارش معکوس
-- **سلامتی خانواده**: نوار سلامتی
+- **سلامتی خانواده**: نوار سلامتی (۰-۱۰۰)
 - **امتیاز کل**: مجموع امتیازات
+- **تعداد توله‌های زنده**: ۰-۴
 
 ## 🏆 سیستم امتیازدهی
 
 ### منابع امتیاز
 
 **امتیاز پایه:**
-- آب: ۱۰ امتیاز × ضریب سلامتی
-- غزاله: ۱۰ امتیاز × ضریب سلامتی
-- خرگوش: ۱۰ امتیاز × ضریب سلامتی
-
-**امتیاز زمان:**
-- تکمیل سریع‌تر = امتیاز بیشتر
-- هر ثانیه باقی‌مانده = ۵ امتیاز اضافی
+- آب: سلامتی × ۱۰ امتیاز
+- غزاله: سلامتی × ۱۰ امتیاز
+- خرگوش: سلامتی × ۱۰ امتیاز
 
 **امتیاز زنده ماندن:**
 - هر توله زنده = ۱۰۰ امتیاز
@@ -276,11 +294,17 @@ function triggerSpeedBurst(scene: GameScene) {
 ### محاسبه نهایی
 
 ```typescript
-const finalScore =
-  baseScore +
-  (timeRemaining * 5) +
-  (cubsSurvived * 100) +
-  (cubsSurvived === 4 ? 500 : 0);
+function collectResource(scene: GameScene, type: string) {
+  const resourceConfig = GAME_ASSETS.resources.types.find(r => r.type === type);
+  const healthGain = resourceConfig?.healthGain || 0;
+
+  scene.gameData.health = Math.min(100, scene.gameData.health + healthGain);
+  scene.gameData.score += healthGain * 10; // امتیاز = سلامتی به دست آمده × ۱۰
+}
+
+const finalScore = scene.gameData.score +
+  (scene.gameData.cubs * 100) + // ۱۰۰ امتیاز برای هر توله زنده
+  (scene.gameData.cubs === 4 ? 500 : 0); // جایزه کامل
 ```
 
 ## 🎨 جلوه‌های بصری
@@ -295,17 +319,27 @@ const finalScore =
 
 **UI:**
 - نوارهای پیشرفت با انیمیشن
-- هشدارهای سلامتی
+- هشدارهای سلامتی با کاهش سرعت و تاری
 - انیمیشن جمع‌آوری منابع
-- افکت‌های particle برای جهش سرعت
+- منطقه‌های هشدار و مرگ برای موانع
 
 ### پس‌زمینه‌ها
 
-**Parallax Effect:**
+**سیستم responsive:**
 ```typescript
-// حرکت لایه‌های مختلف با سرعت متفاوت
-scene.background.tilePositionY -= scene.gameSpeed / 60;
-scene.farBackground.tilePositionY -= (scene.gameSpeed / 60) * 0.3;
+// پس‌زمینه ثابت با scaling مناسب برای تمام اندازه‌ها
+const screenWidth = scene.scale.width;
+const screenHeight = scene.scale.height;
+const bgAspectRatio = bgImage.width / bgImage.height;
+const screenAspectRatio = screenWidth / screenHeight;
+
+if (screenAspectRatio > bgAspectRatio) {
+  scaleX = screenWidth / bgImage.width;
+  scaleY = scaleX;
+} else {
+  scaleY = screenHeight / bgImage.height;
+  scaleX = scaleY;
+}
 ```
 
 ## 🔊 سیستم صوتی
@@ -320,7 +354,8 @@ scene.farBackground.tilePositionY -= (scene.gameSpeed / 60) * 0.3;
 - `collect_gazelle`: جمع‌آوری غزاله
 - `collect_rabbit`: جمع‌آوری خرگوش
 - `hit_obstacle`: برخورد با مانع
-- `speed_burst`: فعال‌سازی جهش سرعت
+- `car_horn`: بوق ماشین
+- `dog_bark`: پارس سگ
 
 **صداهای وضعیت:**
 - `low_health`: هشدار سلامتی کم
@@ -337,9 +372,10 @@ scene.farBackground.tilePositionY -= (scene.gameSpeed / 60) * 0.3;
 - نرخ زنده ماندن: درصد توله‌های زنده مانده
 
 **مکانیک‌های بازی:**
-- استفاده از جهش سرعت: تعداد دفعات استفاده
 - منابع جمع‌آوری شده: آمار هر نوع منبع
 - برخورد با موانع: تعداد هر نوع مانع
+- منطقه‌های هشدار: تعداد برخورد با شترها
+- سلامتی: تغییرات سلامتی در طول بازی
 
 ### سیستم تحلیل
 
@@ -357,9 +393,11 @@ trackEvent('resource_collected', {
   month: currentMonth
 });
 
-trackEvent('speed_burst_used', {
+trackEvent('collision', {
   sessionId,
-  duration: 2000,
+  type: 'health_reduced',
+  obstacleType: 'camel',
+  healthReduction: 30,
   month: currentMonth
 });
 ```
@@ -371,15 +409,16 @@ trackEvent('speed_burst_used', {
 **سرعت بازی:**
 ```typescript
 const GAME_SPEED = 200;        // پیکسل بر ثانیه
-const BURST_MULTIPLIER = 2;   // ضریب جهش سرعت
+const LOW_HEALTH_SPEED = 100;  // سرعت در سلامتی کم
 const LANE_COUNT = 4;          // تعداد مسیرها
 ```
 
 **زمان‌بندی:**
 ```typescript
-const GAME_DURATION = 120;     // ثانیه
-const MONTH_DURATION = 7;      // ثانیه (میانگین)
-const HEALTH_DECAY = 5;        // کاهش سلامتی بر ثانیه
+const MONTH_DURATION_MIN = 6;  // ثانیه (حداقل)
+const MONTH_DURATION_MAX = 8;  // ثانیه (حداکثر)
+const HEALTH_DECAY_BASE = 7;   // کاهش پایه سلامتی
+const HEALTH_DECAY_MAX = 15;   // کاهش حداکثر سلامتی
 ```
 
 **امتیازدهی:**

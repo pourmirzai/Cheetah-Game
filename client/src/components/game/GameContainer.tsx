@@ -48,6 +48,41 @@ export default function GameContainer() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("در حال بارگذاری...");
 
+  // Parse URL parameters for testing
+  const getUrlParams = useCallback(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      startMonth: urlParams.get('m') ? parseInt(urlParams.get('m')!) : 1,
+      testMode: urlParams.has('test')
+    };
+  }, []);
+
+  // Initialize game data based on URL parameters
+  useEffect(() => {
+    const { startMonth } = getUrlParams();
+    if (startMonth > 1) {
+      console.log(`🎮 Starting game from month ${startMonth} (test mode)`);
+      setGameData(prev => ({
+        ...prev,
+        currentMonth: startMonth,
+        health: 100, // Full health for testing
+        cubs: 4 // All cubs for testing
+      }));
+    }
+  }, [getUrlParams]);
+
+  // Debug: Log current game state
+  useEffect(() => {
+    console.log('🎮 GameContainer state:', {
+      currentScreen: gameState.currentScreen,
+      isPlaying: gameState.isPlaying,
+      gameStarted,
+      currentMonth: gameData.currentMonth,
+      health: gameData.health,
+      cubs: gameData.cubs
+    });
+  }, [gameState, gameData, gameStarted]);
+
   const showScreen = useCallback((screenId: GameState['currentScreen']) => {
     setGameState(prev => ({ ...prev, currentScreen: screenId }));
   }, []);
@@ -77,7 +112,18 @@ export default function GameContainer() {
 
       // Only reset gameData if not preserving it (for playAgain)
       if (!preserveGameData) {
-        setGameData(initialGameData);
+        const { startMonth } = getUrlParams();
+        if (startMonth > 1) {
+          // Preserve test mode settings
+          setGameData({
+            ...initialGameData,
+            currentMonth: startMonth,
+            health: 100,
+            cubs: 4
+          });
+        } else {
+          setGameData(initialGameData);
+        }
       }
       setGameStarted(false); // Reset game started flag
 
@@ -221,9 +267,15 @@ export default function GameContainer() {
   }, []);
 
   const handleLoadingComplete = useCallback(() => {
+    console.log('🎮 Loading complete, preparing tutorial...');
     setIsLoading(false);
     setLoadingProgress(100);
     setLoadingMessage("بارگذاری کامل شد!");
+
+    // Ensure tutorial appears after loading screen disappears
+    setTimeout(() => {
+      console.log('🎮 Tutorial should now be visible');
+    }, 100);
   }, []);
 
   return (
