@@ -1,5 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { GameResults } from "@/types/game";
+import { getBestScore } from "@/lib/cookieStorage";
+
+interface BestScore {
+  cubsSurvived: number;
+  monthsCompleted: number;
+  finalScore: number;
+  achievementTitle: string;
+  date: string;
+}
 
 // Helper function to convert numbers to Persian digits
 function toPersianDigits(num: number): string {
@@ -106,25 +115,42 @@ function ClientSideSharePreview({ results, selectedStyle }: { results: GameResul
 }
 
 export default function ShareCard({ results, bestScore, onClose, onPlayAgain, onBackToMenu }: ShareCardProps) {
-  // Always use bestScore if provided, otherwise use results
-  const gameResults: GameResults = bestScore ? {
-    cubsSurvived: bestScore.cubsSurvived,
-    monthsCompleted: bestScore.monthsCompleted,
-    finalScore: bestScore.finalScore,
-    gameTime: 0, // Not available in bestScore
-    deathCause: undefined,
-    achievements: [],
-    achievementTitle: bestScore.achievementTitle,
-    conservationMessage: 'یوزپلنگ آسیایی در معرض خطر انقراض است. با حمایت از حفاظت طبیعت به نجات این گونه کمک کنید.'
-  } : results!;
-
   const [isSharing, setIsSharing] = useState(false);
   const [shareImageDataUrl, setShareImageDataUrl] = useState<string | null>(null);
   const [shareBlobUrl, setShareBlobUrl] = useState<string | null>(null);
   const [shareBlob, setShareBlob] = useState<Blob | null>(null);
   const [selectedStyle, setSelectedStyle] = useState<'digital' | 'miniature'>('digital');
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [refreshedBestScore, setRefreshedBestScore] = useState<BestScore | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // Always try to get the best score, prioritizing: refreshed state > prop > direct cookie read
+  const currentBestScore = refreshedBestScore || bestScore || getBestScore();
+
+  // Always prioritize bestScore over current results for story generation
+  const gameResults: GameResults = currentBestScore ? {
+    cubsSurvived: currentBestScore.cubsSurvived,
+    monthsCompleted: currentBestScore.monthsCompleted,
+    finalScore: currentBestScore.finalScore,
+    gameTime: 0, // Not available in bestScore
+    deathCause: undefined,
+    achievements: [],
+    achievementTitle: currentBestScore.achievementTitle,
+    conservationMessage: 'یوزپلنگ آسیایی در معرض خطر انقراض است. با حمایت از حفاظت طبیعت به نجات این گونه کمک کنید.',
+    cubLossStats: {
+      dogs: 0,
+      smugglers: 0,
+      roads: 0,
+      starvation: 0,
+      total: 0
+    }
+  } : results!;
+
+  // Refresh best score on component mount to ensure we have the latest
+  useEffect(() => {
+    const latestBestScore = getBestScore();
+    setRefreshedBestScore(latestBestScore);
+  }, []);
 
 
   const generateShareText = () => {

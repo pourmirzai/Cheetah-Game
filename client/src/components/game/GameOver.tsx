@@ -13,9 +13,10 @@ export default function GameOver({ results, onPlayAgain, onBackToMenu, onShare }
   const [bestScore, setBestScore] = useState<any>(null);
 
   useEffect(() => {
+    console.log('📊 GameOver rendering with results:', results);
     const savedBestScore = getBestScore();
     setBestScore(savedBestScore);
-  }, []);
+  }, [results]);
 
   return (
     <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4" data-testid="game-over-screen">
@@ -52,6 +53,42 @@ export default function GameOver({ results, onPlayAgain, onBackToMenu, onShare }
             {results.monthsCompleted < 18 && (
               <div className="mt-3 p-2 bg-red-50/80 border border-red-200/50 rounded-lg">
                 <p className="text-red-700 text-xs font-medium">متاسفانه خانواده یوزپلنگ از بین رفتند 😢 </p>
+              </div>
+            )}
+
+            {/* Cub Loss Statistics - Only show if there were losses */}
+            {results.cubLossStats && results.cubLossStats.total > 0 && (
+              <div className="mt-4 p-3 bg-orange-50/80 border border-orange-200/50 rounded-lg">
+                <h3 className="text-sm font-bold text-orange-800 mb-2 text-center">توله‌ها به چه دلیل از دست رفتند؟</h3>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {results.cubLossStats.dogs > 0 && (
+                    <div className="text-center">
+                      <div className="text-muted-foreground">سگ‌ها</div>
+                      <div className="text-lg font-bold text-red-600">{results.cubLossStats.dogs}</div>
+                    </div>
+                  )}
+                  {results.cubLossStats.smugglers > 0 && (
+                    <div className="text-center">
+                      <div className="text-muted-foreground">قاچاقچیان</div>
+                      <div className="text-lg font-bold text-red-600">{results.cubLossStats.smugglers}</div>
+                    </div>
+                  )}
+                  {results.cubLossStats.roads > 0 && (
+                    <div className="text-center">
+                      <div className="text-muted-foreground">جاده‌ها</div>
+                      <div className="text-lg font-bold text-red-600">{results.cubLossStats.roads}</div>
+                    </div>
+                  )}
+                  {results.cubLossStats.starvation > 0 && (
+                    <div className="text-center">
+                      <div className="text-muted-foreground">گرسنگی</div>
+                      <div className="text-lg font-bold text-red-600">{results.cubLossStats.starvation}</div>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2 text-center text-xs text-muted-foreground">
+                  مجموع: {results.cubLossStats.total} توله از دست رفت
+                </div>
               </div>
             )}
           </div>

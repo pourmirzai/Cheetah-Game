@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
 import { getBestScore } from "@/lib/cookieStorage";
+import { trackEducationalVisit } from "@/lib/analytics";
 import {
   Accordion,
   AccordionContent,
@@ -26,6 +27,13 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
   const [bestScore, setBestScore] = useState<BestScore | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showBasicInfo, setShowBasicInfo] = useState(false);
+
+  const getDeviceType = () => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768 ? 'mobile' : 'desktop';
+    }
+    return 'unknown';
+  };
 
   useEffect(() => {
     backgroundManager.initialize();
@@ -373,7 +381,10 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
 
           {/* Cheetah educational info button */}
           <button
-            onClick={() => setShowBasicInfo(!showBasicInfo)}
+            onClick={() => {
+              trackEducationalVisit(getDeviceType());
+              setShowBasicInfo(!showBasicInfo);
+            }}
             className="md-filled-button w-full max-w-sm mx-auto px-6 sm:px-8 py-4 sm:py-5 font-semibold text-base sm:text-lg bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
             data-testid="button-cheetah-info"
           >

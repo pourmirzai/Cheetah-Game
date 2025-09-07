@@ -17,6 +17,13 @@ export interface GameData {
   speed: number;
   speedBurstActive: boolean;
   rabbitsCollected?: number;
+  cubLossStats: {
+    dogs: number;
+    smugglers: number;
+    roads: number;
+    starvation: number;
+    total: number;
+  };
 }
 
 export interface GameResults {
@@ -28,6 +35,13 @@ export interface GameResults {
   achievements: string[];
   achievementTitle: string;
   conservationMessage: string;
+  cubLossStats: {
+    dogs: number;
+    smugglers: number;
+    roads: number;
+    starvation: number;
+    total: number;
+  };
 }
 
 

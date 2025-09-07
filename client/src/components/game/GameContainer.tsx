@@ -35,7 +35,14 @@ const initialGameData: GameData = {
   position: { x: 0, y: 0 },
   lane: 1,
   speed: 1,
-  speedBurstActive: false
+  speedBurstActive: false,
+  cubLossStats: {
+    dogs: 0,
+    smugglers: 0,
+    roads: 0,
+    starvation: 0,
+    total: 0
+  }
 };
 
 export default function GameContainer() {
@@ -119,7 +126,14 @@ export default function GameContainer() {
             ...initialGameData,
             currentMonth: startMonth,
             health: 100,
-            cubs: 4
+            cubs: 4,
+            cubLossStats: {
+              dogs: 0,
+              smugglers: 0,
+              roads: 0,
+              starvation: 0,
+              total: 0
+            }
           });
         } else {
           setGameData(initialGameData);
@@ -161,9 +175,12 @@ export default function GameContainer() {
       const finalResults: GameResults = {
         ...gameEndData,
         achievementTitle,
-        conservationMessage: getConservationMessage(results.deathCause)
+        conservationMessage: getConservationMessage(results.deathCause),
+        cubLossStats: gameData.cubLossStats
       };
-
+    
+      console.log('🏆 Final results computed:', finalResults);
+    
       // Track consecutive losses
       if (results.deathCause === undefined) {
         // Game completed successfully - reset consecutive losses
@@ -174,7 +191,7 @@ export default function GameContainer() {
         const newLossCount = incrementConsecutiveLosses();
         console.log(`💔 Game lost - consecutive losses: ${newLossCount}`);
       }
-
+    
       // Save best score to cookies
       const isNewBest = updateBestScore({
         cubsSurvived: finalResults.cubsSurvived,
@@ -182,17 +199,22 @@ export default function GameContainer() {
         finalScore: finalResults.finalScore,
         achievementTitle: finalResults.achievementTitle
       });
-
+    
       if (isNewBest) {
         console.log('🎉 New best score saved!');
       }
-
+    
       setGameResults(finalResults);
-      setGameState(prev => ({
-        ...prev,
-        currentScreen: 'gameOver',
-        isPlaying: false
-      }));
+      console.log('🎮 Setting gameResults state:', finalResults);
+      setGameState(prev => {
+        const newState = {
+          ...prev,
+          currentScreen: 'gameOver' as const,
+          isPlaying: false
+        };
+        console.log('🎮 Setting gameState to:', newState);
+        return newState;
+      });
 
       trackEvent('game_end', finalResults);
     } catch (error) {
@@ -208,7 +230,14 @@ export default function GameContainer() {
     // Reset all values including month to start fresh
     const resetGameData: GameData = {
       ...initialGameData,
-      currentMonth: 1 // Ensure month resets to 1
+      currentMonth: 1, // Ensure month resets to 1
+      cubLossStats: {
+        dogs: 0,
+        smugglers: 0,
+        roads: 0,
+        starvation: 0,
+        total: 0
+      }
     };
 
     setGameData(resetGameData);
@@ -218,7 +247,16 @@ export default function GameContainer() {
 
   const backToMenu = useCallback(() => {
     setGameState(initialGameState);
-    setGameData(initialGameData);
+    setGameData({
+      ...initialGameData,
+      cubLossStats: {
+        dogs: 0,
+        smugglers: 0,
+        roads: 0,
+        starvation: 0,
+        total: 0
+      }
+    });
     setGameResults(null);
     setGameStarted(false);
   }, []);

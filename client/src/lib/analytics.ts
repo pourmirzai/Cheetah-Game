@@ -119,6 +119,14 @@ function sendToGoogleAnalytics(eventType: string, eventData: any) {
         });
         break;
 
+      case 'educational_visit':
+        gtag('event', 'educational_visit', {
+          visit_id: eventData.visitId,
+          device_type: eventData.deviceType,
+          session_id: eventData.sessionId // Use placeholder sessionId
+        });
+        break;
+
       default:
         // Generic event for any other type
         gtag('event', eventType, {
@@ -153,4 +161,10 @@ export function trackPickup(sessionId: string, resourceType: string, month: numb
 
 export function trackSpeedBurst(sessionId: string, month: number) {
   trackEvent('speed_burst', { sessionId, month });
+}
+
+export function trackEducationalVisit(deviceType: string) {
+  const visitId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  // For educational visits, we don't have a game session, so we use a placeholder
+  trackEvent('educational_visit', { visitId, deviceType, sessionId: 'educational' });
 }

@@ -61,6 +61,11 @@ interface GameScene extends Phaser.Scene {
   pointer?: Phaser.Input.Pointer;
   lastTap: number;
   startX: number;
+
+  // Cub loss tracking
+
+  // Game ending flag to prevent multiple ends
+  isEnding?: boolean;
 }
 
 export function initializeGame(
@@ -79,7 +84,16 @@ export function initializeGame(
   }
 
   const gameScene = scene as GameScene;
-  gameScene.gameData = gameData;
+  gameScene.gameData = {
+    ...gameData,
+    cubLossStats: {
+      dogs: 0,
+      smugglers: 0,
+      roads: 0,
+      starvation: 0,
+      total: 0
+    }
+  };
   // Wrap onUpdateGameData to keep scene's gameData in sync
   gameScene.onUpdateGameData = (updates: Partial<GameData>) => {
     gameScene.gameData = { ...gameScene.gameData, ...updates };
@@ -103,6 +117,7 @@ export function initializeGame(
   gameScene.startX = 0;
   gameScene.lastRunningSoundTime = 0;
   gameScene.gameStarted = false; // Game starts paused until tutorial is completed
+  gameScene.isEnding = false; // Initialize ending flag
 
   // Store progress callback for event handlers
   const progressCallback = onLoadingProgress;
@@ -1037,10 +1052,16 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
               scene.audioManager?.onHitObstacle(obstacleInfo.type);
 
               scene.gameData.cubs--;
+              const causeKey = obstacleInfo.type === 'dog' ? 'dogs' : 'smugglers';
+              scene.gameData.cubLossStats[causeKey]++;
+              scene.gameData.cubLossStats.total++;
               if (cub.active) cub.destroy();
               scene.cubs.splice(index, 1);
 
-              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+              scene.onUpdateGameData({
+                cubs: scene.gameData.cubs,
+                cubLossStats: scene.gameData.cubLossStats
+              });
 
               trackEvent('collision', {
                 sessionId: scene.sessionId,
@@ -1120,40 +1141,6 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     });
   }
 
-  if (scene.cubs && scene.physics && obstacle && obstacle.active) {
-    scene.cubs.forEach((cub, index) => {
-      if (cub && cub.active) {
-        scene.physics.add.overlap(cub, obstacle, () => {
-          // Double-check objects are still active before processing collision
-          if (cub?.active && obstacle?.active && scene.cubs[index] === cub) {
-            // Only remove cub for non-camel obstacles
-            if (obstacleInfo.type !== 'camel') {
-              // Play die sound when cub encounters lethal threat
-              scene.audioManager?.onHitObstacle(obstacleInfo.type);
-
-              // Remove one cub
-              scene.gameData.cubs--;
-              cub.destroy();
-              scene.cubs.splice(index, 1);
-
-              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
-
-              trackEvent('collision', {
-                sessionId: scene.sessionId,
-                type: 'cub_lost',
-                obstacleType: obstacleInfo.type,
-                month: scene.gameData.currentMonth
-              });
-
-              if (scene.gameData.cubs === 0) {
-                endGame(scene, 'all_cubs_lost');
-              }
-            }
-          }
-        });
-      }
-    });
-  }
 }
 
 function spawnRoad(scene: GameScene, y: number) {
@@ -1253,14 +1240,19 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
               scene.audioManager?.onHitObstacle('car');
 
               scene.gameData.cubs--;
+              scene.gameData.cubLossStats.roads++;
+              scene.gameData.cubLossStats.total++;
               cub.destroy();
               scene.cubs.splice(index, 1);
-              scene.onUpdateGameData({ cubs: scene.gameData.cubs });
+              scene.onUpdateGameData({
+                cubs: scene.gameData.cubs,
+                cubLossStats: scene.gameData.cubLossStats
+              });
 
               trackEvent('collision', {
                 sessionId: scene.sessionId,
                 type: 'cub_lost',
-                obstacleType: 'car',
+                obstacleType: 'road',
                 month: scene.gameData.currentMonth
               });
 
@@ -1430,6 +1422,14 @@ function createVictoryConfetti(scene: GameScene) {
 }
 
 function endGame(scene: GameScene, cause: string) {
+  // Prevent multiple end calls
+  if (scene.isEnding) {
+    console.log('⏹️ Game already ending, skipping...');
+    return;
+  }
+  scene.isEnding = true;
+  console.log(`⏹️ Ending game with cause: ${cause}`);
+
   // Stop timers
   scene.gameTimer?.destroy();
   scene.monthTimer?.destroy();
@@ -1443,6 +1443,32 @@ function endGame(scene: GameScene, cause: string) {
   // Normal game over handling for non-victory cases
   scene.audioManager?.onGameOver();
 
+  // Handle mother death: add remaining cubs to the cause (preserve previous individual losses, fix total)
+  const causes = ['dog', 'smuggler', 'road', 'starvation'];
+  if (causes.includes(cause)) {
+    const remainingCubs = scene.gameData.cubs;
+    let statKey: keyof typeof scene.gameData.cubLossStats;
+    if (cause === 'dog') {
+      statKey = 'dogs';
+    } else if (cause === 'smuggler') {
+      statKey = 'smugglers';
+    } else if (cause === 'road') {
+      statKey = 'roads';
+    } else {
+      statKey = 'starvation';
+    }
+    
+    // Add remaining cubs to the mother's death cause
+    scene.gameData.cubLossStats[statKey] += remainingCubs;
+    // Set total to exactly 4 (original cubs), as all are now lost
+    scene.gameData.cubLossStats.total = 4;
+    scene.gameData.cubs = 0;
+    scene.onUpdateGameData({
+      cubs: 0,
+      cubLossStats: scene.gameData.cubLossStats
+    });
+  }
+
   // Calculate final results
   const results: Partial<GameResults> = {
     cubsSurvived: scene.gameData.cubs,
@@ -1450,7 +1476,8 @@ function endGame(scene: GameScene, cause: string) {
     finalScore: scene.gameData.score,
     gameTime: 0, // No time limit, so game time is not relevant
     deathCause: cause === 'completed' ? undefined : cause,
-    achievements: []
+    achievements: [],
+    cubLossStats: scene.gameData.cubLossStats
   };
 
   // Add achievements
@@ -1479,6 +1506,9 @@ function startVictorySequence(scene: GameScene) {
   // Step 1: Stop spawning new enemies/resources
   scene.spawnTimer?.destroy();
   scene.gameStarted = false; // Prevent any new spawning
+
+  // Ensure isEnding flag is set for victory too
+  scene.isEnding = true;
 
   // Step 2: Set victory mode flag (but keep user controls active until all elements exit)
   scene.isVictoryMode = true; // Set victory mode flag
@@ -2005,7 +2035,8 @@ function showVictoryResults(scene: GameScene) {
     finalScore: scene.gameData.score,
     gameTime: 0,
     deathCause: undefined,
-    achievements: []
+    achievements: [],
+    cubLossStats: scene.gameData.cubLossStats
   };
 
   // Add achievements
@@ -2014,12 +2045,13 @@ function showVictoryResults(scene: GameScene) {
   }
   results.achievements!.push('survivor');
 
-  console.log('🏆 Victory results:', results);
+  console.log('🏆 Victory results computed:', results);
 
   // Cleanup audio
   scene.audioManager?.destroy();
 
   // Call the game end callback to show results screen
+  console.log('🎮 Calling onGameEnd with victory results');
   scene.onGameEnd(results);
 }
 
