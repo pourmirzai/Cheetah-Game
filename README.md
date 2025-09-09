@@ -154,7 +154,7 @@ http://localhost:3000
 
 ## 📞 Contact
 For questions and suggestions:
-- **Email:** [your-email@example.com]
-- **GitHub:** [repository-url]
+- **Email:** [info@sarvinwildlife.com]
+- **Site:** [https://sarvinwildlife.com/en]
 
 Developed with ❤️ for the conservation of the Asian cheetah
