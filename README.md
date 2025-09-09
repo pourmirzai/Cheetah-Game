@@ -1,86 +1,86 @@
-# 🎮 نجات یوز ایران (Save Cheetah Iran)
+# 🎮 Save Cheetah Iran
 
-بازی تحت وب تعاملی برای روز ملی یوزپلنگ (۹ شهریور ۱۴۰۴) جهت افزایش آگاهی درباره حفاظت از یوزپلنگ آسیایی.
+An interactive web game for National Cheetah Day (September 9, 2024) to raise awareness about the conservation of the Asian cheetah.
 
-## 📖 مستندات کامل
+## 📖 Complete Documentation
 
-برای اطلاعات کامل درباره پروژه، لطفاً به **[مستندات](./docs/)** مراجعه کنید:
+For complete information about the project, please refer to **[Documentation](./docs/)**:
 
-### 📋 [راهنمای شروع سریع](./docs/README.md)
-- پیش‌نیازها و نصب
-- راه‌اندازی محیط توسعه
-- اجرای بازی
+### 📋 [Quick Start Guide](./docs/README.md)
+- Prerequisites and installation
+- Development environment setup
+- Running the game
 
 ### 🔌 [API Documentation](./docs/API.md)
-- مستندات کامل API
-- نمونه کدهای استفاده
-- امنیت و authentication
+- Complete API documentation
+- Usage code examples
+- Security and authentication
 
 ### 🧩 [Component Documentation](./docs/COMPONENTS.md)
-- کامپوننت‌های React
-- معماری frontend
+- React components
+- Frontend architecture
 - UI/UX guidelines
 
 ### 🎯 [Game Mechanics](./docs/GAME_MECHANICS.md)
-- مکانیک‌های بازی
-- شخصیت‌ها و موجودیت‌ها
-- سیستم امتیازدهی
+- Game mechanics
+- Characters and entities
+- Scoring system
 
 ### 🚀 [Development Guide](./docs/DEVELOPMENT.md)
-- راهنمای توسعه
-- تست و کیفیت کد
-- دیباگ و عیب‌یابی
+- Development guide
+- Testing and code quality
+- Debugging and troubleshooting
 
 ### 🚀 [Deployment Guide](./docs/DEPLOYMENT.md)
-- راهنمای استقرار
-- مانیتورینگ و نگهداری
-- بهینه‌سازی عملکرد
+- Deployment guide
+- Monitoring and maintenance
+- Performance optimization
 
 ### 🔧 [Troubleshooting](./docs/TROUBLESHOOTING.md)
-- راهنمای عیب‌یابی
-- مشکلات رایج و راه‌حل‌ها
-- ابزارهای دیباگ
+- Troubleshooting guide
+- Common problems and solutions
+- Debugging tools
 
-## 🎯 نمای کلی پروژه
+## 🎯 Project Overview
 
-### هدف بازی
-بازی تعاملی و وایرال برای افزایش آگاهی درباره حفاظت از یوزپلنگ آسیایی با استفاده از مکانیک‌های بازی جذاب و آموزشی.
+### Game Objective
+An interactive and viral game to raise awareness about the conservation of the Asian cheetah using engaging and educational game mechanics.
 
-### سبک بازی
-- **Vertical Scroller** شبیه به بازی River Raid
-- **کنترل یک‌انگشتی** (لمس/سوایپ چپ‌راست)
-- **سازگار با موبایل و دسکتاپ**
-- **داستان‌محور** با پیام‌های حفاظتی
+### Game Style
+- **Vertical Scroller** similar to River Raid
+- **One-finger control** (touch/swipe left-right)
+- **Mobile and desktop compatible**
+- **Story-driven** with conservation messages
 
-### داستان بازی
-بازیکن نقش مادر یوزپلنگ را دارد که باید ۴ توله را در ۱۲۰ ثانیه (معادل ۱۸ ماه) به استقلال برساند، از موانع دوری کند و منابع (آب/غذا) جمع‌آوری کند.
+### Game Story
+The player takes on the role of a mother cheetah who must raise 4 cubs to independence in 120 seconds (equivalent to 18 months), avoid obstacles, and collect resources (water/food).
 
-## 🚀 راه‌اندازی سریع
+## 🚀 Quick Start
 
 ```bash
-# کلون کردن پروژه
+# Clone the project
 git clone <repository-url>
 cd save-cheetah
 
-# نصب وابستگی‌ها
+# Install dependencies
 npm install
 
-# تنظیم متغیرهای محیطی
+# Set environment variables
 cp .env.example .env
-# ویرایش DATABASE_URL در فایل .env
+# Edit DATABASE_URL in .env file
 
-# اجرای سرور
+# Run the server
 npm run dev
 ```
 
-## 🎮 دسترسی به بازی
+## 🎮 Access the Game
 
-بعد از راه‌اندازی سرور، بازی در آدرس زیر قابل دسترسی است:
+After starting the server, the game is accessible at:
 ```
 http://localhost:3000
 ```
 
-## 🏗️ معماری فنی
+## 🏗️ Technical Architecture
 
 - **Frontend**: React 18, TypeScript, Phaser.js, Material Design
 - **Backend**: Node.js, Express.js, PostgreSQL
@@ -89,12 +89,36 @@ http://localhost:3000
 - **Build Tool**: Vite
 - **Deployment**: Liara Cloud
 
-## 📞 تماس
+## 🔄 Future Improvements
 
-برای سوالات و پیشنهادات:
-- ایمیل: [your-email@example.com]
-- گیت‌هاب: [repository-url]
+### Localization & Internationalization
+- **Persian Game Script**: The current game content and UI text is in Persian. For international audiences, consider adding:
+  - English localization
+  - Multi-language support
+  - RTL (Right-to-Left) layout support for Persian text
+
+### Persian Numbers
+- **Number Formatting**: Some numbers in the game may display in Persian format (٠-٩). Consider standardizing to Western Arabic numerals (0-9) for better international compatibility.
+
+### Character Design
+- **Higher Quality Assets**: The current game characters (mother cheetah, cubs, obstacles, resources) could be enhanced with:
+  - Higher resolution sprites
+  - More detailed animations
+  - Additional character variations
+  - Improved visual effects
+
+### Game Features
+- **Language Selection**: Add a language toggle in the main menu
+- **Accessibility**: Improve screen reader support and keyboard navigation
+- **Performance**: Optimize for lower-end devices
+- **Analytics**: Enhanced tracking for user engagement metrics
+
+## 📞 Contact
+
+For questions and suggestions:
+- Email: [your-email@example.com]
+- GitHub: [repository-url]
 
 ---
 
-**توسعه یافته با ❤️ برای حفاظت از یوزپلنگ آسیایی**
+**Developed with ❤️ for the conservation of the Asian cheetah**

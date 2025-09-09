@@ -1,10 +1,10 @@
 # 📡 API Documentation
 
-مستندات کامل APIهای بازی نجات یوز ایران
+Complete API documentation for Save Cheetah Iran game
 
-## 🎯 نمای کلی
+## 🎯 Overview
 
-API این پروژه بر پایه REST طراحی شده و از Express.js استفاده می‌کند. تمام endpointها JSON را به عنوان فرمت داده ورودی و خروجی استفاده می‌کنند.
+The API for this project is designed based on REST and uses Express.js. All endpoints use JSON as the input and output data format.
 
 ## 🔗 Base URL
 
@@ -15,17 +15,17 @@ Production: https://your-domain.com
 
 ## 📋 Authentication
 
-برای این پروژه از session-based authentication استفاده می‌شود. پس از شروع بازی، یک `sessionId` ایجاد می‌شود که در تمام درخواست‌ها استفاده می‌شود.
+This project uses session-based authentication. After starting the game, a `sessionId` is created that is used in all requests.
 
 ## 🎮 Game Endpoints
 
-### شروع بازی جدید
+### Start New Game
 
 **Endpoint:** `POST /api/game/start`
 
-**توضیحات:** ایجاد یک جلسه بازی جدید و بازگشت sessionId
+**Description:** Create a new game session and return sessionId
 
-**Request Body:** خالی
+**Request Body:** Empty
 
 **Response:**
 ```json
@@ -36,10 +36,10 @@ Production: https://your-domain.com
 ```
 
 **Status Codes:**
-- `200`: موفقیت
-- `500`: خطای سرور
+- `200`: Success
+- `500`: Server error
 
-**مثال استفاده:**
+**Usage Example:**
 ```javascript
 const response = await fetch('/api/game/start', {
   method: 'POST',
@@ -48,11 +48,11 @@ const response = await fetch('/api/game/start', {
 const { sessionId } = await response.json();
 ```
 
-### ثبت رویداد بازی
+### Record Game Event
 
 **Endpoint:** `POST /api/game/event`
 
-**توضیحات:** ثبت رویدادهای مختلف بازی مانند حرکت، جمع‌آوری منابع، برخورد با موانع
+**Description:** Record various game events such as movement, resource collection, obstacle collisions
 
 **Request Body:**
 ```json
@@ -79,17 +79,17 @@ const { sessionId } = await response.json();
 }
 ```
 
-**انواع رویداد:**
-- `lane_change`: تغییر مسیر
-- `resource_collected`: جمع‌آوری منبع
-- `collision`: برخورد با مانع (شامل نوع آسیب)
-- `month_reached`: رسیدن به ماه جدید
+**Event Types:**
+- `lane_change`: Lane change
+- `resource_collected`: Resource collection
+- `collision`: Obstacle collision (including damage type)
+- `month_reached`: New month reached
 
-### پایان بازی
+### End Game
 
 **Endpoint:** `POST /api/game/end`
 
-**توضیحات:** پایان بازی و ذخیره نتایج نهایی
+**Description:** End game and save final results
 
 **Request Body:**
 ```json
@@ -108,18 +108,18 @@ const { sessionId } = await response.json();
 ```json
 {
   "success": true,
-  "achievementTitle": "قهرمان یوزها",
-  "conservationMessage": "شما به نجات یوزپلنگ آسیایی کمک کردید!"
+  "achievementTitle": "Cheetah Hero",
+  "conservationMessage": "You helped save the Asian cheetah!"
 }
 ```
 
 ## 📊 Analytics Endpoints
 
-### ثبت رویداد تحلیلی
+### Track Analytics Event
 
 **Endpoint:** `POST /api/analytics/track`
 
-**توضیحات:** ثبت رویدادهای تحلیلی برای بهبود بازی
+**Description:** Record analytics events for game improvement
 
 **Request Body:**
 ```json
@@ -143,15 +143,15 @@ const { sessionId } = await response.json();
 
 ## 🏆 Leaderboard Endpoints
 
-### دریافت جدول امتیازات
+### Get Leaderboard
 
 **Endpoint:** `GET /api/leaderboard`
 
-**توضیحات:** دریافت ۱۰ بازیکن برتر
+**Description:** Get top 10 players
 
 **Query Parameters:**
-- `limit`: تعداد نتایج (پیش‌فرض: 10)
-- `period`: دوره زمانی (daily, weekly, monthly, all)
+- `limit`: Number of results (default: 10)
+- `period`: Time period (daily, weekly, monthly, all)
 
 **Response:**
 ```json
@@ -175,15 +175,15 @@ const { sessionId } = await response.json();
 ### GameData
 ```typescript
 interface GameData {
-  cubs: number;              // تعداد توله‌های زنده (۱-۴)
-  currentMonth: number;      // ماه فعلی (۱-۱۸)
-  health: number;            // سلامتی مادر (۰-۱۰۰)
-  score: number;             // امتیاز کل
+  cubs: number;              // Number of surviving cubs (1-4)
+  currentMonth: number;      // Current month (1-18)
+  health: number;            // Mother health (0-100)
+  score: number;             // Total score
   season: 'spring' | 'summer' | 'autumn' | 'winter';
   position: { x: number; y: number };
-  lane: number;              // مسیر فعلی (۰-۳)
-  speed: number;             // سرعت فعلی
-  speedBurstActive: boolean; // وضعیت جهش سرعت (deprecated)
+  lane: number;              // Current lane (0-3)
+  speed: number;             // Current speed
+  speedBurstActive: boolean; // Speed burst status (deprecated)
 }
 ```
 
@@ -193,24 +193,24 @@ interface GameResults {
   cubsSurvived: number;
   monthsCompleted: number;
   finalScore: number;
-  gameTime: number;          // مدت زمان بازی (ثانیه)
-  deathCause?: string;       // دلیل پایان بازی
-  achievements: string[];    // دستاوردهای کسب شده
+  gameTime: number;          // Game duration (seconds)
+  deathCause?: string;       // Game end reason
+  achievements: string[];    // Earned achievements
 }
 ```
 
 ### Achievement Types
 ```typescript
 type AchievementType =
-  | 'perfect_family'     // تمام توله‌ها زنده ماندند
-  | 'survivor'          // بازی تا پایان تکمیل شد
-  | 'resource_master'   // جمع‌آوری تمام منابع ممکن
-  | 'season_explorer';  // تجربه تمام فصل‌ها
+  | 'perfect_family'     // All cubs survived
+  | 'survivor'          // Game completed to the end
+  | 'resource_master'   // Collected all possible resources
+  | 'season_explorer';  // Experienced all seasons
 ```
 
 ## ⚠️ Error Handling
 
-### خطاهای رایج
+### Common Errors
 
 #### 400 Bad Request
 ```json
@@ -239,23 +239,23 @@ type AchievementType =
 ## 🔒 Security
 
 ### Rate Limiting
-- حداکثر ۱۰۰ درخواست در دقیقه برای هر IP
-- حداکثر ۱۰۰۰ رویداد بازی در ساعت برای هر session
+- Maximum 100 requests per minute per IP
+- Maximum 1000 game events per hour per session
 
 ### Input Validation
-- تمام ورودی‌ها با استفاده از Zod validation بررسی می‌شوند
-- SQL injection protection با استفاده از parameterized queries
-- XSS protection با sanitization
+- All inputs are validated using Zod validation
+- SQL injection protection with parameterized queries
+- XSS protection with sanitization
 
 ### Session Management
-- Session timeout: ۲۴ ساعت
+- Session timeout: 24 hours
 - Automatic cleanup of expired sessions
 - Secure session ID generation
 
 ## 📊 Monitoring
 
 ### Metrics
-- Response time برای هر endpoint
+- Response time for each endpoint
 - Error rate
 - Database query performance
 - Session activity
@@ -286,8 +286,8 @@ npm run test:api
 ## 📈 Performance
 
 ### Optimization Tips
-- استفاده از database indexing
-- Caching برای leaderboard
+- Use database indexing
+- Caching for leaderboard
 - Connection pooling
 - Query optimization
 
@@ -298,4 +298,4 @@ npm run test:api
 
 ---
 
-**برای سوالات بیشتر با تیم توسعه تماس بگیرید**
+**For more questions, contact the development team**

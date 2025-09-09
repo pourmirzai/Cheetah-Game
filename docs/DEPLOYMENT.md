@@ -1,119 +1,119 @@
 # 🚀 Deployment Guide
 
-راهنمای کامل استقرار بازی نجات یوز ایران
+Complete deployment guide for Save Cheetah Iran game
 
-## 📋 نمای کلی
+## 📋 Overview
 
-این راهنما نحوه استقرار بازی در محیط‌های مختلف را توضیح می‌دهد.
+This guide explains how to deploy the game in different environments.
 
-## 🌐 محیط‌های استقرار
+## 🌐 Deployment Environments
 
-### ۱. Liara Cloud (پیشنهادی)
+### 1. Liara Cloud (Recommended for Iran)
 
-#### مزایا
-- پشتیبانی کامل از Node.js
-- PostgreSQL database داخلی
-- CDN سریع
-- SSL خودکار
-- مانیتورینگ داخلی
+#### Advantages
+- Full Node.js support
+- Built-in PostgreSQL database
+- Fast CDN
+- Automatic SSL
+- Built-in monitoring
 
-#### مراحل استقرار
+#### Deployment Steps
 
-**۱. نصب Liara CLI**
+**1. Install Liara CLI**
 ```bash
 npm install -g @liara/cli
 ```
 
-**۲. ورود به حساب**
+**2. Login to account**
 ```bash
 liara login
 ```
 
-**۳. ایجاد برنامه**
+**3. Create application**
 ```bash
 liara deploy --app save-cheetah --platform node
 ```
 
-**۴. تنظیم متغیرهای محیطی**
+**4. Set environment variables**
 ```bash
 liara env:set DATABASE_URL=postgresql://...
 liara env:set NODE_ENV=production
 ```
 
-**۵. استقرار**
+**5. Deploy**
 ```bash
 liara deploy
 ```
 
-### ۲. Vercel
+### 2. Vercel (Recommended for International Users)
 
-#### مزایا
-- استقرار سریع و آسان
+#### Advantages
+- Fast and easy deployment
 - Preview deployments
 - Edge Functions
-- Analytics داخلی
+- Built-in analytics
 
-#### مراحل استقرار
+#### Deployment Steps
 
-**۱. نصب Vercel CLI**
+**1. Install Vercel CLI**
 ```bash
 npm install -g vercel
 ```
 
-**۲. ورود به حساب**
+**2. Login to account**
 ```bash
 vercel login
 ```
 
-**۳. تنظیم پروژه**
+**3. Configure project**
 ```bash
 vercel --prod
 ```
 
-**۴. تنظیم متغیرهای محیطی**
+**4. Set environment variables**
 ```bash
 vercel env add DATABASE_URL
 vercel env add NODE_ENV
 ```
 
-### ۳. Railway
+### 3. Railway
 
-#### مزایا
-- PostgreSQL داخلی
-- استقرار خودکار از Git
-- Environment variables آسان
-- Logs و monitoring
+#### Advantages
+- Built-in PostgreSQL
+- Automatic deployment from Git
+- Easy environment variables
+- Logs and monitoring
 
-#### مراحل استقرار
+#### Deployment Steps
 
-**۱. اتصال به Railway**
+**1. Connect to Railway**
 ```bash
 npm install -g @railway/cli
 railway login
 ```
 
-**۲. ایجاد پروژه**
+**2. Create project**
 ```bash
 railway init
 ```
 
-**۳. تنظیم متغیرهای محیطی**
+**3. Set environment variables**
 ```bash
 railway variables set DATABASE_URL=postgresql://...
 railway variables set NODE_ENV=production
 ```
 
-**۴. استقرار**
+**4. Deploy**
 ```bash
 railway up
 ```
 
-### ۴. Docker
+### 4. Docker
 
-#### مزایا
-- قابل حمل بین پلتفرم‌ها
+#### Advantages
+- Portable across platforms
 - Environment consistency
-- Scaling آسان
+- Easy scaling
 
 #### Dockerfile
 ```dockerfile
@@ -180,25 +180,25 @@ docker run -p 3000:3000 save-cheetah
 docker-compose up -d
 ```
 
-## ⚙️ تنظیمات پیشرفته
+## ⚙️ Advanced Settings
 
-### متغیرهای محیطی
+### Environment Variables
 
-#### ضروری
+#### Required
 ```env
 DATABASE_URL=postgresql://username:password@host:port/database
 NODE_ENV=production
 PORT=3000
 ```
 
-#### اختیاری
+#### Optional
 ```env
 SESSION_SECRET=your-secret-key
 CORS_ORIGIN=https://yourdomain.com
 LOG_LEVEL=info
 ```
 
-### تنظیمات Nginx (Reverse Proxy)
+### Nginx Configuration (Reverse Proxy)
 
 ```nginx
 server {
@@ -222,25 +222,25 @@ server {
 ### SSL Certificate (Let's Encrypt)
 
 ```bash
-# نصب Certbot
+# Install Certbot
 sudo apt install certbot python3-certbot-nginx
 
-# دریافت گواهی
+# Get certificate
 sudo certbot --nginx -d yourdomain.com
 
-# تمدید خودکار
+# Auto-renewal
 sudo crontab -e
-# اضافه کردن خط زیر:
+# Add the following line:
 # 0 12 * * * /usr/bin/certbot renew --quiet
 ```
 
-## 📊 مانیتورینگ و نگهداری
+## 📊 Monitoring and Maintenance
 
-### ابزارهای مانیتورینگ
+### Monitoring Tools
 
 #### Application Monitoring
 ```typescript
-// اضافه کردن به server/index.ts
+// Add to server/index.ts
 import { monitorApplication } from './monitoring';
 
 monitorApplication(app);
@@ -248,7 +248,7 @@ monitorApplication(app);
 
 #### Error Tracking
 ```typescript
-// استفاده از Sentry
+// Using Sentry
 import * as Sentry from '@sentry/node';
 
 Sentry.init({
@@ -259,7 +259,7 @@ Sentry.init({
 
 #### Performance Monitoring
 ```typescript
-// اضافه کردن middleware
+// Add middleware
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -297,10 +297,10 @@ const logger = winston.createLogger({
 
 #### Log Rotation
 ```bash
-# نصب logrotate
+# Install logrotate
 sudo apt install logrotate
 
-# تنظیمات logrotate
+# Configure logrotate
 sudo nano /etc/logrotate.d/save-cheetah
 ```
 
@@ -319,7 +319,7 @@ sudo nano /etc/logrotate.d/save-cheetah
 }
 ```
 
-## 🔧 بهینه‌سازی عملکرد
+## 🔧 Performance Optimization
 
 ### Database Optimization
 
@@ -337,7 +337,7 @@ const pool = new Pool({
 
 #### Query Optimization
 ```sql
--- اضافه کردن indexها
+-- Add indexes
 CREATE INDEX idx_game_sessions_user_id ON game_sessions(user_id);
 CREATE INDEX idx_game_events_session_id ON game_events(session_id);
 CREATE INDEX idx_leaderboard_score ON leaderboard(score DESC);
@@ -388,10 +388,10 @@ export default defineConfig({
 
 #### Asset Optimization
 ```typescript
-// Lazy loading کامپوننت‌ها
+// Lazy loading components
 const GameOver = lazy(() => import('./components/GameOver'));
 
-// Preloading تصاویر مهم
+// Preloading important images
 const preloadImages = () => {
   const images = [
     '/assets/backgrounds/spring-bg.jpg',
@@ -405,13 +405,13 @@ const preloadImages = () => {
 };
 ```
 
-## 🔒 امنیت
+## 🔒 Security
 
 ### Production Security
 
 #### HTTPS Enforcement
 ```typescript
-// اضافه کردن به server
+// Add to server
 app.use((req, res, next) => {
   if (req.header('x-forwarded-proto') !== 'https') {
     res.redirect(`https://${req.header('host')}${req.url}`);
@@ -513,7 +513,7 @@ const getShard = (userId: string) => {
 };
 ```
 
-## 🚨 Backup و Recovery
+## 🚨 Backup and Recovery
 
 ### Database Backup
 
@@ -553,29 +553,29 @@ git push origin --tags
 
 ## 📞 Troubleshooting
 
-### مشکلات رایج
+### Common Problems
 
 #### High Memory Usage
 ```bash
-# بررسی memory usage
+# Check memory usage
 ps aux --sort=-%mem | head
 
-# تنظیمات Node.js
+# Node.js settings
 node --max-old-space-size=4096 server/index.js
 ```
 
 #### Slow Response Times
 ```bash
-# بررسی database queries
+# Check database queries
 EXPLAIN ANALYZE SELECT * FROM game_sessions;
 
-# اضافه کردن database indexes
+# Add database indexes
 CREATE INDEX CONCURRENTLY idx_sessions_created_at ON game_sessions(created_at);
 ```
 
 #### Connection Timeouts
 ```typescript
-// تنظیمات timeout
+// Timeout settings
 const pool = new Pool({
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 30000,
@@ -583,7 +583,7 @@ const pool = new Pool({
 });
 ```
 
-## 📊 Analytics و Monitoring
+## 📊 Analytics and Monitoring
 
 ### Production Monitoring
 
@@ -615,20 +615,20 @@ app.get('/health', (req, res) => {
 ## 🎯 Best Practices
 
 ### Deployment Checklist
-- [ ] Environment variables تنظیم شده
-- [ ] Database migrations اجرا شده
-- [ ] SSL certificate نصب شده
-- [ ] Monitoring tools تنظیم شده
-- [ ] Backup strategy پیاده‌سازی شده
-- [ ] Security headers اضافه شده
-- [ ] Rate limiting فعال شده
+- [ ] Environment variables configured
+- [ ] Database migrations executed
+- [ ] SSL certificate installed
+- [ ] Monitoring tools configured
+- [ ] Backup strategy implemented
+- [ ] Security headers added
+- [ ] Rate limiting enabled
 
 ### Maintenance Schedule
-- **Daily**: Log review و error monitoring
+- **Daily**: Log review and error monitoring
 - **Weekly**: Database backup verification
-- **Monthly**: Security updates و dependency updates
+- **Monthly**: Security updates and dependency updates
 - **Quarterly**: Performance optimization review
 
 ---
 
-**برای سوالات بیشتر با تیم DevOps تماس بگیرید** 🚀
+**For more questions, contact the DevOps team** 🚀

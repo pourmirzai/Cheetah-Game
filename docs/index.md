@@ -1,20 +1,20 @@
 # 📚 Documentation Index
 
-## 🎮 بازی نجات یوز ایران (Save Cheetah Iran)
+## 🎮 Save Cheetah Iran
 
-مستندات کامل پروژه بازی تعاملی تحت وب برای حفاظت از یوزپلنگ آسیایی
+Complete documentation for the interactive web game project for the conservation of the Asian cheetah (still needs better docs in English)
 
 ---
 
-## 📋 نمای کلی مستندات
+## 📋 Documentation Overview
 
-این مستندات به زبان فارسی تهیه شده و تمام جوانب پروژه را پوشش می‌دهد:
+This documentation is prepared in English and covers all aspects of the project:
 
-### 🎯 هدف پروژه
-بازی تعاملی و وایرال برای روز ملی یوزپلنگ (۹ شهریور ۱۴۰۴) با هدف افزایش آگاهی درباره حفاظت از یوزپلنگ آسیایی.
+### 🎯 Project Objective
+An interactive and viral game for National Cheetah Day (September 9, 2024) aimed at raising awareness about the conservation of the Asian cheetah.
 
-### 📊 آمار پروژه
-- **زبان برنامه‌نویسی**: TypeScript
+### 📊 Project Statistics
+- **Programming Language**: TypeScript
 - **Frontend**: React 18 + Phaser.js
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL
@@ -23,134 +23,134 @@
 
 ---
 
-## 📖 راهنمای مستندات
+## 📖 Documentation Guide
 
-### 🏗️ [راه‌اندازی و نصب](./README.md)
-راهنمای کامل شروع کار با پروژه
+### 🏗️ [Setup and Installation](./README.md)
+Complete guide to getting started with the project
 
-**موارد پوشش داده شده:**
-- پیش‌نیازهای سیستم
-- مراحل نصب و راه‌اندازی
-- تنظیم متغیرهای محیطی
-- اجرای سرور توسعه
-- دسترسی به بازی
+**Covered topics:**
+- System prerequisites
+- Installation and setup steps
+- Environment variable configuration
+- Development server execution
+- Game access
 
 ### 🔌 [API Documentation](./API.md)
-مستندات کامل APIهای backend
+Complete backend API documentation
 
-**موارد پوشش داده شده:**
-- Endpoints بازی
-- Endpoints تحلیل
-- Endpoints جدول امتیازات
-- انواع داده‌ها
-- امنیت و authentication
-- نمونه کدهای استفاده
+**Covered topics:**
+- Game endpoints
+- Analytics endpoints
+- Leaderboard endpoints
+- Data types
+- Security and authentication
+- Usage code examples
 
 ### 🧩 [Component Documentation](./COMPONENTS.md)
-مستندات کامپوننت‌های React
+React components documentation
 
-**موارد پوشش داده شده:**
-- ساختار کامپوننت‌ها
-- Props و State
+**Covered topics:**
+- Component structure
+- Props and State
 - Lifecycle methods
-- Styling و CSS
+- Styling and CSS
 - Performance optimizations
 - Testing guidelines
 
 ### 🎯 [Game Mechanics](./GAME_MECHANICS.md)
-مستندات مکانیک‌های بازی
+Game mechanics documentation
 
-**موارد پوشش داده شده:**
-- شخصیت‌ها و موجودیت‌ها
-- سیستم موانع و منابع
-- مکانیک حرکت و کنترل
-- سیستم امتیازدهی
-- جلوه‌های بصری و صوتی
-- تنظیمات پیشرفته
+**Covered topics:**
+- Characters and entities
+- Obstacle and resource systems
+- Movement and control mechanics
+- Scoring system
+- Visual and audio effects
+- Advanced settings
 
 ### 🚀 [Development Guide](./DEVELOPMENT.md)
-راهنمای توسعه و برنامه‌نویسی
+Development and programming guide
 
-**موارد پوشش داده شده:**
-- راه‌اندازی محیط توسعه
-- ساختار کد و معماری
-- تست و کیفیت کد
-- دیباگ و عیب‌یابی
-- Workflow توسعه
+**Covered topics:**
+- Development environment setup
+- Code structure and architecture
+- Testing and code quality
+- Debugging and troubleshooting
+- Development workflow
 - Best practices
 
 ### 🚀 [Deployment Guide](./DEPLOYMENT.md)
-راهنمای استقرار و عملیاتی
+Deployment and operations guide
 
-**موارد پوشش داده شده:**
-- پلتفرم‌های استقرار مختلف
-- تنظیمات پیشرفته
-- مانیتورینگ و نگهداری
-- بهینه‌سازی عملکرد
-- امنیت عملیاتی
-- Scaling و backup
+**Covered topics:**
+- Different deployment platforms
+- Advanced settings
+- Monitoring and maintenance
+- Performance optimization
+- Operational security
+- Scaling and backup
 
 ### 🔧 [Troubleshooting](./TROUBLESHOOTING.md)
-راهنمای عیب‌یابی و حل مشکلات
+Troubleshooting and problem-solving guide
 
-**موارد پوشش داده شده:**
-- مشکلات رایج و راه‌حل‌ها
-- خطاهای سرور و پایگاه داده
-- مشکلات frontend و بازی
-- خطاهای build و compilation
-- مشکلات عملکرد
-- ابزارهای دیباگ
+**Covered topics:**
+- Common problems and solutions
+- Server and database errors
+- Frontend and game problems
+- Build and compilation errors
+- Performance issues
+- Debug tools
 
 ---
 
-## 🗂️ ساختار فایل‌ها
+## 🗂️ File Structure
 
 ```
 docs/
-├── index.md              # این فایل (شاخص مستندات)
-├── README.md             # راه‌اندازی و نصب
-├── API.md                # مستندات API
-├── COMPONENTS.md         # کامپوننت‌های React
-├── GAME_MECHANICS.md     # مکانیک‌های بازی
-├── DEVELOPMENT.md        # راهنمای توسعه
-├── DEPLOYMENT.md         # راهنمای استقرار
-└── TROUBLESHOOTING.md    # عیب‌یابی
+├── index.md              # This file (documentation index)
+├── README.md             # Setup and installation
+├── API.md                # API documentation
+├── COMPONENTS.md         # React components
+├── GAME_MECHANICS.md     # Game mechanics
+├── DEVELOPMENT.md        # Development guide
+├── DEPLOYMENT.md         # Deployment guide
+└── TROUBLESHOOTING.md    # Troubleshooting
 ```
 
 ---
 
-## 🎯 نقش هر مستند
+## 🎯 Role of Each Document
 
-### برای توسعه‌دهندگان جدید
-1. **[راه‌اندازی و نصب](./README.md)** - شروع سریع
-2. **[Development Guide](./DEVELOPMENT.md)** - یادگیری محیط توسعه
-3. **[Component Documentation](./COMPONENTS.md)** - درک ساختار کد
+### For New Developers
+1. **[Setup and Installation](./README.md)** - Quick start
+2. **[Development Guide](./DEVELOPMENT.md)** - Learning development environment
+3. **[Component Documentation](./COMPONENTS.md)** - Understanding code structure
 
-### برای توسعه‌دهندگان backend
-1. **[API Documentation](./API.md)** - درک endpoints
-2. **[Deployment Guide](./DEPLOYMENT.md)** - استقرار و نگهداری
-3. **[Troubleshooting](./TROUBLESHOOTING.md)** - حل مشکلات
+### For Backend Developers
+1. **[API Documentation](./API.md)** - Understanding endpoints
+2. **[Deployment Guide](./DEPLOYMENT.md)** - Deployment and maintenance
+3. **[Troubleshooting](./TROUBLESHOOTING.md)** - Problem solving
 
-### برای طراحان بازی
-1. **[Game Mechanics](./GAME_MECHANICS.md)** - درک مکانیک‌های بازی
-2. **[Component Documentation](./COMPONENTS.md)** - UI/UX کامپوننت‌ها
-3. **[Development Guide](./DEVELOPMENT.md)** - تغییرات و بهبودها
+### For Game Designers
+1. **[Game Mechanics](./GAME_MECHANICS.md)** - Understanding game mechanics
+2. **[Component Documentation](./COMPONENTS.md)** - UI/UX components
+3. **[Development Guide](./DEVELOPMENT.md)** - Changes and improvements
 
-### برای DevOps
-1. **[Deployment Guide](./DEPLOYMENT.md)** - استراتژی استقرار
-2. **[Troubleshooting](./TROUBLESHOOTING.md)** - مانیتورینگ و نگهداری
+### For DevOps
+1. **[Deployment Guide](./DEPLOYMENT.md)** - Deployment strategy
+2. **[Troubleshooting](./TROUBLESHOOTING.md)** - Monitoring and maintenance
 3. **[Development Guide](./DEVELOPMENT.md)** - CI/CD
 
 ---
 
-## 🔍 جستجو در مستندات
+## 🔍 Searching Documentation
 
-### جستجوی سریع
-- استفاده از `Ctrl+F` در هر صفحه
-- جستجو در GitHub repository
-- استفاده از table of contents هر صفحه
+### Quick Search
+- Use `Ctrl+F` on each page
+- Search in GitHub repository
+- Use table of contents on each page
 
-### موضوعات کلیدی
+### Key Topics
 - **API**: Endpoints, Authentication, Error Handling
 - **Game**: Mechanics, Characters, Scoring, Physics
 - **Frontend**: Components, State Management, Styling
@@ -159,47 +159,47 @@ docs/
 
 ---
 
-## 📞 ارتباط و پشتیبانی
+## 📞 Communication and Support
 
-### منابع کمک
-- **GitHub Issues**: گزارش مشکلات و پیشنهادات
-- **Documentation**: بروزرسانی مستندات
-- **Team Communication**: ارتباط با تیم توسعه
+### Help Resources
+- **GitHub Issues**: Report problems and suggestions
+- **Documentation**: Documentation updates
+- **Team Communication**: Communication with development team
 
-### تیم توسعه
-- **Frontend Team**: کامپوننت‌های React و UI/UX
-- **Backend Team**: API و پایگاه داده
-- **Game Design Team**: مکانیک بازی و تجربه کاربری
-- **DevOps Team**: استقرار و مانیتورینگ
-
----
-
-## 📈 بروزرسانی مستندات
-
-### برنامه بروزرسانی
-- **ماهانه**: بررسی و بروزرسانی محتوا
-- **با هر release**: بروزرسانی تغییرات جدید
-- **با درخواست تیم**: اضافه کردن مستندات جدید
-
-### نحوه مشارکت
-1. ایجاد branch جدید
-2. اعمال تغییرات در مستندات
-3. ایجاد Pull Request
-4. بررسی توسط تیم
+### Development Team
+- **Frontend Team**: React components and UI/UX
+- **Backend Team**: API and database
+- **Game Design Team**: Game mechanics and user experience
+- **DevOps Team**: Deployment and monitoring
 
 ---
 
-## 🎉 شروع کار
+## 📈 Documentation Updates
 
-برای شروع کار با پروژه:
+### Update Schedule
+- **Monthly**: Review and update content
+- **With each release**: Update new changes
+- **On team request**: Add new documentation
 
-1. **[راه‌اندازی و نصب](./README.md)** را مطالعه کنید
-2. محیط توسعه را راه‌اندازی کنید
-3. با **[Development Guide](./DEVELOPMENT.md)** آشنا شوید
-4. در صورت نیاز از سایر مستندات استفاده کنید
-
-**موفق باشید!** 🚀✨
+### How to Contribute
+1. Create new branch
+2. Apply documentation changes
+3. Create Pull Request
+4. Review by team
 
 ---
 
-*این مستندات برای بازی "نجات یوز ایران" تهیه شده و توسط تیم توسعه نگهداری می‌شود.*
+## 🎉 Getting Started
+
+To start working with the project:
+
+1. Read **[Setup and Installation](./README.md)**
+2. Set up development environment
+3. Get familiar with **[Development Guide](./DEVELOPMENT.md)**
+4. Use other documentation as needed
+
+**Good luck!** 🚀✨
+
+---
+
+*This documentation is prepared for the "Save Cheetah Iran" game and is maintained by the development team.*

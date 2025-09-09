@@ -1,23 +1,23 @@
 # 🧩 Component Documentation
 
-مستندات کامپوننت‌های React بازی نجات یوز ایران
+React components documentation for Save Cheetah Iran game
 
-## 📋 نمای کلی
+## 📋 Overview
 
-این پروژه از معماری کامپوننت‌محور استفاده می‌کند. تمام کامپوننت‌ها با TypeScript نوشته شده‌اند و از Material Design Expressive پیروی می‌کنند.
+This project uses a component-based architecture. All components are written in TypeScript and follow Material Design Expressive.
 
-## 🏗️ ساختار کامپوننت‌ها
+## 🏗️ Component Structure
 
 ```
 client/src/components/
-├── game/                    # کامپوننت‌های بازی
-│   ├── GameContainer.tsx   # مدیریت وضعیت بازی
-│   ├── GameUI.tsx          # رابط کاربری بازی
-│   ├── MainMenu.tsx        # منوی اصلی
-│   ├── PhaserGame.tsx      # wrapper برای Phaser
-│   ├── GameOver.tsx        # صفحه پایان بازی
-│   └── ShareCard.tsx       # کارت اشتراک‌گذاری
-├── ui/                     # کامپوننت‌های UI عمومی
+├── game/                    # Game components
+│   ├── GameContainer.tsx   # Game state management
+│   ├── GameUI.tsx          # Game user interface
+│   ├── MainMenu.tsx        # Main menu
+│   ├── PhaserGame.tsx      # Phaser wrapper
+│   ├── GameOver.tsx        # Game over screen
+│   └── ShareCard.tsx       # Share card
+├── ui/                     # General UI components
 │   ├── accordion.tsx
 │   ├── alert-dialog.tsx
 │   ├── alert.tsx
@@ -66,7 +66,7 @@ client/src/components/
 │   ├── toggle.tsx
 │   ├── tooltip.tsx
 │   └── ...
-└── pages/                  # صفحات اصلی
+└── pages/                  # Main pages
     ├── game.tsx
     └── not-found.tsx
 ```
@@ -75,14 +75,14 @@ client/src/components/
 
 ### GameContainer
 
-**مسیر:** `client/src/components/game/GameContainer.tsx`
+**Path:** `client/src/components/game/GameContainer.tsx`
 
-**توضیحات:** کامپوننت اصلی مدیریت وضعیت بازی. مسئول routing بین صفحات مختلف بازی است.
+**Description:** Main component for game state management. Responsible for routing between different game screens.
 
 **Props:**
 ```typescript
 interface GameContainerProps {
-  // بدون props - مدیریت داخلی state
+  // No props - internal state management
 }
 ```
 
@@ -95,29 +95,29 @@ interface GameState {
 }
 
 interface GameData {
-  cubs: number;              // تعداد توله‌های زنده (۱-۴)
-  currentMonth: number;      // ماه فعلی (۱-۱۸)
-  health: number;            // سلامتی مادر (۰-۱۰۰)
-  score: number;             // امتیاز کل
+  cubs: number;              // Number of surviving cubs (1-4)
+  currentMonth: number;      // Current month (1-18)
+  health: number;            // Mother health (0-100)
+  score: number;             // Total score
   season: 'spring' | 'summer' | 'autumn' | 'winter';
   position: { x: number; y: number };
-  lane: number;              // مسیر فعلی (۰-۳)
-  speed: number;             // سرعت فعلی
-  speedBurstActive: boolean; // وضعیت جهش سرعت (deprecated)
+  lane: number;              // Current lane (0-3)
+  speed: number;             // Current speed
+  speedBurstActive: boolean; // Speed burst status (deprecated)
 }
 ```
 
-**متدها:**
-- `startGame()`: شروع بازی جدید
-- `endGame()`: پایان بازی
-- `showScreen()`: تغییر صفحه
-- `updateGameData()`: بروزرسانی داده‌های بازی
+**Methods:**
+- `startGame()`: Start new game
+- `endGame()`: End game
+- `showScreen()`: Change screen
+- `updateGameData()`: Update game data
 
 ### GameUI
 
-**مسیر:** `client/src/components/game/GameUI.tsx`
+**Path:** `client/src/components/game/GameUI.tsx`
 
-**توضیحات:** رابط کاربری بازی شامل نوارهای وضعیت، کنترل‌ها و آموزش
+**Description:** Game user interface including status bars, controls, and tutorial
 
 **Props:**
 ```typescript
@@ -127,13 +127,13 @@ interface GameUIProps {
 }
 ```
 
-**ویژگی‌ها:**
-- نوار وضعیت در پایین (ماه، فصل، سلامتی) با موقعیت‌یابی responsive
-- راهنمای مسیرها در مرکز
-- مدال آموزش تعاملی قبل از شروع بازی
-- هشدار سلامتی کم با کاهش سرعت
-- پشتیبانی کامل از موبایل و دسکتاپ با طراحی adaptive
-- نوار وضعیت با ارتفاع بهینه برای جلوگیری از پوشش شخصیت‌ها
+**Features:**
+- Bottom status bar (month, season, health) with responsive positioning
+- Center lane guide
+- Interactive tutorial modal before starting game
+- Low health warning with speed reduction
+- Full mobile and desktop support with adaptive design
+- Status bar with optimal height to prevent character coverage
 
 **State:**
 ```typescript
@@ -191,48 +191,48 @@ interface PhaserGameProps {
 
 ### Button
 
-**استفاده:**
+**Usage:**
 ```tsx
 import { Button } from "@/components/ui/button";
 
 <Button variant="primary" size="lg">
-  شروع بازی
+  Start Game
 </Button>
 ```
 
 **Variants:**
-- `primary`: دکمه اصلی (نارنجی)
-- `secondary`: دکمه ثانویه (سبز)
-- `outline`: دکمه خطی
-- `ghost`: دکمه شفاف
+- `primary`: Primary button (orange)
+- `secondary`: Secondary button (green)
+- `outline`: Outline button
+- `ghost`: Transparent button
 
 ### Card
 
-**استفاده:**
+**Usage:**
 ```tsx
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 <Card>
   <CardHeader>
-    <h3>آمار بازی</h3>
+    <h3>Game Stats</h3>
   </CardHeader>
   <CardContent>
-    <p>امتیاز: ۱۰۰۰</p>
+    <p>Score: 1000</p>
   </CardContent>
 </Card>
 ```
 
 ### Dialog
 
-**استفاده:**
+**Usage:**
 ```tsx
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 <Dialog>
-  <DialogTrigger>باز کردن</DialogTrigger>
+  <DialogTrigger>Open</DialogTrigger>
   <DialogContent>
-    <h2>عنوان</h2>
-    <p>محتوا</p>
+    <h2>Title</h2>
+    <p>Content</p>
   </DialogContent>
 </Dialog>
 ```
@@ -241,9 +241,9 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 ### Game Page
 
-**مسیر:** `client/src/pages/game.tsx`
+**Path:** `client/src/pages/game.tsx`
 
-**توضیحات:** صفحه اصلی بازی که GameContainer را render می‌کند
+**Description:** Main game page that renders GameContainer
 
 ```tsx
 export default function Game() {
@@ -259,33 +259,33 @@ export default function Game() {
 
 ### BackgroundManager
 
-**مسیر:** `client/src/lib/backgroundManager.ts`
+**Path:** `client/src/lib/backgroundManager.ts`
 
-**توضیحات:** مدیریت سیستم پس‌زمینه‌های پویا
+**Description:** Dynamic background system management
 
 ```typescript
 import { backgroundManager } from "@/lib/backgroundManager";
 
-// دریافت پس‌زمینه فعلی
+// Get current background
 const currentBg = backgroundManager.getCurrentBackground();
 
-// تغییر پس‌زمینه
+// Change background
 backgroundManager.setCurrentBackground('spring-bg');
 
-// دریافت استایل CSS
+// Get CSS style
 const style = backgroundManager.getBackgroundStyle(currentBg);
 ```
 
 ### AssetConfig
 
-**مسیر:** `client/src/lib/assetConfig.ts`
+**Path:** `client/src/lib/assetConfig.ts`
 
-**توضیحات:** مدیریت متمرکز assetهای بازی
+**Description:** Centralized game assets management
 
 ```typescript
 import { GAME_ASSETS } from "@/lib/assetConfig";
 
-// دسترسی به assetها
+// Access assets
 const character = GAME_ASSETS.characters.mother;
 const obstacle = GAME_ASSETS.obstacles.dog;
 ```
@@ -294,11 +294,11 @@ const obstacle = GAME_ASSETS.obstacles.dog;
 
 ### Game Engine
 
-**مسیر:** `client/src/lib/gameEngine.ts`
+**Path:** `client/src/lib/gameEngine.ts`
 
-**توضیحات:** منطق اصلی بازی، فیزیک و مدیریت موجودیت‌ها
+**Description:** Main game logic, physics, and entity management
 
-**کلاس GameScene:**
+**GameScene Class:**
 ```typescript
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
@@ -314,23 +314,23 @@ interface GameScene extends Phaser.Scene {
   lanes: number[];
   currentLane: number;
   gameSpeed: number;
-  // ... سایر فیلدها
+  // ... other fields
 }
 ```
 
-**متدها:**
-- `initializeGame()`: راه‌اندازی بازی و بارگذاری assetها
-- `startActualGame()`: شروع واقعی بازی پس از آموزش
-- `updateGame()`: بروزرسانی هر فریم
-- `spawnGameObject()`: تولید موانع و منابع
-- `updateHealthAndEnergy()`: مدیریت سلامتی
-- `changeLane()`: تغییر مسیر
+**Methods:**
+- `initializeGame()`: Game setup and asset loading
+- `startActualGame()`: Start actual game after tutorial
+- `updateGame()`: Update each frame
+- `spawnGameObject()`: Spawn obstacles and resources
+- `updateHealthAndEnergy()`: Health management
+- `changeLane()`: Lane change
 
 ### Audio Manager
 
-**مسیر:** `client/src/lib/audioManager.ts`
+**Path:** `client/src/lib/audioManager.ts`
 
-**توضیحات:** مدیریت صداهای بازی
+**Description:** Game audio management
 
 ```typescript
 import { AudioManager } from "@/lib/audioManager";
@@ -367,7 +367,7 @@ audioManager.onCollectResource('water');
   bottom: 8px;
   left: 8px;
   right: 8px;
-  max-height: 18vh; /* بهینه‌سازی برای جلوگیری از پوشش شخصیت‌ها */
+  max-height: 18vh; /* Optimization to prevent character coverage */
 }
 ```
 
@@ -386,40 +386,40 @@ audioManager.onCollectResource('water');
 ## 🔄 Component Lifecycle
 
 ### Mounting
-1. `GameContainer` mount می‌شود
-2. State اولیه تنظیم می‌شود
-3. `MainMenu` render می‌شود
+1. `GameContainer` mounts
+2. Initial state is set
+3. `MainMenu` renders
 
 ### Game Start
-1. کاربر روی "شروع بازی" کلیک می‌کند
-2. `startGame()` فراخوانی می‌شود
-3. API call برای ایجاد session
-4. `PhaserGame` بارگذاری و راه‌اندازی می‌شود
-5. `GameUI` با `showGuideModal: true` render می‌شود
-6. کاربر آموزش را می‌خواند و کلیک می‌کند
-7. `onTutorialComplete()` فراخوانی می‌شود
-8. `gameStarted` به `true` تغییر می‌کند
-9. بازی واقعی شروع می‌شود
+1. User clicks "Start Game"
+2. `startGame()` is called
+3. API call to create session
+4. `PhaserGame` loads and initializes
+5. `GameUI` renders with `showGuideModal: true`
+6. User reads tutorial and clicks
+7. `onTutorialComplete()` is called
+8. `gameStarted` changes to `true`
+9. Actual game starts
 
 ### Game End
-1. شرایط پایان بازی برآورده می‌شود (ماه ۱۸ یا مرگ)
-2. `endGame()` فراخوانی می‌شود
-3. API call برای ذخیره نتایج
-4. `GameOver` component نمایش داده می‌شود
-5. بهترین امتیاز در cookie ذخیره می‌شود
+1. Game end conditions are met (month 18 or death)
+2. `endGame()` is called
+3. API call to save results
+4. `GameOver` component displays
+5. Best score saved in cookie
 
 ## 📊 Performance Considerations
 
 ### Optimization Tips
-- استفاده از `React.memo()` برای کامپوننت‌های سنگین
-- استفاده از `useCallback()` برای توابع event handler
-- استفاده از `useMemo()` برای محاسبات سنگین
-- Lazy loading برای کامپوننت‌های غیرضروری
+- Use `React.memo()` for heavy components
+- Use `useCallback()` for event handler functions
+- Use `useMemo()` for heavy calculations
+- Lazy loading for non-essential components
 
 ### Memory Management
-- پاکسازی event listenerها در `useEffect` cleanup
-- مدیریت صحیح state برای جلوگیری از memory leaks
-- استفاده از `AbortController` برای cancel کردن requestها
+- Clean up event listeners in `useEffect` cleanup
+- Proper state management to prevent memory leaks
+- Use `AbortController` to cancel requests
 
 ## 🧪 Testing
 
@@ -431,7 +431,7 @@ import GameUI from './GameUI';
 test('renders game UI correctly', () => {
   const mockGameData = { /* ... */ };
   render(<GameUI gameData={mockGameData} />);
-  expect(screen.getByText('جان خانواده')).toBeInTheDocument();
+  expect(screen.getByText('Family Health')).toBeInTheDocument();
 });
 ```
 
@@ -440,7 +440,7 @@ test('renders game UI correctly', () => {
 test('game flow works correctly', async () => {
   // Test complete game flow from start to finish
   const { user } = render(<GameContainer />);
-  await user.click(screen.getByText('شروع بازی'));
+  await user.click(screen.getByText('Start Game'));
   // ... continue testing
 });
 ```
@@ -448,24 +448,24 @@ test('game flow works correctly', async () => {
 ## 🔧 Development Guidelines
 
 ### Naming Conventions
-- کامپوننت‌ها: `PascalCase` (GameUI, MainMenu)
-- فایل‌ها: `kebab-case` (game-ui.tsx, main-menu.tsx)
-- متغیرها: `camelCase` (gameData, currentMonth)
-- ثابت‌ها: `UPPER_SNAKE_CASE` (GAME_ASSETS, MAX_HEALTH)
+- Components: `PascalCase` (GameUI, MainMenu)
+- Files: `kebab-case` (game-ui.tsx, main-menu.tsx)
+- Variables: `camelCase` (gameData, currentMonth)
+- Constants: `UPPER_SNAKE_CASE` (GAME_ASSETS, MAX_HEALTH)
 
 ### Code Organization
-- هر کامپوننت در فایل جداگانه
-- منطق مرتبط در custom hooks
-- TypeScript interfaces در فایل‌های جداگانه
-- تست‌ها در کنار فایل‌های کامپوننت
+- Each component in separate file
+- Related logic in custom hooks
+- TypeScript interfaces in separate files
+- Tests alongside component files
 
 ### Best Practices
-- استفاده از functional components
-- استفاده از hooks به جای class components
+- Use functional components
+- Use hooks instead of class components
 - TypeScript strict mode
-- ESLint و Prettier
-- کامنت‌گذاری مناسب کد
+- ESLint and Prettier
+- Proper code commenting
 
 ---
 
-**برای سوالات بیشتر با تیم توسعه تماس بگیرید**
+**For more questions, contact the development team**

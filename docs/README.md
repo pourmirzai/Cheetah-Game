@@ -1,24 +1,24 @@
-# 🎮 نجات یوز ایران (Save Cheetah Iran)
+# 🎮 Save Cheetah Iran
 
-بازی تحت وب تعاملی برای روز ملی یوزپلنگ (۹ شهریور ۱۴۰۴) جهت افزایش آگاهی درباره حفاظت از یوزپلنگ آسیایی.
+An interactive web game for National Cheetah Day (September 9, 2024) to raise awareness about the conservation of the Asian cheetah.
 
-## 📋 نمای کلی پروژه
+## 📋 Project Overview
 
-### هدف بازی
-بازی تعاملی و وایرال برای افزایش آگاهی درباره حفاظت از یوزپلنگ آسیایی با استفاده از مکانیک‌های بازی جذاب و آموزشی.
+### Game Objective
+An interactive and viral game to raise awareness about the conservation of the Asian cheetah using engaging and educational game mechanics.
 
-### سبک بازی
-- **Vertical Scroller** شبیه به بازی River Raid
-- **کنترل یک‌انگشتی** (لمس/سوایپ چپ‌راست)
-- **سازگار با موبایل و دسکتاپ**
-- **داستان‌محور** با پیام‌های حفاظتی
+### Game Style
+- **Vertical Scroller** similar to River Raid
+- **One-finger control** (touch/swipe left-right)
+- **Mobile and desktop compatible**
+- **Story-driven** with conservation messages
 
-### داستان بازی
-بازیکن نقش مادر یوزپلنگ را دارد که باید ۴ توله را در ۱۲۰ ثانیه (معادل ۱۸ ماه) به استقلال برساند، از موانع دوری کند و منابع (آب/غذا) جمع‌آوری کند.
+### Game Story
+The player takes on the role of a mother cheetah who must raise 4 cubs to independence in 120 seconds (equivalent to 18 months), avoid obstacles, and collect resources (water/food).
 
-## 🏗️ معماری فنی
+## 🏗️ Technical Architecture
 
-### تکنولوژی‌های استفاده شده
+### Technologies Used
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **Game Engine**: Phaser.js 3.70.0
 - **Backend**: Node.js, Express.js
@@ -28,7 +28,7 @@
 - **Build Tool**: Vite
 - **Deployment**: Liara Cloud
 
-### ساختار پروژه
+### Project Structure
 ```
 save-cheetah/
 ├── client/                 # Frontend React application
@@ -51,239 +51,240 @@ save-cheetah/
 └── public/                # Shared static assets
 ```
 
-## 🚀 راه‌اندازی و نصب
+## 🚀 Setup and Installation
 
-### پیش‌نیازها
+### Prerequisites
 - Node.js 18+
-- npm یا yarn
+- npm or yarn
 - PostgreSQL database (Neon recommended)
 
-### مراحل نصب
+### Installation Steps
 
-1. **کلون کردن پروژه**
+1. **Clone the project**
 ```bash
 git clone <repository-url>
 cd save-cheetah
 ```
 
-2. **نصب وابستگی‌ها**
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-3. **تنظیم متغیرهای محیطی**
+3. **Set environment variables**
 ```bash
-# کپی کردن فایل نمونه
+# Copy the sample file
 cp .env.example .env
 
-# ویرایش متغیرهای محیطی
+# Edit environment variables
 DATABASE_URL=postgresql://username:password@host:port/database
 NODE_ENV=development
 ```
 
-4. **راه‌اندازی پایگاه داده**
+4. **Setup database**
 ```bash
-# اجرای migrationها
+# Run migrations
 npm run db:push
 ```
 
-5. **اجرای سرور توسعه**
+5. **Run development server**
 ```bash
 npm run dev
 ```
 
-6. **باز کردن در مرورگر**
+6. **Open in browser**
 ```
 http://localhost:3000
 ```
 
-## 🎯 مکانیک‌های بازی
+## 🎯 Game Mechanics
 
-### شخصیت‌ها
-- **مادر یوزپلنگ**: شخصیت قابل کنترل بازیکن
-- **۴ توله**: باید تا پایان بازی زنده بمانند
-- **موانع**: ماشین‌ها، شکارچیان، سگ‌ها، تله‌ها
-- **منابع**: آب، غزاله، خرگوش
+### Characters
+- **Mother Cheetah**: Player-controlled character
+- **4 Cubs**: Must survive until the end of the game
+- **Obstacles**: Cars, poachers, dogs, traps
+- **Resources**: Water, gazelle, rabbit
 
-### کنترل‌ها
-- **لمس/کلیک**: تغییر مسیر به چپ یا راست
-- **دابل تپ**: فعال کردن جهش سرعت (نیاز به ۳ خرگوش)
-- **سوایپ**: کنترل روان مسیر
+### Controls
+- **Touch/Click**: Change lane left or right
+- **Double Tap**: Activate speed burst (requires 3 rabbits)
+- **Swipe**: Smooth lane control
 
-### سیستم امتیازدهی
-- **امتیاز پایه**: ۱۰ امتیاز برای هر منبع جمع‌آوری شده
-- **امتیاز زمان**: امتیاز بیشتر برای تکمیل سریع‌تر
-- **امتیاز زنده ماندن**: امتیاز برای زنده ماندن توله‌ها
+### Scoring System
+- **Base Score**: 10 points for each resource collected
+- **Time Bonus**: Extra points for faster completion
+- **Survival Bonus**: Points for cubs surviving
 
-### پیشرفت بازی
-- **۱۸ ماه**: مدت زمان کل بازی
-- **۴ فصل**: بهار، تابستان، پاییز، زمستان
-- **تغییر پس‌زمینه**: پس‌زمینه با تغییر فصل تغییر می‌کند
+### Game Progress
+- **18 Months**: Total game duration
+- **4 Seasons**: Spring, summer, autumn, winter
+- **Background Changes**: Background changes with season changes
 
-## 🎨 طراحی رابط کاربری
+## 🎨 UI Design
 
 ### Material Design Expressive
-- **رنگ‌بندی معنادار**: استفاده از رنگ‌های مرتبط با طبیعت
-- **تایپوگرافی**: فونت Vazirmatn برای متن فارسی
-- **انیمیشن‌ها**: transitions روان و معنادار
-- **دسترسی‌پذیری**: contrast مناسب و اندازه متن readable
+- **Meaningful Colors**: Use of colors related to nature
+- **Typography**: Vazirmatn font for Persian text
+- **Animations**: Smooth and meaningful transitions
+- **Accessibility**: Appropriate contrast and readable text size
 
-### کامپوننت‌های کلیدی
-- **MainMenu**: منوی اصلی با انتخاب پس‌زمینه
-- **GameUI**: رابط بازی با نوارهای وضعیت
-- **Tutorial**: آموزش تعاملی قبل از شروع
-- **GameContainer**: مدیریت وضعیت بازی
+### Key Components
+- **MainMenu**: Main menu with background selection
+- **GameUI**: Game interface with status bars
+- **Tutorial**: Interactive tutorial before starting
+- **GameContainer**: Game state management
 
 ## 📚 API Documentation
 
 ### Endpoints
 
-#### بازی (Game)
+#### Game
 ```
 POST /api/game/start
-- ایجاد جلسه بازی جدید
+- Create new game session
 - Response: { sessionId: string, success: boolean }
 
 POST /api/game/event
-- ثبت رویدادهای بازی
+- Record game events
 - Body: { sessionId: string, event: object }
 
 POST /api/game/end
-- پایان بازی و ذخیره نتایج
+- End game and save results
 - Body: { sessionId: string, ...gameResults }
 ```
 
-#### آمار (Analytics)
+#### Analytics
 ```
 POST /api/analytics/track
-- ثبت رویدادهای تحلیلی
+- Record analytics events
 - Body: { event: string, data: object }
 ```
 
-### انواع داده‌ها
+### Data Types
 
 #### GameData
 ```typescript
 interface GameData {
-  cubs: number;           // تعداد توله‌های زنده
-  currentMonth: number;   // ماه فعلی (۱-۱۸)
-  timeRemaining: number;  // زمان باقی‌مانده (ثانیه)
-  health: number;         // سلامتی مادر (۰-۱۰۰)
-  burstEnergy: number;    // انرژی جهش (۰-۱۰۰)
-  score: number;          // امتیاز کل
-  season: string;         // فصل فعلی
-  lane: number;           // مسیر فعلی
-  rabbitsCollected?: number; // خرگوش‌های جمع‌آوری شده
+  cubs: number;           // Number of surviving cubs
+  currentMonth: number;   // Current month (1-18)
+  timeRemaining: number;  // Time remaining (seconds)
+  health: number;         // Mother health (0-100)
+  burstEnergy: number;    // Burst energy (0-100)
+  score: number;          // Total score
+  season: string;         // Current season
+  lane: number;           // Current lane
+  rabbitsCollected?: number; // Rabbits collected
 }
 ```
 
-## 🔧 راهنمای توسعه
+## 🔧 Development Guide
 
-### ساختار کد
-- **TypeScript**: استفاده از تایپ قوی در کل پروژه
-- **ESLint**: بررسی کیفیت کد
-- **Prettier**: فرمت‌بندی خودکار کد
-- **Husky**: pre-commit hooks
+### Code Structure
+- **TypeScript**: Strong typing throughout the project
+- **ESLint**: Code quality checking
+- **Prettier**: Automatic code formatting
+- **Husky**: Pre-commit hooks
 
-### افزودن ویژگی جدید
-1. تعریف interface در `shared/schema.ts`
-2. پیاده‌سازی منطق در کامپوننت مربوطه
-3. افزودن تست‌های واحد
-4. بروزرسانی مستندات
+### Adding New Features
+1. Define interface in `shared/schema.ts`
+2. Implement logic in the relevant component
+3. Add unit tests
+4. Update documentation
 
-### بهترین روش‌ها
-- استفاده از functional components در React
-- مدیریت state با hooks
-- استفاده از custom hooks برای منطق مشترک
-- کامپوننت‌های reusable و composable
+### Best Practices
+- Use functional components in React
+- Manage state with hooks
+- Use custom hooks for shared logic
+- Create reusable and composable components
 
-## 🚀 راه‌اندازی عملیاتی
+## 🚀 Production Deployment
 
-### محیط‌های مختلف
+### Different Environments
 - **Development**: `npm run dev`
 - **Production**: `npm run build && npm start`
-- **Database**: استفاده از Neon Database
+- **Database**: Using Neon Database
 
-### متغیرهای محیطی
+### Environment Variables
 ```env
 DATABASE_URL=postgresql://...
 NODE_ENV=production
 PORT=3000
 ```
 
-### مانیتورینگ
-- لاگ‌های سرور در کنسول
-- متریک‌های بازی در پایگاه داده
-- خطاها در error logs
+### Monitoring
+- Server logs in console
+- Game metrics in database
+- Errors in error logs
 
-## 🐛 راهنمای عیب‌یابی
+## 🐛 Troubleshooting Guide
 
-### مشکلات رایج
+### Common Issues
 
-#### سرور اجرا نمی‌شود
+#### Server Won't Start
 ```bash
-# بررسی پورت
+# Check port
 netstat -ano | findstr :3000
 
-# بررسی متغیرهای محیطی
+# Check environment variables
 echo $DATABASE_URL
 
-# بررسی وابستگی‌ها
+# Check dependencies
 npm list --depth=0
 ```
 
-#### بازی بارگذاری نمی‌شود
-- بررسی کنسول مرورگر برای خطاها
-- بررسی network tab برای درخواست‌های شکست خورده
-- بررسی CORS headers
+#### Game Won't Load
+- Check browser console for errors
+- Check network tab for failed requests
+- Check CORS headers
 
-#### مشکلات پایگاه داده
+#### Database Issues
 ```bash
-# اجرای migrationها
+# Run migrations
 npm run db:push
 
-# بررسی اتصال
+# Check connection
 npm run db:check
 ```
 
-## 📈 آمار و تحلیل
+## 📈 Analytics and Statistics
 
-### متریک‌های کلیدی
-- تعداد بازی‌های شروع شده
-- نرخ تکمیل بازی
-- میانگین امتیاز
-- نرخ زنده ماندن توله‌ها
-- زمان متوسط بازی
+### Key Metrics
+- Number of games started
+- Game completion rate
+- Average score
+- Cub survival rate
+- Average game time
 
-### ابزارهای تحلیل
-- Google Analytics برای رویدادهای کاربر
-- Custom analytics برای مکانیک‌های بازی
-- Database queries برای آمار کلی
+### Analytics Tools
+- Google Analytics for user events
+- Custom analytics for game mechanics
+- Database queries for overall statistics
 
-## 🤝 مشارکت
+## 🤝 Contributing
 
-### نحوه مشارکت
-1. Fork کردن پروژه
-2. ایجاد branch جدید
-3. اعمال تغییرات
-4. ایجاد Pull Request
+### How to Contribute
+1. Fork the project
+2. Create a new branch
+3. Make your changes
+4. Create a Pull Request
 
-### استانداردها
-- استفاده از conventional commits
-- پوشش تست حداقل ۸۰%
-- بروزرسانی مستندات
-- بررسی امنیتی کد
+### Standards
+- Use conventional commits
+- Minimum 80% test coverage
+- Update documentation
+- Security code review
 
-## 📄 مجوز
+## 📄 License
 
-این پروژه تحت مجوز MIT منتشر شده است.
+This project is licensed under the MIT License.
 
-## 📞 تماس
+## 📞 Contact
 
-برای سوالات و پیشنهادات:
-- ایمیل: [your-email@example.com]
-- گیت‌هاب: [repository-url]
+For questions and suggestions:
+- Email: [info@sarvinwildlife.com]
+- Website: [sarvinwildlife.com/en]
+
 
 ---
 
-**توسعه یافته با ❤️ برای حفاظت از یوزپلنگ آسیایی**
+**Developed with ❤️ for the conservation of the Asiatic cheetah**

@@ -1,63 +1,63 @@
 # 🚀 Development Guide
 
-راهنمای کامل توسعه بازی نجات یوز ایران
+Complete development guide for Save Cheetah Iran game
 
-## 📋 پیش‌نیازها
+## 📋 Prerequisites
 
-### سیستم مورد نیاز
-- **Node.js**: نسخه ۱۸ یا بالاتر
-- **npm**: نسخه ۸ یا بالاتر
-- **Git**: برای مدیریت کد
-- **PostgreSQL Database**: Neon یا محلی
+### System Requirements
+- **Node.js**: Version 18 or higher
+- **npm**: Version 8 or higher
+- **Git**: For code management
+- **PostgreSQL Database**: Neon or local
 
-### ابزارهای توسعه
-- **VS Code**: محیط توسعه پیشنهادی
-- **ESLint**: بررسی کیفیت کد
-- **Prettier**: فرمت‌بندی کد
-- **TypeScript**: بررسی تایپ
+### Development Tools
+- **VS Code**: Recommended development environment
+- **ESLint**: Code quality checking
+- **Prettier**: Code formatting
+- **TypeScript**: Type checking
 
-## 🛠️ راه‌اندازی محیط توسعه
+## 🛠️ Setting Up Development Environment
 
-### ۱. کلون کردن پروژه
+### 1. Clone the project
 ```bash
 git clone <repository-url>
 cd save-cheetah
 ```
 
-### ۲. نصب وابستگی‌ها
+### 2. Install dependencies
 ```bash
 npm install
 ```
 
-### ۳. تنظیم متغیرهای محیطی
+### 3. Set environment variables
 ```bash
-# کپی فایل نمونه
+# Copy sample file
 cp .env.example .env
 
-# ویرایش متغیرهای محیطی
+# Edit environment variables
 DATABASE_URL=postgresql://username:password@host:port/database
 NODE_ENV=development
 ```
 
-### ۴. راه‌اندازی پایگاه داده
+### 4. Setup database
 ```bash
-# اجرای migrationها
+# Run migrations
 npm run db:push
 
-# بررسی اتصال
+# Check connection
 npm run db:check
 ```
 
-### ۵. اجرای سرور توسعه
+### 5. Run development server
 ```bash
-# اجرای سرور
+# Run server
 npm run dev
 
-# یا با تنظیم مستقیم متغیرها
+# Or with direct variable setting
 set "DATABASE_URL=postgresql://..." && npx tsx server/index.ts
 ```
 
-### ۶. دسترسی به بازی
+### 6. Access the game
 ```
 http://localhost:3000
 ```
