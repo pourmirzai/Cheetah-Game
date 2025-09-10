@@ -8,7 +8,11 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!assets|favicon.ico|robots.txt|manifest.json|sitemap.xml).*)",
       "destination": "/api/index"
     }
   ]
