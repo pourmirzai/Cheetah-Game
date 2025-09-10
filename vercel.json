@@ -1,14 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "dist/index.js": {
-      "runtime": "@vercel/node@2"
+    "server/index.ts": {
+      "runtime": "nodejs18.x"
     }
   },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/index.js"
+      "destination": "/server/index.js"
     }
   ]
 }
