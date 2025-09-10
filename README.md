@@ -3,8 +3,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/pourmirzai/Cheetah-Game.svg)](https://github.com/pourmirzai/Cheetah-Game/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/pourmirzai/Cheetah-Game.svg)](https://github.com/pourmirzai/Cheetah-Game/network)
 
-# 🎮 Save Cheetah Iran
-An interactive web game for National Cheetah Day (September 9, 2024) to raise awareness about the conservation of the Asian cheetah.
+# 🎮 Save Cheetah Game
+An interactive web game for National Cheetah Day (August 31th, 2025) to raise awareness about the conservation of the Asiatic Cheetah.
 ## 📖 Complete Documentation
 For complete information about the project, please refer to 
 **[
@@ -78,7 +78,7 @@ Troubleshooting
 - Debugging tools
 ## 🎯 Project Overview
 ### Game Objective
-An interactive and viral game to raise awareness about the conservation of the Asian cheetah using engaging and educational game mechanics.
+An interactive and viral game to raise awareness about the conservation of the Asiatic Cheetah using engaging and educational game mechanics.
 ### Game Style
 - 
 **
@@ -157,4 +157,4 @@ For questions and suggestions:
 - **Email:** [info@sarvinwildlife.com]
 - **Site:** [https://sarvinwildlife.com/en]
 
-Developed with ❤️ for the conservation of the Asian cheetah
+Developed with ❤️ for the conservation of the Asiatic Cheetah
