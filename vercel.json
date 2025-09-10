@@ -6,8 +6,11 @@
       "use": "@vercel/node"
     }
   ],
+  ],
   "rewrites": [
     {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
       "src": "/(.*)",
       "dest": "/api/index.js"
     }
