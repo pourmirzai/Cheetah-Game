@@ -52,6 +52,7 @@ interface GameScene extends Phaser.Scene {
   // Game control
   gameStarted: boolean;
   isVictoryMode?: boolean; // Flag to indicate victory sequence is active
+  gameOver?: boolean; // Flag to prevent multiple game end calls
 
   // Audio timing
   lastRunningSoundTime?: number;
@@ -118,6 +119,7 @@ export function initializeGame(
   gameScene.lastRunningSoundTime = 0;
   gameScene.gameStarted = false; // Game starts paused until tutorial is completed
   gameScene.isEnding = false; // Initialize ending flag
+  gameScene.gameOver = false; // Initialize game over flag
 
   // Store progress callback for event handlers
   const progressCallback = onLoadingProgress;
@@ -866,8 +868,8 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     // Collision detection for warning zone (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && warningZone && warningZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, warningZone, () => {
-        // Skip collision detection during victory mode
-        if (scene.isVictoryMode) return;
+        // Skip collision detection during victory mode or game over
+        if (scene.isVictoryMode || scene.gameOver) return;
 
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && warningZone?.active) {
@@ -908,6 +910,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       scene.cubs.forEach((cub, index) => {
         if (cub && cub.active) {
           scene.physics.add.overlap(cub, warningZone, () => {
+            // Skip if game is over
+            if (scene.gameOver) return;
+
             // Double-check objects are still active before processing collision
             if (cub?.active && warningZone?.active && scene.cubs[index] === cub) {
               // Check if 3 seconds have passed since last damage from this camel
@@ -1031,8 +1036,8 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
     // Collision detection for death zone (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && deathZone && deathZone.active && scene.motherCheetah.active) {
       scene.physics.add.overlap(scene.motherCheetah, deathZone, () => {
-        // Skip collision detection during victory mode
-        if (scene.isVictoryMode) return;
+        // Skip collision detection during victory mode or game over
+        if (scene.isVictoryMode || scene.gameOver) return;
 
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && deathZone?.active) {
@@ -1046,6 +1051,9 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
       scene.cubs.forEach((cub, index) => {
         if (cub && cub.active) {
           scene.physics.add.overlap(cub, deathZone, () => {
+            // Skip if game is over
+            if (scene.gameOver) return;
+
             // Double-check objects are still active before processing collision
             if (cub?.active && deathZone?.active && scene.cubs[index] === cub) {
               // Play die sound when cub encounters lethal threat
@@ -1127,8 +1135,8 @@ function spawnObstacle(scene: GameScene, x: number, y: number) {
   // Collision detection (with enhanced safety checks) - exclude camels from lethal behavior
   if (scene.physics && scene.motherCheetah && obstacle && scene.motherCheetah.active && obstacle.active) {
     scene.physics.add.overlap(scene.motherCheetah, obstacle, () => {
-      // Skip collision detection during victory mode
-      if (scene.isVictoryMode) return;
+      // Skip collision detection during victory mode or game over
+      if (scene.isVictoryMode || scene.gameOver) return;
 
       // Double-check objects are still active before processing collision
       if (scene.motherCheetah?.active && obstacle?.active) {
@@ -1219,8 +1227,8 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
     // Car collision detection (with enhanced safety checks)
     if (scene.physics && scene.motherCheetah && car && scene.motherCheetah.active && car.active) {
       scene.physics.add.overlap(scene.motherCheetah, car, () => {
-        // Skip collision detection during victory mode
-        if (scene.isVictoryMode) return;
+        // Skip collision detection during victory mode or game over
+        if (scene.isVictoryMode || scene.gameOver) return;
 
         // Double-check objects are still active before processing collision
         if (scene.motherCheetah?.active && car?.active) {
@@ -1234,6 +1242,9 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
       scene.cubs.forEach((cub, index) => {
         if (cub && cub.active) {
           scene.physics.add.overlap(cub, car, () => {
+            // Skip if game is over
+            if (scene.gameOver) return;
+
             // Double-check objects are still active before processing collision
             if (cub?.active && car?.active && scene.cubs[index] === cub) {
               // Play die sound when cub encounters lethal threat
@@ -1302,6 +1313,9 @@ function spawnResource(scene: GameScene, x: number, y: number) {
   // Collection detection (with safety checks)
   if (scene.motherCheetah && resource && scene.motherCheetah.active && resource.active) {
     scene.physics.add.overlap(scene.motherCheetah, resource, () => {
+      // Skip if game is over
+      if (scene.gameOver) return;
+
       // Double-check objects are still active before processing collision
       if (scene.motherCheetah?.active && resource?.active) {
         collectResource(scene, resourceInfo.type);
@@ -1423,11 +1437,12 @@ function createVictoryConfetti(scene: GameScene) {
 
 function endGame(scene: GameScene, cause: string) {
   // Prevent multiple end calls
-  if (scene.isEnding) {
-    console.log('⏹️ Game already ending, skipping...');
+  if (scene.isEnding || scene.gameOver) {
+    console.log('⏹️ Game already ending or over, skipping...');
     return;
   }
   scene.isEnding = true;
+  scene.gameOver = true; // Set game over flag to prevent re-entry
   console.log(`⏹️ Ending game with cause: ${cause}`);
 
   // Stop timers
@@ -1437,6 +1452,7 @@ function endGame(scene: GameScene, cause: string) {
   // Handle victory sequence if game completed
   if (cause === 'completed') {
     startVictorySequence(scene);
+    scene.isEnding = false; // Reset the flag after victory sequence
     return; // Don't proceed with normal game end
   }
 
@@ -1488,10 +1504,15 @@ function endGame(scene: GameScene, cause: string) {
     results.achievements!.push('survivor');
   }
 
+  // Set game as over
+  scene.gameStarted = false;
+
   // Cleanup audio
   scene.audioManager?.destroy();
 
   scene.onGameEnd(results);
+
+  scene.isEnding = false; // Reset the flag after game end logic
 }
 
 function startVictorySequence(scene: GameScene) {
@@ -1509,6 +1530,7 @@ function startVictorySequence(scene: GameScene) {
 
   // Ensure isEnding flag is set for victory too
   scene.isEnding = true;
+  scene.gameOver = true; // Set game over flag for victory
 
   // Step 2: Set victory mode flag (but keep user controls active until all elements exit)
   scene.isVictoryMode = true; // Set victory mode flag
@@ -1890,9 +1912,7 @@ function createVictoryParticles(scene: GameScene) {
 
     // Create particle emitter
     const emitter = scene.add.particles(centerX, centerY, `victory-particle-${index}`, {
-      speed: { min: 50, max: 200 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 0.8, end: 0.2 },
+      speed: { min: 80, max: 180 },
       alpha: { start: 1, end: 0 },
       lifespan: 3000,
       gravityY: 100,
@@ -2046,6 +2066,9 @@ function showVictoryResults(scene: GameScene) {
   results.achievements!.push('survivor');
 
   console.log('🏆 Victory results computed:', results);
+
+  // Set game as over
+  scene.gameStarted = false;
 
   // Cleanup audio
   scene.audioManager?.destroy();

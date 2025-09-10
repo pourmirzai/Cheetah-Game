@@ -10,6 +10,7 @@ export class AudioManager {
   private backgroundMusic?: Phaser.Sound.BaseSound;
   private ambientTimer?: Phaser.Time.TimerEvent;
   private ambientSounds: string[] = ['car-horn', 'dog-bark', 'angry-grunt'];
+  private isSoundPlaying: boolean = false; // Prevents duplicate sound playback
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -53,37 +54,46 @@ export class AudioManager {
 
       console.log(`🔊 Attempting to play sound: ${soundName} at volume ${finalVolume}`);
 
-      // Try to play the sound directly - Phaser will handle the rest
-      try {
-        const sound = this.scene.sound.play(soundName, { volume: finalVolume });
-        console.log(`✅ Sound '${soundName}' played successfully`);
-        return sound;
-      } catch (playError) {
-        console.warn(`❌ Failed to play sound '${soundName}':`, playError);
+      // Prevent duplicate sound playback
+      if (!this.isSoundPlaying) {
+        this.isSoundPlaying = true;
 
-        // Try to add the sound to the sound manager first
+        // Try to play the sound directly - Phaser will handle the rest
         try {
-          if (this.scene.cache.audio.exists(soundName)) {
-            console.log(`🔄 Adding sound '${soundName}' to sound manager...`);
-            this.scene.sound.add(soundName);
-            const sound = this.scene.sound.play(soundName, { volume: finalVolume });
-            console.log(`✅ Sound '${soundName}' added and played successfully`);
-            return sound;
-          } else {
-            console.warn(`❌ Audio file '${soundName}' not found in audio cache`);
+          const sound = this.scene.sound.play(soundName, { volume: finalVolume });
+          console.log(`✅ Sound '${soundName}' played successfully`);
+          this.isSoundPlaying = false;
+          return sound;
+        } catch (playError) {
+          console.warn(`❌ Failed to play sound '${soundName}':`, playError);
+
+          // Try to add the sound to the sound manager first
+          try {
+            if (this.scene.cache.audio.exists(soundName)) {
+              console.log(`🔄 Adding sound '${soundName}' to sound manager...`);
+              this.scene.sound.add(soundName);
+              const sound = this.scene.sound.play(soundName, { volume: finalVolume });
+              console.log(`✅ Sound '${soundName}' added and played successfully`);
+              this.isSoundPlaying = false;
+              return sound;
+            } else {
+              console.warn(`❌ Audio file '${soundName}' not found in audio cache`);
+            }
+          } catch (addError) {
+            console.warn(`❌ Failed to add sound '${soundName}' to sound manager:`, addError);
           }
-        } catch (addError) {
-          console.warn(`❌ Failed to add sound '${soundName}' to sound manager:`, addError);
-        }
 
-        // Debug: Check what's available
-        console.log('🔍 Checking audio cache...');
-        try {
-          const audioKeys = this.scene.cache.audio.getKeys();
-          console.log('📋 Available audio keys:', audioKeys);
-        } catch (cacheError) {
-          console.warn('❌ Could not check audio cache:', cacheError);
+          // Debug: Check what's available
+          console.log('🔍 Checking audio cache...');
+          try {
+            const audioKeys = this.scene.cache.audio.getKeys();
+            console.log('📋 Available audio keys:', audioKeys);
+          } catch (cacheError) {
+            console.warn('❌ Could not check audio cache:', cacheError);
+          }
         }
+      } else {
+        console.log(`⏭️ Sound '${soundName}' is already playing`);
       }
     } catch (error) {
       console.warn('❌ Error playing sound:', error);
