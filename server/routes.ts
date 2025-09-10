@@ -1,5 +1,4 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameSessionSchema, insertGameEventSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
@@ -7,7 +6,7 @@ import { createCanvas, loadImage } from "canvas";
 import * as fs from "fs";
 import * as path from "path";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export function registerRoutes(app: Express): Express {
   // Game session routes
   app.post("/api/game/start", async (req, res) => {
     try {
@@ -318,8 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  return app;
 }
 
 function getAchievementTitle(cubsSurvived: number, monthsCompleted: number): string {
