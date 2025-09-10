@@ -1,19 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
+  "functions": {
+    "api/index.ts": {
+      "runtime": "nodejs18.x"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index"
     },
     {
-      "source": "/((?!assets|favicon.ico|robots.txt|manifest.json|sitemap.xml).*)",
-      "destination": "/api/index"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
