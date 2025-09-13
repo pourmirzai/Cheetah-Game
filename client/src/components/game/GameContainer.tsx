@@ -9,6 +9,7 @@ import { GameState, GameData, GameResults } from "@/types/game";
 import { trackEvent } from "@/lib/analytics";
 import { backgroundManager, BackgroundConfig } from "@/lib/backgroundManager";
 import { updateBestScore, incrementConsecutiveLosses, resetConsecutiveLosses, getBestScore } from "@/lib/cookieStorage";
+import { config } from "@/lib/config";
 
 const initialGameState: GameState = {
   currentScreen: 'menu',
@@ -101,7 +102,7 @@ export default function GameContainer() {
       setLoadingProgress(0);
       setLoadingMessage("شروع بارگذاری بازی...");
 
-      const response = await fetch('/api/game/start', {
+      const response = await fetch(config.api.endpoints.gameStart, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -162,7 +163,7 @@ export default function GameContainer() {
         achievements: results.achievements || []
       };
 
-      const response = await fetch('/api/game/end', {
+      const response = await fetch(config.api.endpoints.gameEnd, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(gameEndData)

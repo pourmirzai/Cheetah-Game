@@ -1,0 +1,28 @@
+# Render deployment configuration
+# This file should be used when deploying to Render.com
+
+services:
+  - type: web
+    name: save-cheetah-backend
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromSecret: database_url
+      - key: UPSTASH_REDIS_REST_URL
+        fromSecret: upstash_redis_url
+      - key: UPSTASH_REDIS_REST_TOKEN
+        fromSecret: upstash_redis_token
+    healthCheckPath: /health
+    disk:
+      name: cheetah-data
+      mountPath: /data
+      sizeGB: 1
+
+# Note: You'll need to set up the secrets in Render dashboard:
+# - database_url: Your database connection string
+# - upstash_redis_url: Your Upstash Redis REST URL
+# - upstash_redis_token: Your Upstash Redis REST Token

@@ -8,6 +8,15 @@ import * as fs from "fs";
 import * as path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/health", async (req, res) => {
+    res.json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
   // Game session routes
   app.post("/api/game/start", async (req, res) => {
     try {
