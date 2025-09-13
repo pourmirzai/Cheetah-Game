@@ -61,7 +61,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // For Vercel serverless functions
 if (process.env.VERCEL) {
-  serveStatic(app);
+  // Static files served by Vercel platform
 }
 
 export default function handler(req: Request, res: Response) {
