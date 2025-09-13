@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import * as storage from "./storage";
 import { insertGameSessionSchema, insertGameEventSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { createCanvas, loadImage } from "canvas";

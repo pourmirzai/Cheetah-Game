@@ -1,211 +1,95 @@
-import {
-  users, gameSessions, gameEvents, gameStats,
-  type User, type InsertUser, type GameSession, type InsertGameSession,
-  type GameEvent, type InsertGameEvent,
-  type GameStats, type InsertGameStats
-} from "@shared/schema";
-// Database imports disabled - using in-memory storage only
-// import { db } from "./db";
-// import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
+// server/storage.ts
+import { Redis } from '@upstash/redis';
 
-export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+// کلاینت Upstash به صورت خودکار متغیرهای محیطی را می‌خواند
+const redis = Redis.fromEnv();
 
-  // Game sessions
-  createGameSession(session: InsertGameSession): Promise<GameSession>;
-  getGameSession(sessionId: string): Promise<GameSession | undefined>;
-  updateGameSession(sessionId: string, updates: Partial<InsertGameSession>): Promise<GameSession | undefined>;
+// --- توابع مربوط به جلسات بازی ---
 
-  // Game events
-  createGameEvent(event: InsertGameEvent): Promise<GameEvent>;
-  getGameEvents(sessionId: string): Promise<GameEvent[]>;
-
-
-  // Statistics
-  updateDailyStats(date: string): Promise<void>;
-  getGameStats(date: string): Promise<GameStats | undefined>;
-
-  // Global stats
-  incrementUniqueUsers(ip: string): Promise<void>;
-  incrementTotalGames(): Promise<void>;
-  incrementTotalCheetahsSaved(count: number): Promise<void>;
-  incrementTotalStoryDownloads(): Promise<void>;
-  getGlobalStats(): Promise<any>;
+export async function createGameSession(sessionData: any) {
+  const sessionId = sessionData.sessionId;
+  // اشیاء را به صورت رشته JSON ذخیره می‌کنیم
+  await redis.set(`session:${sessionId}`, JSON.stringify(sessionData));
+  return sessionData;
 }
 
-export class InMemoryStorage implements IStorage {
-  private users: User[] = [];
-  private gameSessions: GameSession[] = [];
-  private gameEvents: GameEvent[] = [];
-  private gameStatsData: GameStats[] = [];
-  private globalStats: any = {
-    uniqueUsers: 0,
-    totalGames: 0,
-    totalStoryDownloads: 0,
-    totalCheetahsSaved: 0,
-    userIPs: []
-  };
+export async function getGameSession(sessionId: string) {
+  const data = await redis.get(`session:${sessionId}`);
+  // رشته JSON را دوباره به آبجکت تبدیل می‌کنیم
+  return data ? JSON.parse(data as string) : null;
+}
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.find(user => user.id === id);
-  }
+export async function updateGameSession(sessionId: string, updates: any) {
+  const existingSession = await getGameSession(sessionId);
+  if (!existingSession) return null;
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
-  }
+  const updatedSession = { ...existingSession, ...updates };
+  await redis.set(`session:${sessionId}`, JSON.stringify(updatedSession));
+  return updatedSession;
+}
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...insertUser
-    };
-    this.users.push(user);
-    return user;
-  }
+// --- توابع مربوط به رویدادهای بازی ---
 
-  async createGameSession(session: InsertGameSession): Promise<GameSession> {
-    const gameSession: GameSession = {
-      id: Math.random().toString(36).substr(2, 9),
-      sessionId: session.sessionId,
-      cubsSurvived: session.cubsSurvived ?? 0,
-      monthsCompleted: session.monthsCompleted ?? 0,
-      finalScore: session.finalScore ?? 0,
-      gameTime: session.gameTime ?? 0,
-      deathCause: session.deathCause ?? null,
-      deviceType: session.deviceType ?? null,
-      province: session.province ?? null,
-      achievements: session.achievements ?? [],
-      createdAt: new Date()
-    };
-    this.gameSessions.push(gameSession);
-    return gameSession;
-  }
+export async function createGameEvent(eventData: any) {
+  const eventId = Math.random().toString(36).substr(2, 9);
+  const event = { id: eventId, ...eventData, timestamp: new Date() };
+  await redis.lpush(`events:${eventData.sessionId}`, JSON.stringify(event));
+  return event;
+}
 
-  async getGameSession(sessionId: string): Promise<GameSession | undefined> {
-    return this.gameSessions.find(session => session.sessionId === sessionId);
-  }
+export async function getGameEvents(sessionId: string) {
+  const events = await redis.lrange(`events:${sessionId}`, 0, -1);
+  return events.map(e => JSON.parse(e)).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+}
 
-  async updateGameSession(sessionId: string, updates: Partial<InsertGameSession>): Promise<GameSession | undefined> {
-    const sessionIndex = this.gameSessions.findIndex(session => session.sessionId === sessionId);
-    if (sessionIndex === -1) return undefined;
+// --- توابع مربوط به آمار روزانه ---
 
-    this.gameSessions[sessionIndex] = { ...this.gameSessions[sessionIndex], ...updates };
-    return this.gameSessions[sessionIndex];
-  }
+export async function updateDailyStats(date: string) {
+  // Placeholder - daily stats update logic would be complex
+  // For now, just store a simple count
+  await redis.incr(`daily:${date}:games`);
+}
 
-  async createGameEvent(event: InsertGameEvent): Promise<GameEvent> {
-    const gameEvent: GameEvent = {
-      id: Math.random().toString(36).substr(2, 9),
-      sessionId: event.sessionId,
-      eventType: event.eventType,
-      eventData: event.eventData ?? null,
-      timestamp: new Date()
-    };
-    this.gameEvents.push(gameEvent);
-    return gameEvent;
-  }
+export async function getGameStats(date: string) {
+  const data = await redis.get(`stats:${date}`);
+  return data ? JSON.parse(data as string) : null;
+}
 
-  async getGameEvents(sessionId: string): Promise<GameEvent[]> {
-    return this.gameEvents
-      .filter(event => event.sessionId === sessionId)
-      .sort((a, b) => (a.timestamp?.getTime() ?? 0) - (b.timestamp?.getTime() ?? 0));
-  }
+// --- توابع مربوط به آمار کلی ---
 
+export async function incrementTotalGames() {
+  // از دستور incr برای افزایش اتمی یک عدد استفاده می‌کنیم
+  return redis.incr('stats:totalGames');
+}
 
-  async getTodayStats(): Promise<{ totalGames: number; avgSurvived: number; avgMonths: number }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+export async function incrementTotalCheetahsSaved(count: number) {
+  return redis.incrby('stats:totalCheetahsSaved', count);
+}
 
-    const todaySessions = this.gameSessions.filter(session => session.createdAt && session.createdAt >= today);
-
-    if (todaySessions.length === 0) {
-      return { totalGames: 0, avgSurvived: 0, avgMonths: 0 };
-    }
-
-    const totalGames = todaySessions.length;
-    const avgSurvived = todaySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
-    const avgMonths = todaySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
-
-    return {
-      totalGames,
-      avgSurvived: Math.round(avgSurvived * 10) / 10,
-      avgMonths: Math.round(avgMonths * 10) / 10
-    };
-  }
-
-  async updateDailyStats(date: string): Promise<void> {
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 1);
-
-    const daySessions = this.gameSessions.filter(
-      session => session.createdAt && session.createdAt >= startDate && session.createdAt < endDate
-    );
-
-    if (daySessions.length === 0) return;
-
-    const totalGames = daySessions.length;
-    const avgSurvived = daySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
-    const avgMonths = daySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
-
-    // Count death causes
-    const deathCauseCount: { [key: string]: number } = {};
-    daySessions.forEach(session => {
-      if (session.deathCause) {
-        deathCauseCount[session.deathCause] = (deathCauseCount[session.deathCause] || 0) + 1;
-      }
-    });
-
-    const mostCommonCause = Object.entries(deathCauseCount)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || null;
-
-    const existingStatsIndex = this.gameStatsData.findIndex(stats => stats.date === date);
-
-    const stats: GameStats = {
-      id: existingStatsIndex >= 0 ? this.gameStatsData[existingStatsIndex].id : Math.random().toString(36).substr(2, 9),
-      date,
-      totalGames,
-      avgCubsSurvived: avgSurvived.toFixed(1),
-      avgMonthsCompleted: avgMonths.toFixed(1),
-      mostCommonDeathCause: mostCommonCause,
-      updatedAt: new Date()
-    };
-
-    if (existingStatsIndex >= 0) {
-      this.gameStatsData[existingStatsIndex] = stats;
-    } else {
-      this.gameStatsData.push(stats);
-    }
-  }
-
-  async getGameStats(date: string): Promise<GameStats | undefined> {
-    return this.gameStatsData.find(stats => stats.date === date);
-  }
-
-  async incrementUniqueUsers(ip: string): Promise<void> {
-    if (!this.globalStats.userIPs.includes(ip)) {
-      this.globalStats.userIPs.push(ip);
-      this.globalStats.uniqueUsers++;
-    }
-  }
-
-  async incrementTotalGames(): Promise<void> {
-    this.globalStats.totalGames++;
-  }
-
-  async incrementTotalCheetahsSaved(count: number): Promise<void> {
-    this.globalStats.totalCheetahsSaved += count;
-  }
-
-  async incrementTotalStoryDownloads(): Promise<void> {
-    this.globalStats.totalStoryDownloads++;
-  }
-
-  async getGlobalStats(): Promise<any> {
-    return this.globalStats;
+export async function incrementUniqueUsers(ip: string) {
+  // از Set برای ذخیره آیتم‌های یکتا استفاده می‌کنیم. sadd اگر آیتم جدید باشد 1 برمی‌گرداند
+  const isNewUser = await redis.sadd('stats:uniqueUsers', ip);
+  if (isNewUser) {
+    // اگر کاربر جدید بود، می‌توانیم یک شمارنده کلی هم داشته باشیم
+    await redis.incr('stats:totalUniqueUsers');
   }
 }
 
-export const storage = new InMemoryStorage();
+export async function incrementTotalStoryDownloads() {
+  return redis.incr('stats:totalStoryDownloads');
+}
+
+export async function getGlobalStats() {
+    const [totalGames, totalCheetahsSaved, uniqueUsers, totalStoryDownloads] = await Promise.all([
+        redis.get('stats:totalGames'),
+        redis.get('stats:totalCheetahsSaved'),
+        redis.get('stats:totalUniqueUsers'),
+        redis.get('stats:totalStoryDownloads')
+    ]);
+return {
+        totalGames: totalGames ? parseInt(totalGames as string) : 0,
+        totalCheetahsSaved: totalCheetahsSaved ? parseInt(totalCheetahsSaved as string) : 0,
+        uniqueUsers: uniqueUsers ? parseInt(uniqueUsers as string) : 0,
+        totalStoryDownloads: totalStoryDownloads ? parseInt(totalStoryDownloads as string) : 0,
+    };
+}
