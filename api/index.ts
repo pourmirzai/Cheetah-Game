@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const prefix = process.env.NODE_ENV === 'development' ? '/api' : '';
+const prefix = '/api';
 registerRoutes(app, prefix);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
