@@ -47,7 +47,7 @@ app.use((req, res, next) => {
 
 const prefix = '/api';
 console.log(`[Vercel API] Registering routes with prefix: ${prefix}`);
-registerRoutes(app, prefix);
+await registerRoutes(app, prefix);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;

@@ -1,12 +1,14 @@
 import type { Express } from "express";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { insertGameSessionSchema, insertGameEventSchema } from "../shared/schema";
 import { nanoid } from "nanoid";
 // import { createCanvas, loadImage } from "canvas"; // Commented out for testing
 import * as fs from "fs";
 import * as path from "path";
 
-export function registerRoutes(app: Express, prefix: string = '/api'): Express {
+export async function registerRoutes(app: Express, prefix: string = '/api'): Promise<Express> {
+  const storage = await getStorage();
+
   // Game session routes
   app.post(prefix + "/game/start", async (req, res) => {
     try {

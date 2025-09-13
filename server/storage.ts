@@ -14,35 +14,34 @@ const inMemoryStore = new Map<string, string>();
 const inMemorySets = new Map<string, Set<string>>();
 
 // Initialize Redis based on environment
-async function initializeRedis() {
+async function initializeRedisClient() {
   if (process.env.NODE_ENV === 'production') {
     const { Redis } = await import('@upstash/redis');
     redis = Redis.fromEnv();
   } else {
-// In-memory storage for development
-redis = {
-  get: async (key: string) => inMemoryStore.get(key),
-  set: async (key: string, value: any) => inMemoryStore.set(key, value),
-  sadd: async (setKey: string, member: string) => inMemorySets.get(setKey)?.add(member) || inMemorySets.set(setKey, new Set([member])),
-  smembers: async (setKey: string) => Array.from(inMemorySets.get(setKey) || []),
-  incr: async (key: string) => {
-    const current = parseInt(inMemoryStore.get(key) || '0');
-    const newVal = current + 1;
-    inMemoryStore.set(key, newVal.toString());
-    return newVal;
-  },
-  incrby: async (key: string, increment: number) => {
-    const current = parseInt(inMemoryStore.get(key) || '0');
-    const newVal = current + increment;
-    inMemoryStore.set(key, newVal.toString());
-    return newVal;
+    // In-memory storage for development
+    redis = {
+      get: async (key: string) => inMemoryStore.get(key),
+      set: async (key: string, value: any) => inMemoryStore.set(key, value),
+      sadd: async (setKey: string, member: string) => inMemorySets.get(setKey)?.add(member) || inMemorySets.set(setKey, new Set([member])),
+      smembers: async (setKey: string) => Array.from(inMemorySets.get(setKey) || []),
+      incr: async (key: string) => {
+        const current = parseInt(inMemoryStore.get(key) || '0');
+        const newVal = current + 1;
+        inMemoryStore.set(key, newVal.toString());
+        return newVal;
+      },
+      incrby: async (key: string, increment: number) => {
+        const current = parseInt(inMemoryStore.get(key) || '0');
+        const newVal = current + increment;
+        inMemoryStore.set(key, newVal.toString());
+        return newVal;
+      }
+    };
   }
-};
-}
 }
 
-// Initialize on module load
-initializeRedis();
+// No longer call initializeRedis() at top level here
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -270,4 +269,9 @@ export class UpstashStorage implements IStorage {
   }
 }
 
-export const storage = new UpstashStorage();
+export async function getStorage(): Promise<IStorage> {
+  if (!redis) {
+    await initializeRedisClient();
+  }
+  return new UpstashStorage();
+}
