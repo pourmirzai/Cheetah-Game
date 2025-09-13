@@ -9,6 +9,11 @@
       }
     }
   ],
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node@2.x"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
