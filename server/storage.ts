@@ -1,4 +1,4 @@
-import { Redis } from '@upstash/redis';
+import type { Redis } from '@upstash/redis';
 import {
   users, gameSessions, gameEvents, gameStats,
   type User, type InsertUser, type GameSession, type InsertGameSession,
@@ -7,7 +7,42 @@ import {
 } from "@shared/schema";
 
 // Initialize Upstash Redis client
-const redis = Redis.fromEnv();
+let redis: any;
+
+// In-memory stores for development
+const inMemoryStore = new Map<string, string>();
+const inMemorySets = new Map<string, Set<string>>();
+
+// Initialize Redis based on environment
+async function initializeRedis() {
+  if (process.env.NODE_ENV === 'production') {
+    const { Redis } = await import('@upstash/redis');
+    redis = Redis.fromEnv();
+  } else {
+// In-memory storage for development
+redis = {
+  get: async (key: string) => inMemoryStore.get(key),
+  set: async (key: string, value: any) => inMemoryStore.set(key, value),
+  sadd: async (setKey: string, member: string) => inMemorySets.get(setKey)?.add(member) || inMemorySets.set(setKey, new Set([member])),
+  smembers: async (setKey: string) => Array.from(inMemorySets.get(setKey) || []),
+  incr: async (key: string) => {
+    const current = parseInt(inMemoryStore.get(key) || '0');
+    const newVal = current + 1;
+    inMemoryStore.set(key, newVal.toString());
+    return newVal;
+  },
+  incrby: async (key: string, increment: number) => {
+    const current = parseInt(inMemoryStore.get(key) || '0');
+    const newVal = current + increment;
+    inMemoryStore.set(key, newVal.toString());
+    return newVal;
+  }
+};
+}
+}
+
+// Initialize on module load
+initializeRedis();
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -36,9 +71,29 @@ export interface IStorage {
 }
 
 export class UpstashStorage implements IStorage {
+  // For in-memory, ensure Dates are serialized/deserialized properly
+  private serialize(value: any): string {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return JSON.stringify(value);
+  }
+
+  private deserialize(value: string | null): any {
+    if (!value) return null;
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed.createdAt) parsed.createdAt = new Date(parsed.createdAt);
+      if (parsed.updatedAt) parsed.updatedAt = new Date(parsed.updatedAt);
+      if (parsed.timestamp) parsed.timestamp = new Date(parsed.timestamp);
+      return parsed;
+    } catch {
+      return value;
+    }
+  }
   async getUser(id: string): Promise<User | undefined> {
     const data = await redis.get(`user:${id}`);
-    return data ? JSON.parse(data as string) : undefined;
+    return this.deserialize(data);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -54,7 +109,7 @@ export class UpstashStorage implements IStorage {
     };
 
     // Store user data
-    await redis.set(`user:${user.id}`, JSON.stringify(user));
+    await redis.set(`user:${user.id}`, this.serialize(user));
     // Store username to ID mapping
     await redis.set(`username:${user.username}`, user.id);
 
@@ -76,20 +131,14 @@ export class UpstashStorage implements IStorage {
       createdAt: new Date()
     };
 
-    await redis.set(`session:${session.sessionId}`, JSON.stringify(gameSession));
+    await redis.set(`session:${session.sessionId}`, this.serialize(gameSession));
     return gameSession;
   }
 
   async getGameSession(sessionId: string): Promise<GameSession | undefined> {
     const data = await redis.get(`session:${sessionId}`);
     if (!data) return undefined;
-
-    const session = JSON.parse(data as string);
-    // Convert createdAt back to Date object
-    if (session.createdAt) {
-      session.createdAt = new Date(session.createdAt);
-    }
-    return session;
+    return this.deserialize(data);
   }
 
   async updateGameSession(sessionId: string, updates: Partial<InsertGameSession>): Promise<GameSession | undefined> {
@@ -97,7 +146,7 @@ export class UpstashStorage implements IStorage {
     if (!existingSession) return undefined;
 
     const updatedSession = { ...existingSession, ...updates };
-    await redis.set(`session:${sessionId}`, JSON.stringify(updatedSession));
+    await redis.set(`session:${sessionId}`, this.serialize(updatedSession));
     return updatedSession;
   }
 
@@ -111,7 +160,7 @@ export class UpstashStorage implements IStorage {
     };
 
     // Store event with a unique key
-    await redis.set(`event:${gameEvent.id}`, JSON.stringify(gameEvent));
+    await redis.set(`event:${gameEvent.id}`, this.serialize(gameEvent));
     // Add to session's event list
     await redis.sadd(`session_events:${event.sessionId}`, gameEvent.id);
 
@@ -123,16 +172,10 @@ export class UpstashStorage implements IStorage {
     if (!eventIds || eventIds.length === 0) return [];
 
     const events = await Promise.all(
-      eventIds.map(async (eventId) => {
+      eventIds.map(async (eventId: string) => {
         const data = await redis.get(`event:${eventId}`);
         if (!data) return null;
-
-        const event = JSON.parse(data as string);
-        // Convert timestamp back to Date object
-        if (event.timestamp) {
-          event.timestamp = new Date(event.timestamp);
-        }
-        return event;
+        return this.deserialize(data);
       })
     );
 
@@ -151,7 +194,7 @@ export class UpstashStorage implements IStorage {
     if (!sessionIds || sessionIds.length === 0) return;
 
     const sessions = await Promise.all(
-      sessionIds.map(sessionId => this.getGameSession(sessionId))
+      sessionIds.map((sessionId: string) => this.getGameSession(sessionId))
     );
 
     const validSessions = sessions.filter(session => session !== undefined) as GameSession[];
@@ -183,19 +226,12 @@ export class UpstashStorage implements IStorage {
       updatedAt: new Date()
     };
 
-    await redis.set(`stats:${date}`, JSON.stringify(stats));
+    await redis.set(`stats:${date}`, this.serialize(stats));
   }
 
   async getGameStats(date: string): Promise<GameStats | undefined> {
     const data = await redis.get(`stats:${date}`);
-    if (!data) return undefined;
-
-    const stats = JSON.parse(data as string);
-    // Convert updatedAt back to Date object
-    if (stats.updatedAt) {
-      stats.updatedAt = new Date(stats.updatedAt);
-    }
-    return stats;
+    return this.deserialize(data);
   }
 
   async incrementUniqueUsers(ip: string): Promise<void> {

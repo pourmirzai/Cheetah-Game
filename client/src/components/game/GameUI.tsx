@@ -247,10 +247,10 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
                   خطرات
                 </h3>
                 <div className="flex justify-center space-x-2 space-x-reverse mb-2">
-                  <img src="/assets/sprites/obstacles/smugller.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/car.png" alt="ماشین" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/camel.png" alt="شتر" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/dog.png" alt="سگ" className="w-6 h-6 object-contain" />
+                  <img src="/assets/sprites/obstacles/smugller.webp" alt="قاچاقچی" className="w-12 h-12 object-contain" />
+                  <img src="/assets/sprites/obstacles/car.webp" alt="ماشین" className="w-12 h-12 object-contain" />
+                  <img src="/assets/sprites/obstacles/camel.webp" alt="شتر" className="w-12 h-12 object-contain" />
+                  <img src="/assets/sprites/obstacles/dog.webp" alt="سگ" className="w-12 h-12 object-contain" />
                 </div>
                 <p className="text-xs text-red-700 text-center font-medium leading-relaxed">
                   ⚠️ شتر، قاچاقچی و سگ دارای منطقه مرگ دایره‌ای هستند<br/>
@@ -267,9 +267,9 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
                   منابع غذایی، آب و سلامت خانواده
                 </h3>
                 <div className="flex justify-center space-x-2 space-x-reverse mb-2">
-                  <img src="/assets/sprites/resources/gazelle.png" alt="آهو" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/resources/rabbit.png" alt="خرگوش" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/resources/water.png" alt="آب" className="w-6 h-6 object-contain" />
+                  <img src="/assets/sprites/resources/gazelle.webp" alt="آهو" className="w-12 h-12 object-contain" />
+                  <img src="/assets/sprites/resources/rabbit.webp" alt="خرگوش" className="w-12 h-12 object-contain" />
+                  <img src="/assets/sprites/resources/water.webp" alt="آب" className="w-12 h-12 object-contain" />
                 </div>
                 <div className="text-center mb-2">
                   <svg width="80" height="20" viewBox="0 0 80 20" className="inline-block">

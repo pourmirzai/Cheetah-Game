@@ -395,7 +395,7 @@ const GameOver = lazy(() => import('./components/GameOver'));
 const preloadImages = () => {
   const images = [
     '/assets/backgrounds/spring-bg.jpg',
-    '/assets/sprites/mother-cheetah.png'
+    '/assets/sprites/mother-cheetah.webp'
   ];
 
   images.forEach(src => {

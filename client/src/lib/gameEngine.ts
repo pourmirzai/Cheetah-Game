@@ -16,11 +16,11 @@ import { backgroundManager } from "@/lib/backgroundManager";
 import { GAME_ASSETS } from "@/lib/assetConfig";
 import { getThreatLevelMultiplier } from "@/lib/cookieStorage";
 
-const MOTHER_CHEETAH_SCALE = 0.6;
-const CUB_SCALE = 0.5;
+const MOTHER_CHEETAH_SCALE = 0.3;
+const CUB_SCALE = 0.25;
 const OBSTACLE_SCALE = 0.25; 
 const RESOURCE_SCALE = 0.25; 
-const CAR_SCALE = 0.25; 
+const CAR_SCALE = 0.2; 
 
 interface GameScene extends Phaser.Scene {
   gameData: GameData;
@@ -1190,15 +1190,6 @@ function spawnCarsOnRoad(scene: GameScene, roadY: number) {
   for (let i = 0; i < numCars; i++) {
     // Ensure cars spawn within visible road area
     const carX = Phaser.Math.Between(60, scene.scale.width - 60);
-
-    // Create simple car sprite using graphics
-    const carGraphics = scene.add.graphics();
-    carGraphics.fillStyle(0xff0000); // Red car
-    carGraphics.fillRect(0, 0, 28, 14); // 40 * 0.7 = 28, 20 * 0.7 = 14 (30% smaller)
-    carGraphics.fillStyle(0x000000); // Black windows
-    carGraphics.fillRect(3.5, 3.5, 7, 7); // 5 * 0.7 = 3.5, 10 * 0.7 = 7 (30% smaller)
-    carGraphics.fillRect(17.5, 3.5, 7, 7); // 25 * 0.7 = 17.5, 10 * 0.7 = 7 (30% smaller)
-    carGraphics.generateTexture('car', 28, 14); // 40 * 0.7 = 28, 20 * 0.7 = 14 (30% smaller)
 
     // Position car properly on the road
     const car = scene.add.sprite(carX, roadY - 5, 'car');

@@ -67,6 +67,26 @@ export class AudioManager {
         } catch (playError) {
           console.warn(`❌ Failed to play sound '${soundName}':`, playError);
 
+          // Check if it's an AudioContext issue and try to reinitialize
+          if (playError instanceof Error && playError.message && playError.message.includes('AudioContext')) {
+            console.log('🔄 AudioContext issue detected, reinitializing...');
+            this.initializeAudioContext();
+
+            // Try playing again after a short delay
+            setTimeout(() => {
+              try {
+                const sound = this.scene.sound.play(soundName, { volume: finalVolume });
+                console.log(`✅ Sound '${soundName}' played successfully after context reinitialization`);
+                this.isSoundPlaying = false;
+                return sound;
+              } catch (retryError) {
+                console.warn(`❌ Still failed to play sound '${soundName}' after context reinitialization:`, retryError);
+                this.isSoundPlaying = false;
+              }
+            }, 100);
+            return;
+          }
+
           // Try to add the sound to the sound manager first
           try {
             if (this.scene.cache.audio.exists(soundName)) {
@@ -98,6 +118,9 @@ export class AudioManager {
     } catch (error) {
       console.warn('❌ Error playing sound:', error);
     }
+
+    // Reset sound playing flag if we reach here
+    this.isSoundPlaying = false;
   }
 
   playMusic(musicType: 'ambient' | 'intense' | 'victory' = 'ambient') {
@@ -276,12 +299,32 @@ export class AudioManager {
     try {
       // Try to unlock audio context for Web Audio API
       const soundManager = this.scene.sound as any;
-      if (soundManager.context && soundManager.context.state === 'suspended') {
-        soundManager.context.resume().then(() => {
-          console.log('✅ Audio context resumed successfully');
-        }).catch((error: any) => {
-          console.warn('❌ Failed to resume audio context:', error);
-        });
+      if (soundManager.context) {
+        const contextState = soundManager.context.state;
+        console.log(`🎵 Audio context state: ${contextState}`);
+
+        if (contextState === 'suspended') {
+          soundManager.context.resume().then(() => {
+            console.log('✅ Audio context resumed successfully');
+          }).catch((error: any) => {
+            console.warn('❌ Failed to resume audio context:', error);
+          });
+        } else if (contextState === 'closed') {
+          console.warn('⚠️ Audio context is closed, creating new context...');
+          // Try to create a new AudioContext if the current one is closed
+          try {
+            const newContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            if (newContext) {
+              // Replace the closed context with the new one
+              soundManager.context = newContext;
+              console.log('✅ Created new audio context to replace closed one');
+            }
+          } catch (newContextError) {
+            console.warn('❌ Failed to create new audio context:', newContextError);
+          }
+        } else if (contextState === 'running') {
+          console.log('✅ Audio context is already running');
+        }
       }
 
       console.log('✅ Audio context initialization completed');
@@ -296,6 +339,29 @@ export class AudioManager {
     this.playSound('car-horn');
     setTimeout(() => this.playSound('dog-bark'), 1000);
     setTimeout(() => this.playSound('angry-grunt'), 2000);
+  }
+
+  // Handle hot module replacement (HMR) - called when module is reloaded
+  handleHMR() {
+    console.log('🔄 Handling HMR for AudioManager...');
+    try {
+      // Reinitialize audio context after HMR
+      this.initializeAudioContext();
+
+      // Restart ambient sounds if they were playing
+      if (!this.isMuted && this.ambientTimer) {
+        this.startAmbientSounds();
+      }
+
+      // Restart background music if it was playing
+      if (!this.isMuted && this.backgroundMusic && !this.backgroundMusic.isPlaying) {
+        this.playMusic('ambient');
+      }
+
+      console.log('✅ AudioManager HMR handling completed');
+    } catch (error) {
+      console.warn('❌ Error handling HMR in AudioManager:', error);
+    }
   }
 
   destroy() {

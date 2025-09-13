@@ -16,18 +16,18 @@ public/assets/
 ## 🖼️ Required Image Files
 
 ### 🎭 Characters (`public/assets/sprites/characters/`)
-- `mother-cheetah.png` - Main character (32x24 pixels)
-- `cub.png` - Baby cheetah following mother (16x12 pixels)
+- `mother-cheetah.webp` - Main character (32x24 pixels)
+- `cub.webp` - Baby cheetah following mother (16x12 pixels)
 
 ### 🌿 Resources (`public/assets/sprites/resources/`)
-- `water.png` - Water resource (20x20 pixels)
-- `gazelle.png` - Gazelle prey (20x16 pixels)
-- `rabbit.png` - Rabbit prey (12x10 pixels)
+- `water.webp` - Water resource (20x20 pixels)
+- `gazelle.webp` - Gazelle prey (20x16 pixels)
+- `rabbit.webp` - Rabbit prey (12x10 pixels)
 
 ### ⚠️ Obstacles (`public/assets/sprites/obstacles/`)
-- `dog.png` or `dog.webp` - Guard dog threat (24x20 pixels)
-- `smuggler.png` or `smuggler.webp` - Smuggler wolf with spotlight (24x32 pixels)
-- `car.png` or `car.webp` - Road vehicle (40x20 pixels)
+- `dog.webp` or `dog.webp` - Guard dog threat (24x20 pixels)
+- `smuggler.webp` or `smuggler.webp` - Smuggler wolf with spotlight (24x32 pixels)
+- `car.webp` or `car.webp` - Road vehicle (40x20 pixels)
 
 ### 🏞️ Backgrounds (`public/assets/backgrounds/`)
 **Priority order: JPG → WEBP → PNG (for smaller file sizes)**

@@ -85,37 +85,37 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
               {/* Enhanced cheetah family illustration with better animations */}
               <div className="relative my-4 sm:my-6 md:my-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
                 {/* Mother cheetah with enhanced styling and floating animation */}
-                <div className="w-32 h-20 sm:w-36 sm:h-24 md:w-40 md:h-28 bg-gradient-to-br from-tertiary/20 to-tertiary/10 mx-auto mb-6 sm:mb-8 relative rounded-2xl backdrop-blur-sm border border-tertiary/20 shadow-2xl animate-float">
+                <div className="w-36 h-22 sm:w-40 sm:h-26 md:w-48 md:h-32 mx-auto mb-6 sm:mb-8 relative animate-float">
                   <img
-                    src="/assets/sprites/characters/mother-cheetah.png"
+                    src="/assets/sprites/characters/mother-cheetah.webp"
                     alt="Cheetah Mother"
-                    className="w-full h-full object-contain p-2"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 {/* Four cubs following with staggered animations */}
                 <div className="flex justify-center space-x-2 sm:space-x-3 space-x-reverse">
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 1"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-10 h-8 sm:w-12 sm:h-9 md:w-14 md:h-11 object-contain animate-bounce-gentle"
                     style={{ animationDelay: '0.8s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 2"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-10 h-8 sm:w-12 sm:h-9 md:w-14 md:h-11 object-contain animate-bounce-gentle"
                     style={{ animationDelay: '1s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 3"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-10 h-8 sm:w-12 sm:h-9 md:w-14 md:h-11 object-contain animate-bounce-gentle"
                     style={{ animationDelay: '1.2s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 4"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-10 h-8 sm:w-12 sm:h-9 md:w-14 md:h-11 object-contain animate-bounce-gentle"
                     style={{ animationDelay: '1.4s' }}
                   />
                 </div>
@@ -414,7 +414,7 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
             حافظان حیات‌وحش سَروین
           </p>
           <div className="mt-4 flex justify-center space-x-6 space-x-reverse text-sm text-white/70">
-            <span>نسخه ۱.۶.۰</span>
+            <span>نسخه ۱.۷.۰</span>
             <span>۹ شهریور ۱۴۰۴</span>
           </div>
         </div>
