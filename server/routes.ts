@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "./storage";
-import { insertGameSessionSchema, insertGameEventSchema } from "@shared/schema";
+import { insertGameSessionSchema, insertGameEventSchema } from "../shared/schema";
 import { nanoid } from "nanoid";
 // import { createCanvas, loadImage } from "canvas"; // Commented out for testing
 import * as fs from "fs";
