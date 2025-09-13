@@ -150,10 +150,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://db:5432
+      - DATABASE_URL=postgresql://db:5432/save_cheetah
+      - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:15
@@ -164,8 +166,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
+  redis_data:
 ```
 
 #### اجرای Docker
@@ -180,6 +190,30 @@ docker run -p 3000:3000 save-cheetah
 docker-compose up -d
 ```
 
+## 🗄️ Upstash for Redis
+
+در این پروژه برای ذخیره‌سازی داده‌های سریع و sessionها از Upstash for Redis استفاده شده است. Upstash یک سرویس دیتابیس Redis مبتنی بر cloud است که با سرعت بالا و هزینه پایین، امکان ذخیره و بازیابی داده‌ها را فراهم می‌کند.
+
+### نحوه راه‌اندازی
+1. یک اکانت در [Upstash](https://upstash.com/) بسازید.
+2. یک Redis Database جدید ایجاد کنید.
+3. اطلاعات اتصال (REST URL و Token) را دریافت کرده و در فایل env پروژه قرار دهید:
+  ```env
+  UPSTASH_REDIS_REST_URL=your-endpoint-url
+  UPSTASH_REDIS_REST_TOKEN=your-access-token
+  ```
+4. مطمئن شوید که پکیج `@upstash/redis` نصب شده باشد:
+  ```bash
+  npm install @upstash/redis
+  ```
+5. پروژه را اجرا کنید. ارتباط با دیتابیس به صورت خودکار برقرار می‌شود.
+
+### نکات مهم
+- اطلاعات اتصال را هرگز به صورت عمومی منتشر نکنید.
+- برای امنیت بیشتر، دسترسی‌ها را محدود کنید.
+- مستندات رسمی Upstash را برای تنظیمات پیشرفته مطالعه کنید.
+
+---
 ## ⚙️ Advanced Settings
 
 ### Environment Variables
@@ -187,6 +221,7 @@ docker-compose up -d
 #### Required
 ```env
 DATABASE_URL=postgresql://username:password@host:port/database
+REDIS_URL=redis://username:password@host:port
 NODE_ENV=production
 PORT=3000
 ```
@@ -480,7 +515,10 @@ import connectRedis from 'connect-redis';
 import session from 'express-session';
 import { createClient } from 'redis';
 
-const redisClient = createClient();
+const redisClient = createClient({
+  url: process.env.REDIS_URL // Use Upstash URL in cloud deployments
+});
+await redisClient.connect();
 const RedisStore = connectRedis(session);
 
 app.use(session({

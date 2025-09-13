@@ -23,6 +23,7 @@ The player takes on the role of a mother cheetah who must raise 4 cubs to indepe
 - **Game Engine**: Phaser.js 3.70.0
 - **Backend**: Node.js, Express.js
 - **Database**: PostgreSQL (Neon Database)
+- **Cache**: Redis (Upstash)
 - **ORM**: Drizzle ORM
 - **UI Framework**: Material Design Expressive
 - **Build Tool**: Vite

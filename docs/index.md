@@ -18,6 +18,7 @@ An interactive and viral game for National Cheetah Day (September 9, 2024) aimed
 - **Frontend**: React 18 + Phaser.js
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL
+- **Cache**: Redis (Upstash)
 - **UI Framework**: Material Design Expressive
 - **Deployment**: Liara Cloud
 

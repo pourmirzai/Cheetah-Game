@@ -45,7 +45,8 @@ app.use((req, res, next) => {
   next();
 });
 
-registerRoutes(app);
+const prefix = process.env.VERCEL ? '' : '/api';
+registerRoutes(app, prefix);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;

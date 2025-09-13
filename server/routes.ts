@@ -6,9 +6,9 @@ import { createCanvas, loadImage } from "canvas";
 import * as fs from "fs";
 import * as path from "path";
 
-export function registerRoutes(app: Express): Express {
+export function registerRoutes(app: Express, prefix: string = '/api'): Express {
   // Game session routes
-  app.post("/api/game/start", async (req, res) => {
+  app.post(prefix + "/game/start", async (req, res) => {
     try {
       const sessionId = nanoid();
       const deviceType = req.headers['user-agent']?.includes('Mobile') ? 'mobile' : 'desktop';
@@ -50,7 +50,7 @@ export function registerRoutes(app: Express): Express {
     }
   });
 
-  app.post("/api/game/end", async (req, res) => {
+  app.post(prefix + "/game/end", async (req, res) => {
     try {
       const validatedData = insertGameSessionSchema.parse(req.body);
       
@@ -84,7 +84,7 @@ export function registerRoutes(app: Express): Express {
     }
   });
 
-  app.post("/api/game/event", async (req, res) => {
+  app.post(prefix + "/game/event", async (req, res) => {
     try {
       const validatedData = insertGameEventSchema.parse(req.body);
       
@@ -98,7 +98,7 @@ export function registerRoutes(app: Express): Express {
 
 
   // Story card generation
-  app.post("/api/generate-story-card", async (req, res) => {
+  app.post(prefix + "/generate-story-card", async (req, res) => {
     try {
       const { sessionId, cubsSurvived, monthsCompleted, achievementTitle } = req.body;
 
@@ -124,7 +124,7 @@ export function registerRoutes(app: Express): Express {
   });
 
   // Server-side share card image generation
-  app.get("/api/share-card/:sessionId", async (req, res) => {
+  app.get(prefix + "/share-card/:sessionId", async (req, res) => {
     try {
       const { sessionId } = req.params;
       const { bg, text, style } = req.query;
@@ -291,7 +291,7 @@ export function registerRoutes(app: Express): Express {
   });
 
   // New endpoint for client-side image download
-  app.post("/api/download-client-image", async (req, res) => {
+  app.post(prefix + "/download-client-image", async (req, res) => {
     try {
       const { imageDataUrl, filename } = req.body;
 
@@ -315,7 +315,7 @@ export function registerRoutes(app: Express): Express {
   });
 
   // Global stats endpoint
-  app.get("/api/stats/global", async (req, res) => {
+  app.get(prefix + "/stats/global", async (req, res) => {
     try {
       const stats = await storage.getGlobalStats();
       res.json(stats);

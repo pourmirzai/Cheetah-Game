@@ -9,6 +9,7 @@ Complete development guide for Save Cheetah Iran game
 - **npm**: Version 8 or higher
 - **Git**: For code management
 - **PostgreSQL Database**: Neon or local
+- **Redis**: Upstash (cloud) or local Redis server for development
 
 ### Development Tools
 - **VS Code**: Recommended development environment
@@ -36,6 +37,7 @@ cp .env.example .env
 
 # Edit environment variables
 DATABASE_URL=postgresql://username:password@host:port/database
+REDIS_URL=redis://localhost:6379
 NODE_ENV=development
 ```
 
