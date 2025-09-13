@@ -45,7 +45,12 @@ app.use((req, res, next) => {
   next();
 });
 
-const prefix = '/api';
+// When running as a Vercel serverless function the platform already
+// routes requests under `/api/*` to this file. Registering routes
+// with a `/api` prefix in that environment would produce paths like
+// `/api/api/game/start` which leads to 404s. Use an empty prefix on
+// Vercel and `/api` for local/standalone server mode.
+const prefix = process.env.VERCEL ? '' : '/api';
 console.log(`[Vercel API] Registering routes with prefix: ${prefix}`);
 await registerRoutes(app, prefix);
 
