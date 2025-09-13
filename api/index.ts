@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "../server/routes";
-import { setupVite, serveStatic, log } from "../server/vite";
+// Avoid importing server/vite at top-level because it uses import.meta
+// which prevents bundling to CommonJS. We'll lazy-import it in non-Vercel mode.
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -38,7 +39,8 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      // Simple logger here to avoid importing server/vite during bundling
+      try { console.log(logLine); } catch (e) { /* ignore */ }
     }
   });
 
@@ -52,14 +54,20 @@ app.use((req, res, next) => {
 // Vercel and `/api` for local/standalone server mode.
 const prefix = process.env.VERCEL ? '' : '/api';
 console.log(`[Vercel API] Registering routes with prefix: ${prefix}`);
-// Add defensive global handlers so Vercel logs capture async failures
+// Add defensive global handlers so logs capture async failures
 process.on('unhandledRejection', (reason) => {
   try { console.error('[Vercel API] unhandledRejection:', reason); } catch (e) { /* ignore */ }
 });
 process.on('uncaughtException', (err) => {
   try { console.error('[Vercel API] uncaughtException:', err && (err.stack || err.message || err)); } catch (e) { /* ignore */ }
 });
-await registerRoutes(app, prefix);
+
+let _initialized = false;
+async function initOnce() {
+  if (_initialized) return;
+  await registerRoutes(app, prefix);
+  _initialized = true;
+}
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -78,26 +86,28 @@ if (process.env.VERCEL) {
   serveStatic(app);
 }
 
-export default function handler(req: Request, res: Response) {
+export default async function handler(req: Request, res: Response) {
   try {
     console.log(`[Vercel API] Incoming request: ${req.method} ${req.url} (path: ${req.path})`);
     try { console.log('[Vercel API] Headers:', JSON.stringify(req.headers)); } catch (e) { console.log('[Vercel API] Could not stringify headers', e); }
 
+    await initOnce();
+
     try {
       return app(req, res);
     } catch (innerErr) {
-  console.error('[Vercel API] Sync error while invoking app:', innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || innerErr));
+      console.error('[Vercel API] Sync error while invoking app:', innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || innerErr));
       try {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.end('Internal server error (handler sync): ' + (innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || String(innerErr))));
+        res.end('Internal server error (handler sync): ' + (innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || String(innerErr))));
       } catch (sendErr) {
         console.error('[Vercel API] Failed to send error response', sendErr);
       }
       throw innerErr;
     }
   } catch (e) {
-  console.error('[Vercel API] handler outer error', e && (((e as any).stack) || ((e as any).message) || e));
+    console.error('[Vercel API] handler outer error', e && (((e as any).stack) || ((e as any).message) || e));
     try { res.status(500).send('Internal server error'); } catch (_) { /* nothing */ }
     throw e;
   }
@@ -106,23 +116,27 @@ export default function handler(req: Request, res: Response) {
 // Local development/production server (not Vercel)
 if (!process.env.VERCEL) {
   (async () => {
-    // ALWAYS serve the app on the port specified in the environment variable PORT
-    // Other ports are firewalled. Default to 5000 if not specified.
-    // this serves both the API and the client.
-    // It is the only port that is not firewalled.
     const port = parseInt(process.env.PORT || '5000', 10);
     const server = createServer(app);
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
+
+    // Lazy import server/vite only for local dev so bundling works for production
+    try {
+      const { setupVite, serveStatic, log: viteLog } = await import('../server/vite');
+      if (app.get("env") === "development") {
+        await setupVite(app, server);
+      } else {
+        serveStatic(app);
+      }
+      try { viteLog(`serving on port ${port}`); } catch { console.log(`serving on port ${port}`); }
+    } catch (err) {
+      // If dynamic import fails, fall back to static serving
+      try { console.warn('Failed to load server/vite, falling back to static serve', err); } catch {}
     }
+
     server.listen({
       port,
       host: "0.0.0.0",
       reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
     });
   })();
 }
