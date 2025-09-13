@@ -46,6 +46,7 @@ app.use((req, res, next) => {
 });
 
 const prefix = '/api';
+console.log(`[Vercel API] Registering routes with prefix: ${prefix}`);
 registerRoutes(app, prefix);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -66,6 +67,7 @@ if (process.env.VERCEL) {
 }
 
 export default function handler(req: Request, res: Response) {
+  console.log(`[Vercel API] Incoming request: ${req.method} ${req.url} (path: ${req.path})`);
   return app(req, res);
 }
 
