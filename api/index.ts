@@ -52,6 +52,13 @@ app.use((req, res, next) => {
 // Vercel and `/api` for local/standalone server mode.
 const prefix = process.env.VERCEL ? '' : '/api';
 console.log(`[Vercel API] Registering routes with prefix: ${prefix}`);
+// Add defensive global handlers so Vercel logs capture async failures
+process.on('unhandledRejection', (reason) => {
+  try { console.error('[Vercel API] unhandledRejection:', reason); } catch (e) { /* ignore */ }
+});
+process.on('uncaughtException', (err) => {
+  try { console.error('[Vercel API] uncaughtException:', err && (err.stack || err.message || err)); } catch (e) { /* ignore */ }
+});
 await registerRoutes(app, prefix);
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -72,8 +79,28 @@ if (process.env.VERCEL) {
 }
 
 export default function handler(req: Request, res: Response) {
-  console.log(`[Vercel API] Incoming request: ${req.method} ${req.url} (path: ${req.path})`);
-  return app(req, res);
+  try {
+    console.log(`[Vercel API] Incoming request: ${req.method} ${req.url} (path: ${req.path})`);
+    try { console.log('[Vercel API] Headers:', JSON.stringify(req.headers)); } catch (e) { console.log('[Vercel API] Could not stringify headers', e); }
+
+    try {
+      return app(req, res);
+    } catch (innerErr) {
+  console.error('[Vercel API] Sync error while invoking app:', innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || innerErr));
+      try {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('Internal server error (handler sync): ' + (innerErr && (((innerErr as any).stack) || ((innerErr as any).message) || String(innerErr))));
+      } catch (sendErr) {
+        console.error('[Vercel API] Failed to send error response', sendErr);
+      }
+      throw innerErr;
+    }
+  } catch (e) {
+  console.error('[Vercel API] handler outer error', e && (((e as any).stack) || ((e as any).message) || e));
+    try { res.status(500).send('Internal server error'); } catch (_) { /* nothing */ }
+    throw e;
+  }
 }
 
 // Local development/production server (not Vercel)
