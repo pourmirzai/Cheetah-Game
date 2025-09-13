@@ -48,7 +48,9 @@ export async function registerRoutes(app: Express, prefix: string = '/api'): Pro
       res.json({ sessionId, success: true });
     } catch (error) {
       console.error('Error starting game:', error);
-      res.status(500).json({ error: 'Failed to start game' });
+      // Return stack in response temporarily for debugging on Vercel
+      const stack = (error as any)?.stack || (error as any)?.message || String(error);
+      res.status(500).json({ error: 'Failed to start game', detail: stack });
     }
   });
 
