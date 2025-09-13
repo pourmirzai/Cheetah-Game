@@ -1,12 +1,13 @@
+import { Redis } from '@upstash/redis';
 import {
   users, gameSessions, gameEvents, gameStats,
   type User, type InsertUser, type GameSession, type InsertGameSession,
   type GameEvent, type InsertGameEvent,
   type GameStats, type InsertGameStats
 } from "@shared/schema";
-// Database imports disabled - using in-memory storage only
-// import { db } from "./db";
-// import { eq, desc, asc, and, gte, lt, count, avg, sql } from "drizzle-orm";
+
+// Initialize Upstash Redis client
+const redis = Redis.fromEnv();
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -22,7 +23,6 @@ export interface IStorage {
   createGameEvent(event: InsertGameEvent): Promise<GameEvent>;
   getGameEvents(sessionId: string): Promise<GameEvent[]>;
 
-
   // Statistics
   updateDailyStats(date: string): Promise<void>;
   getGameStats(date: string): Promise<GameStats | undefined>;
@@ -35,25 +35,16 @@ export interface IStorage {
   getGlobalStats(): Promise<any>;
 }
 
-export class InMemoryStorage implements IStorage {
-  private users: User[] = [];
-  private gameSessions: GameSession[] = [];
-  private gameEvents: GameEvent[] = [];
-  private gameStatsData: GameStats[] = [];
-  private globalStats: any = {
-    uniqueUsers: 0,
-    totalGames: 0,
-    totalStoryDownloads: 0,
-    totalCheetahsSaved: 0,
-    userIPs: []
-  };
-
+export class UpstashStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.find(user => user.id === id);
+    const data = await redis.get(`user:${id}`);
+    return data ? JSON.parse(data as string) : undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+    const userId = await redis.get(`username:${username}`);
+    if (!userId) return undefined;
+    return this.getUser(userId as string);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -61,7 +52,12 @@ export class InMemoryStorage implements IStorage {
       id: Math.random().toString(36).substr(2, 9),
       ...insertUser
     };
-    this.users.push(user);
+
+    // Store user data
+    await redis.set(`user:${user.id}`, JSON.stringify(user));
+    // Store username to ID mapping
+    await redis.set(`username:${user.username}`, user.id);
+
     return user;
   }
 
@@ -79,20 +75,30 @@ export class InMemoryStorage implements IStorage {
       achievements: session.achievements ?? [],
       createdAt: new Date()
     };
-    this.gameSessions.push(gameSession);
+
+    await redis.set(`session:${session.sessionId}`, JSON.stringify(gameSession));
     return gameSession;
   }
 
   async getGameSession(sessionId: string): Promise<GameSession | undefined> {
-    return this.gameSessions.find(session => session.sessionId === sessionId);
+    const data = await redis.get(`session:${sessionId}`);
+    if (!data) return undefined;
+
+    const session = JSON.parse(data as string);
+    // Convert createdAt back to Date object
+    if (session.createdAt) {
+      session.createdAt = new Date(session.createdAt);
+    }
+    return session;
   }
 
   async updateGameSession(sessionId: string, updates: Partial<InsertGameSession>): Promise<GameSession | undefined> {
-    const sessionIndex = this.gameSessions.findIndex(session => session.sessionId === sessionId);
-    if (sessionIndex === -1) return undefined;
+    const existingSession = await this.getGameSession(sessionId);
+    if (!existingSession) return undefined;
 
-    this.gameSessions[sessionIndex] = { ...this.gameSessions[sessionIndex], ...updates };
-    return this.gameSessions[sessionIndex];
+    const updatedSession = { ...existingSession, ...updates };
+    await redis.set(`session:${sessionId}`, JSON.stringify(updatedSession));
+    return updatedSession;
   }
 
   async createGameEvent(event: InsertGameEvent): Promise<GameEvent> {
@@ -103,56 +109,62 @@ export class InMemoryStorage implements IStorage {
       eventData: event.eventData ?? null,
       timestamp: new Date()
     };
-    this.gameEvents.push(gameEvent);
+
+    // Store event with a unique key
+    await redis.set(`event:${gameEvent.id}`, JSON.stringify(gameEvent));
+    // Add to session's event list
+    await redis.sadd(`session_events:${event.sessionId}`, gameEvent.id);
+
     return gameEvent;
   }
 
   async getGameEvents(sessionId: string): Promise<GameEvent[]> {
-    return this.gameEvents
-      .filter(event => event.sessionId === sessionId)
+    const eventIds = await redis.smembers(`session_events:${sessionId}`);
+    if (!eventIds || eventIds.length === 0) return [];
+
+    const events = await Promise.all(
+      eventIds.map(async (eventId) => {
+        const data = await redis.get(`event:${eventId}`);
+        if (!data) return null;
+
+        const event = JSON.parse(data as string);
+        // Convert timestamp back to Date object
+        if (event.timestamp) {
+          event.timestamp = new Date(event.timestamp);
+        }
+        return event;
+      })
+    );
+
+    return events
+      .filter(event => event !== null)
       .sort((a, b) => (a.timestamp?.getTime() ?? 0) - (b.timestamp?.getTime() ?? 0));
   }
 
-
-  async getTodayStats(): Promise<{ totalGames: number; avgSurvived: number; avgMonths: number }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const todaySessions = this.gameSessions.filter(session => session.createdAt && session.createdAt >= today);
-
-    if (todaySessions.length === 0) {
-      return { totalGames: 0, avgSurvived: 0, avgMonths: 0 };
-    }
-
-    const totalGames = todaySessions.length;
-    const avgSurvived = todaySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
-    const avgMonths = todaySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
-
-    return {
-      totalGames,
-      avgSurvived: Math.round(avgSurvived * 10) / 10,
-      avgMonths: Math.round(avgMonths * 10) / 10
-    };
-  }
-
   async updateDailyStats(date: string): Promise<void> {
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 1);
+    // Get all sessions for the date (this is complex in Redis, simplified approach)
+    // For now, we'll store daily stats directly when sessions are created/updated
+    // This is a simplified implementation - in production you might want to use Redis sorted sets
+    const sessionsKey = `daily_sessions:${date}`;
+    const sessionIds = await redis.smembers(sessionsKey);
 
-    const daySessions = this.gameSessions.filter(
-      session => session.createdAt && session.createdAt >= startDate && session.createdAt < endDate
+    if (!sessionIds || sessionIds.length === 0) return;
+
+    const sessions = await Promise.all(
+      sessionIds.map(sessionId => this.getGameSession(sessionId))
     );
 
-    if (daySessions.length === 0) return;
+    const validSessions = sessions.filter(session => session !== undefined) as GameSession[];
 
-    const totalGames = daySessions.length;
-    const avgSurvived = daySessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
-    const avgMonths = daySessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
+    if (validSessions.length === 0) return;
+
+    const totalGames = validSessions.length;
+    const avgSurvived = validSessions.reduce((sum, session) => sum + session.cubsSurvived, 0) / totalGames;
+    const avgMonths = validSessions.reduce((sum, session) => sum + session.monthsCompleted, 0) / totalGames;
 
     // Count death causes
     const deathCauseCount: { [key: string]: number } = {};
-    daySessions.forEach(session => {
+    validSessions.forEach(session => {
       if (session.deathCause) {
         deathCauseCount[session.deathCause] = (deathCauseCount[session.deathCause] || 0) + 1;
       }
@@ -161,10 +173,8 @@ export class InMemoryStorage implements IStorage {
     const mostCommonCause = Object.entries(deathCauseCount)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || null;
 
-    const existingStatsIndex = this.gameStatsData.findIndex(stats => stats.date === date);
-
     const stats: GameStats = {
-      id: existingStatsIndex >= 0 ? this.gameStatsData[existingStatsIndex].id : Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substr(2, 9),
       date,
       totalGames,
       avgCubsSurvived: avgSurvived.toFixed(1),
@@ -173,39 +183,55 @@ export class InMemoryStorage implements IStorage {
       updatedAt: new Date()
     };
 
-    if (existingStatsIndex >= 0) {
-      this.gameStatsData[existingStatsIndex] = stats;
-    } else {
-      this.gameStatsData.push(stats);
-    }
+    await redis.set(`stats:${date}`, JSON.stringify(stats));
   }
 
   async getGameStats(date: string): Promise<GameStats | undefined> {
-    return this.gameStatsData.find(stats => stats.date === date);
+    const data = await redis.get(`stats:${date}`);
+    if (!data) return undefined;
+
+    const stats = JSON.parse(data as string);
+    // Convert updatedAt back to Date object
+    if (stats.updatedAt) {
+      stats.updatedAt = new Date(stats.updatedAt);
+    }
+    return stats;
   }
 
   async incrementUniqueUsers(ip: string): Promise<void> {
-    if (!this.globalStats.userIPs.includes(ip)) {
-      this.globalStats.userIPs.push(ip);
-      this.globalStats.uniqueUsers++;
+    const isNewUser = await redis.sadd('stats:uniqueUsers', ip);
+    if (isNewUser) {
+      await redis.incr('stats:totalUniqueUsers');
     }
   }
 
   async incrementTotalGames(): Promise<void> {
-    this.globalStats.totalGames++;
+    await redis.incr('stats:totalGames');
   }
 
   async incrementTotalCheetahsSaved(count: number): Promise<void> {
-    this.globalStats.totalCheetahsSaved += count;
+    await redis.incrby('stats:totalCheetahsSaved', count);
   }
 
   async incrementTotalStoryDownloads(): Promise<void> {
-    this.globalStats.totalStoryDownloads++;
+    await redis.incr('stats:totalStoryDownloads');
   }
 
   async getGlobalStats(): Promise<any> {
-    return this.globalStats;
+    const [totalGames, totalCheetahsSaved, totalStoryDownloads, uniqueUsers] = await Promise.all([
+      redis.get('stats:totalGames'),
+      redis.get('stats:totalCheetahsSaved'),
+      redis.get('stats:totalStoryDownloads'),
+      redis.get('stats:totalUniqueUsers')
+    ]);
+
+    return {
+      totalGames: totalGames || 0,
+      totalCheetahsSaved: totalCheetahsSaved || 0,
+      totalStoryDownloads: totalStoryDownloads || 0,
+      uniqueUsers: uniqueUsers || 0
+    };
   }
 }
 
-export const storage = new InMemoryStorage();
+export const storage = new UpstashStorage();

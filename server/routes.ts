@@ -3,8 +3,12 @@ import { storage } from "./storage";
 import { insertGameSessionSchema, insertGameEventSchema } from "@shared/schema";
 import { nanoid } from "nanoid";
 import { createCanvas, loadImage } from "canvas";
+import { Redis } from '@upstash/redis';
 import * as fs from "fs";
 import * as path from "path";
+
+// Initialize Upstash Redis client
+const redis = Redis.fromEnv();
 
 export function registerRoutes(app: Express): Express {
   // Game session routes
@@ -23,6 +27,10 @@ export function registerRoutes(app: Express): Express {
         deviceType,
         achievements: []
       });
+
+      // Track session for daily stats
+      const today = new Date().toISOString().split('T')[0];
+      await redis.sadd(`daily_sessions:${today}`, sessionId);
 
       // Track game start event
       await storage.createGameEvent({
