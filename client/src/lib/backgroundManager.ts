@@ -58,7 +58,7 @@ export class BackgroundManager {
     const defaultBackground: BackgroundConfig = {
       id: 'default',
       name: 'پیش‌فرض',
-      path: '/assets/backgrounds/main.png',
+      path: '/assets/backgrounds/main.webp',
       type: 'image'
     };
 

@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   /* Material Design Expressive Color Palette */
@@ -154,7 +152,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
 
   html {
@@ -164,7 +162,7 @@
   }
 
   body {
-    @apply font-sans antialiased;
+    font-family: var(--font-sans);
     background: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
     font-feature-settings: "rlig" 1, "calt" 1;

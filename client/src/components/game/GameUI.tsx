@@ -224,9 +224,9 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
       {showGuideModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl max-h-[90vh] flex flex-col">
-            <div className="text-center p-4 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-1">آموزش بازی</h2>
-              <p className="text-sm text-gray-600">قبل از شروع بازی، کنترل‌ها را یاد بگیرید</p>
+            <div className="text-center p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
+              <h2 className="text-2xl font-extrabold text-gray-800 mb-1">آموزش بازی</h2>
+              <p className="text-sm text-gray-600 font-medium">قبل از شروع بازی، با خطرات و منابع آشنا شوید</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -246,11 +246,23 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
                   <span className="text-base mr-1">⚠️</span>
                   خطرات
                 </h3>
-                <div className="flex justify-center space-x-2 space-x-reverse mb-2">
-                  <img src="/assets/sprites/obstacles/smugller.png" alt="قاچاقچی" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/car.png" alt="ماشین" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/camel.png" alt="شتر" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/obstacles/dog.png" alt="سگ" className="w-6 h-6 object-contain" />
+                <div className="flex justify-center space-x-3 space-x-reverse mb-3 p-2 bg-white/50 rounded-lg shadow-inner">
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/obstacles/smugller.webp" alt="قاچاقچی" className="w-10 h-10 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-red-700">قاچاقچی</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/obstacles/car.webp" alt="ماشین" className="w-10 h-10 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-red-700">ماشین</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/obstacles/camel.webp" alt="شتر" className="w-10 h-10 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-red-700">شتر</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/obstacles/dog.webp" alt="سگ" className="w-10 h-10 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-red-700">سگ</span>
+                  </div>
                 </div>
                 <p className="text-xs text-red-700 text-center font-medium leading-relaxed">
                   ⚠️ شتر، قاچاقچی و سگ دارای منطقه مرگ دایره‌ای هستند<br/>
@@ -266,10 +278,19 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
                   <span className="text-base mr-1">🌿</span>
                   منابع غذایی، آب و سلامت خانواده
                 </h3>
-                <div className="flex justify-center space-x-2 space-x-reverse mb-2">
-                  <img src="/assets/sprites/resources/gazelle.png" alt="آهو" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/resources/rabbit.png" alt="خرگوش" className="w-6 h-6 object-contain" />
-                  <img src="/assets/sprites/resources/water.png" alt="آب" className="w-6 h-6 object-contain" />
+                <div className="flex justify-center space-x-4 space-x-reverse mb-3 p-2 bg-white/50 rounded-lg shadow-inner">
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/resources/gazelle.webp" alt="آهو" className="w-12 h-12 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-green-700">آهو</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/resources/rabbit.webp" alt="خرگوش" className="w-12 h-12 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-green-700">خرگوش</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src="/assets/sprites/resources/water.webp" alt="آب" className="w-12 h-12 object-contain drop-shadow-md" />
+                    <span className="text-xs font-medium mt-1 text-green-700">آب</span>
+                  </div>
                 </div>
                 <div className="text-center mb-2">
                   <svg width="80" height="20" viewBox="0 0 80 20" className="inline-block">
@@ -289,14 +310,14 @@ export default function GameUI({ gameData, onTutorialComplete, gameStarted, isLo
               {/* Seasons Section */}
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <h3 className="font-semibold text-blue-800 mb-2 flex items-center text-sm">
-                  <span className="text-base mr-1">🌸</span>
+                  <span className="text-xl mr-2">🌸</span>
                   تغییر فصل‌ها
                 </h3>
                 <div className="flex justify-center space-x-1 space-x-reverse mb-2">
-                  <img src="/assets/backgrounds/spring-bg.webp" alt="بهار" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/summer-bg.webp" alt="تابستان" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/autumn-bg.webp" alt="پاییز" className="w-8 h-6 object-cover rounded" />
-                  <img src="/assets/backgrounds/winter-bg.webp" alt="زمستان" className="w-8 h-6 object-cover rounded" />
+                  <img src="/assets/backgrounds/spring-bg.webp" alt="بهار" className="w-12 h-12 object-contain drop-shadow-md" />
+                  <img src="/assets/backgrounds/summer-bg.webp" alt="تابستان" className="w-12 h-12 object-contain drop-shadow-md" />
+                  <img src="/assets/backgrounds/autumn-bg.webp" alt="پاییز" className="w-12 h-12 object-contain drop-shadow-md" />
+                  <img src="/assets/backgrounds/winter-bg.webp" alt="زمستان" className="w-12 h-12 object-contain drop-shadow-md" />
                 </div>
                 <p className="text-xs text-blue-700 text-center font-medium leading-relaxed">
                   در فصول مختلف منابع و تهدیدات کم یا زیاد می‌شوند. تغییر فصل را در پس زمینه بازی مشاهده کنید.

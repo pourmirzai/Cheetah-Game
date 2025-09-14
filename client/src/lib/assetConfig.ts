@@ -12,23 +12,23 @@ export const ASSET_PATHS = {
 
   // Obstacle Images
   obstacles: {
-    dog: '/assets/sprites/obstacles/dog.png',
-    smuggler: '/assets/sprites/obstacles/smugller.png',
-    camel: '/assets/sprites/obstacles/camel.png',
-    car: '/assets/sprites/obstacles/car.png'
+    dog: '/assets/sprites/obstacles/dog.webp',
+    smuggler: '/assets/sprites/obstacles/smugller.webp',
+    camel: '/assets/sprites/obstacles/camel.webp',
+    car: '/assets/sprites/obstacles/car.webp'
   },
 
   // Resource Images
   resources: {
-    water: '/assets/sprites/resources/water.png',
-    gazelle: '/assets/sprites/resources/gazelle.png',
-    rabbit: '/assets/sprites/resources/rabbit.png'
+    water: '/assets/sprites/resources/water.webp',
+    gazelle: '/assets/sprites/resources/gazelle.webp',
+    rabbit: '/assets/sprites/resources/rabbit.webp'
   },
 
   // Character Images
   characters: {
-    motherCheetah: '/assets/sprites/characters/mother-cheetah.png',
-    cub: '/assets/sprites/characters/cub.png'
+    motherCheetah: '/assets/sprites/characters/mother-cheetah.webp',
+    cub: '/assets/sprites/characters/cub.webp'
   }
 } as const;
 

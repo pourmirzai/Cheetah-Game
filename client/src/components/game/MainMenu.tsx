@@ -73,11 +73,21 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
               {/* Subtle glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 rounded-lg blur-xl"></div>
 
-              <div className="relative space-y-2 sm:space-y-3 md:space-y-4">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-primary leading-tight md-motion-emphasized drop-shadow-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <div className="relative space-y-3 sm:space-y-4 md:space-y-6 w-full">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight tracking-tight animate-fade-in" style={{
+                  animationDelay: '0.1s',
+                  background: 'linear-gradient(to right, #4f46e5, #7c3aed, #a855f7)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}>
                   بازی حفاظت از یوزپلنگ آسیایی
                 </h1>
-                <p className="text-lg sm:text-xl md:text-2xl text-secondary font-semibold leading-relaxed animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold leading-relaxed animate-fade-in bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent" style={{ 
+                  animationDelay: '0.2s',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+                }}>
                   ماموریت ۱۸ ماهه
                 </p>
               </div>
@@ -85,37 +95,37 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
               {/* Enhanced cheetah family illustration with better animations */}
               <div className="relative my-4 sm:my-6 md:my-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
                 {/* Mother cheetah with enhanced styling and floating animation */}
-                <div className="w-32 h-20 sm:w-36 sm:h-24 md:w-40 md:h-28 bg-gradient-to-br from-tertiary/20 to-tertiary/10 mx-auto mb-6 sm:mb-8 relative rounded-2xl backdrop-blur-sm border border-tertiary/20 shadow-2xl animate-float">
+                <div className="w-48 h-32 sm:w-56 sm:h-40 md:w-64 md:h-48 mx-auto mb-4 sm:mb-6 relative">
                   <img
-                    src="/assets/sprites/characters/mother-cheetah.png"
+                    src="/assets/sprites/characters/mother-cheetah.webp"
                     alt="Cheetah Mother"
-                    className="w-full h-full object-contain p-2"
+                    className="w-full h-full object-contain animate-float"
                   />
                 </div>
                 {/* Four cubs following with staggered animations */}
-                <div className="flex justify-center space-x-2 sm:space-x-3 space-x-reverse">
+                <div className="flex justify-center space-x-3 sm:space-x-4 md:space-x-6 space-x-reverse">
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 1"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-12 h-10 sm:w-14 sm:h-12 md:w-16 md:h-14 animate-bounce-gentle"
                     style={{ animationDelay: '0.8s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 2"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-12 h-10 sm:w-14 sm:h-12 md:w-16 md:h-14 animate-bounce-gentle"
                     style={{ animationDelay: '1s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 3"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-12 h-10 sm:w-14 sm:h-12 md:w-16 md:h-14 animate-bounce-gentle"
                     style={{ animationDelay: '1.2s' }}
                   />
                   <img
-                    src="/assets/sprites/characters/cub.png"
+                    src="/assets/sprites/characters/cub.webp"
                     alt="Cheetah Cub 4"
-                    className="w-8 h-7 sm:w-10 sm:h-8 md:w-12 md:h-10 bg-gradient-to-br from-tertiary/30 to-tertiary/10 rounded-lg p-0.5 sm:p-1 shadow-lg animate-bounce-gentle"
+                    className="w-12 h-10 sm:w-14 sm:h-12 md:w-16 md:h-14 animate-bounce-gentle"
                     style={{ animationDelay: '1.4s' }}
                   />
                 </div>
@@ -123,8 +133,8 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
             </div>
 
             {/* Game description with enhanced card and better mobile typography */}
-            <div className="md-card max-w-lg mx-auto animate-fade-in backdrop-blur-sm bg-background/80" style={{ animationDelay: '0.9s' }}>
-              <p className="text-base sm:text-lg text-on-surface-variant leading-relaxed font-medium text-center px-2">
+            <div className="max-w-2xl mx-auto animate-fade-in backdrop-blur-sm bg-background/80 p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200/20" style={{ animationDelay: '0.9s' }}>
+              <p className="text-lg sm:text-xl text-on-surface-variant leading-relaxed font-medium text-center">
                 کمک  کن یوزپلنگ مادر بتواند در 18 ماه،<br /> 4 توله اش را در شرایط سخت به استقلال برساند
               </p>
             </div>
@@ -133,33 +143,40 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
 
         {/* Cheetah Educational Info */}
         {showBasicInfo && isLoaded && (
-          <div className="md-card max-w-4xl mx-auto animate-fade-in backdrop-blur-sm bg-background/90 p-6 max-h-[75vh] overflow-y-auto mt-8" style={{ animationDelay: '0.3s' }}>
-            <div className="flex justify-between items-center mb-6">
+          <div className="md-card max-w-5xl mx-auto animate-fade-in backdrop-blur-sm bg-background/95 p-6 max-h-[80vh] overflow-y-auto mt-4" style={{ animationDelay: '0.3s' }}>
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
               <button
                 onClick={() => setShowBasicInfo(false)}
-                className="md-filled-button bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+                className="md-filled-button bg-secondary hover:bg-secondary/90 text-secondary-foreground px-6 py-2.5 text-base font-medium transition-colors flex items-center gap-2 shadow-md"
               >
                 <span>←</span>
                 بازگشت به منوی اصلی
               </button>
-              <h3 className="text-2xl font-bold text-primary">آموزش و حفاظت از یوزپلنگ آسیایی</h3>
-              <div></div> {/* Spacer for centering */}
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-800  text-center">
+                آموزش و حفاظت از یوزپلنگ آسیایی
+              </h3>
+              <div className="w-8"></div> {/* Spacer for centering */}
             </div>
             <Accordion type="single" collapsible className="w-full space-y-4">
               {/* وضعیت یوزپلنگ ایرانی */}
               <AccordionItem value="cheetah-status" className="border rounded-lg">
-                <AccordionTrigger className="px-4 py-3 hover:bg-accent/50 text-right">
-                  <div className="flex items-center space-x-3 space-x-reverse">
-                    <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">🐆</div>
-                    <div className="text-right">
+                <AccordionTrigger className="px-4 py-3 bg-gray-100 text-right transition-colors">
+                  <div className="flex items-center space-x-3 space-x-reverse w-full">
+                    <div className="w-10 h-10 bg-red-700 dark:bg-red-600 rounded-full flex items-center justify-center text-white text-xl">🐆</div>
+                    <div className="text-right flex-1">
                       <h3 className="font-bold text-lg">وضعیت یوزپلنگ آسیایی</h3>
-                      <p className="text-sm text-muted-foreground">جمعیت، پراکندگی و چالش‌های کنونی</p>
+                      <p className="text-sm text-gray-700  mt-0.5">جمعیت، پراکندگی و چالش‌های کنونی</p>
+                    </div>
+                    <div className="text-gray-400 dark:text-gray-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down transition-transform duration-200">
+                        <path d="m6 9 6 6 6-6"/>
+                      </svg>
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-4 text-right">
-                    <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
+                <AccordionContent className="px-1 py-2">
+                  <div className="space-y-5 text-right">
+                    <div className="bg-red-50 dark:bg-red-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-red-700 dark:text-red-400">وضعیت بحرانی</h4>
                       <p className="text-sm leading-relaxed mb-3">
                         یوزپلنگ آسیایی (Acinonyx jubatus venaticus) یکی از نادرترین زیرگونه‌های یوزپلنگ در جهان است.
@@ -179,17 +196,17 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                       </div>
                     </div>
 
-                    <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg">
+                    <div className="bg-orange-50 dark:bg-orange-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-orange-700 dark:text-orange-400">زیستگاه‌های باقی‌مانده</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• <strong>استان سمنان:</strong> زیستگاه اصلی با جمعیت حدود ۲۰ یوز</li>
-                        <li>• <strong>استان خراسان شمالی:</strong> جمعیت کوچکتر وابسته به جمعیت سمنان</li>
-                        <li>• <strong>استان خراسان رضوی:</strong>  جمعیت بسیار محدود و گذری</li>
+                        <li>•  <strong>استان سمنان:</strong> زیستگاه اصلی با جمعیت حدود ۲۰ یوز</li>
+                        <li>•  <strong>استان خراسان شمالی:</strong> جمعیت کوچکتر وابسته به جمعیت سمنان</li>
+                        <li>•  <strong>استان خراسان رضوی:</strong>  جمعیت بسیار محدود و گذری</li>
                       </ul>
                     </div>
 
-                    <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3 text-yellow-700 dark:text-yellow-400">علل کاهش جمعیت</h4>
+                    <div className="bg-yellow-50 dark:bg-yellow-950/10 p-4 rounded-lg">
+                      <h4 className="font-bold text-lg mb-4 text-yellow-700 dark:text-yellow-400 flex items-center gap-2">علل کاهش جمعیت</h4>
                       <p className="text-sm leading-relaxed">
                         جمعیت یوزپلنگ آسیایی از حدود ۱۰۰-۲۰۰ فرد در دهه ۱۹۷۰ به کمتر از ۳۰ فرد در سال ۲۰۲۴ کاهش یافته است.
                         این کاهش شدید به دلیل ترکیب عوامل انسانی و طبیعی رخ داده است.
@@ -210,8 +227,8 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-4 text-right">
+                <AccordionContent className="px-1 py-2">
+                  <div className="space-y-5 text-right">
                     <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🛣️</span>
@@ -221,10 +238,10 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         جاده‌ها یکی از بزرگترین تهدیدها برای یوزپلنگ هستند. تعداد زیادی یوزپلنگ در تصادفات جاده‌ای کشته شده‌اند.
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• جاده‌های اصلی مانند تهران-مشهد</li>
-                        <li>• نبود پل‌های حیات‌وحش و زیرگذرها</li>
-                        <li>• سرعت بالا و ترافیک سنگین</li>
-                        <li>• تخریب زیستگاه به دلیل ساخت جاده</li>
+                        <li>•  جاده‌های اصلی مانند تهران-مشهد</li>
+                        <li>•  نبود پل‌های حیات‌وحش و زیرگذرها</li>
+                        <li>•  سرعت بالا و ترافیک سنگین</li>
+                        <li>•  تخریب زیستگاه به دلیل ساخت جاده</li>
                       </ul>
                     </div>
 
@@ -237,12 +254,12 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         شکارچیان غیرمجاز جمعیت طعمه‌های یوز را به شدت کاهش داده‌اند.
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• شکار غیرمجاز آهو</li>
-                        <li>•  کمبود نظارت و کنترل شکار به دلیل کمبود محیط‌بان</li>
+                        <li>•  شکار غیرمجاز آهو</li>
+                        <li>•   کمبود نظارت و کنترل شکار به دلیل کمبود محیط‌بان</li>
                       </ul>
                     </div>
 
-                    <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg">
+                    <div className="bg-orange-50 dark:bg-orange-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🐕</span>
                         <span>سگ‌های گله و سگ‌های رها شده</span>
@@ -251,14 +268,14 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         سگ‌های گله و سگ‌های رها شده یکی از جدی‌ترین تهدیدها برای توله‌های یوزپلنگ هستند.
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• حمله به توله‌های یوزپلنگ</li>
-                        <li>• رقابت سگ‌های رها شده برای طعمه با یوزهای بالغ</li>
-                        <li>• گسترش بیماری‌های مشترک</li>
-                        <li>• جمعیت رو به رشد سگ‌های رها شده</li>
+                        <li>•  حمله به توله‌های یوزپلنگ</li>
+                        <li>•  رقابت سگ‌های رها شده برای طعمه با یوزهای بالغ</li>
+                        <li>•  گسترش بیماری‌های مشترک</li>
+                        <li>•  جمعیت رو به رشد سگ‌های رها شده</li>
                       </ul>
                     </div>
 
-                    <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
+                    <div className="bg-yellow-50 dark:bg-yellow-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🏜️</span>
                         <span>حضور شترهای رها شده در زیستگاه های یوزپلنگ</span>
@@ -267,13 +284,13 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         دامداری و شترداری بی رویه باعث تخریب بیشتر زیستگاه‌ها شده
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• رقابت بر سر منابع آبی با شتر</li>
-                        <li>• کاهش جمعیت طعمه یوزپلنگ بر اثر کاهش مراتع و منابع غذایی</li>
-                        <li>• تشدید اثر تغییر اقلیم و خشکسالی</li>
+                        <li>•  رقابت بر سر منابع آبی با شتر</li>
+                        <li>•  کاهش جمعیت طعمه یوزپلنگ بر اثر کاهش مراتع و منابع غذایی</li>
+                        <li>•  تشدید اثر تغییر اقلیم و خشکسالی</li>
                       </ul>
                     </div>
 
-                    <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                    <div className="bg-green-50 dark:bg-green-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🏗️</span>
                         <span>تخریب زیستگاه</span>
@@ -282,15 +299,15 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         گسترش کشاورزی، شهرنشینی و پروژه‌های صنعتی زیستگاه‌های یوزپلنگ را کوچک‌تر می‌کنند.
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• تبدیل مراتع به زمین کشاورزی</li>
-                        <li>• ساخت جاده و راه‌آهن</li>
-                        <li>• استخراج معادن</li>
-                        <li>• گسترش شهرها و روستاها</li>
-                        <li>• کاهش طعمه یوزپلنگ</li>
+                        <li>•  تبدیل مراتع به زمین کشاورزی</li>
+                        <li>•  ساخت جاده و راه‌آهن</li>
+                        <li>•  استخراج معادن</li>
+                        <li>•  گسترش شهرها و روستاها</li>
+                        <li>•  کاهش طعمه یوزپلنگ</li>
                       </ul>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                    <div className="bg-blue-50 dark:bg-blue-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center space-x-2 space-x-reverse">
                         <span>🌡️</span>
                         <span>تغییرات اقلیمی</span>
@@ -299,9 +316,9 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                         خشکسالی‌های شدید و تغییرات آب و هوایی بر منابع غذایی و آب یوزپلنگ تأثیر می‌گذارد.
                       </p>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li>• کاهش منابع آب</li>
-                        <li>• کاهش پوشش گیاهی</li>
-                        <li>• کاهش جمعیت طعمه</li>
+                        <li>•  کاهش منابع آب</li>
+                        <li>•  کاهش پوشش گیاهی</li>
+                        <li>•  کاهش جمعیت طعمه</li>
                       </ul>
                     </div>
                   </div>
@@ -321,32 +338,32 @@ export default function MainMenu({ onStartGame, onDownloadStory }: MainMenuProps
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="space-y-4 text-right">
-                    <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                    <div className="bg-green-50 dark:bg-green-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-green-700 dark:text-green-400">اقدامات دولتی و سازمانی</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• <strong>ایمن سازی محل های عبور یوزپلنگ بین زیستگاه ها</strong></li>
-                        <li>• <strong>ساخت پل های هوایی ماشین رو در محل های داغ عبور یوزپلنگ بر روی جاده تهران- مشهد</strong></li>
-                        <li>• <strong>کنترل جمعیت سگ های گله و مدیریت و کنترل واکسیناسیون دام های موجود در زیستگاه ها</strong></li>
-                        <li>• <strong>نظارت الکترونیکی از طریق دوربین های تله ای و ردیاب های ماهواره ای</strong></li>
-                        <li>• <strong>آموزش و مشارکت جوامع محلی برای حفاظت از یوزپلنگ</strong></li>
-                        <li>• <strong>تقویت قوانین حفاظت و مجازات کارآمد و تاثیر گذار برای شکار غیرمجاز</strong></li>
-                        <li>• <strong>افزایش توان حفاظتی با افزایش تعداد نیروی محیط بان</strong></li>
+                        <li>•  <strong>ایمن سازی محل های عبور یوزپلنگ بین زیستگاه ها</strong></li>
+                        <li>•  <strong>ساخت پل های هوایی ماشین رو در محل های داغ عبور یوزپلنگ بر روی جاده تهران- مشهد</strong></li>
+                        <li>•  <strong>کنترل جمعیت سگ های گله و مدیریت و کنترل واکسیناسیون دام های موجود در زیستگاه ها</strong></li>
+                        <li>•  <strong>نظارت الکترونیکی از طریق دوربین های تله ای و ردیاب های ماهواره ای</strong></li>
+                        <li>•  <strong>آموزش و مشارکت جوامع محلی برای حفاظت از یوزپلنگ</strong></li>
+                        <li>•  <strong>تقویت قوانین حفاظت و مجازات کارآمد و تاثیر گذار برای شکار غیرمجاز</strong></li>
+                        <li>•  <strong>افزایش توان حفاظتی با افزایش تعداد نیروی محیط بان</strong></li>
                       </ul>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                    <div className="bg-blue-50 dark:bg-blue-950/10 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-blue-700 dark:text-blue-400">اقدامات فردی شما</h4>
                       <ul className="space-y-2 text-sm">
-                        <li>• <strong>رانندگی با سرعت مطمئن در محل های عبور یوزپلنگ و گزارش تصادف یوزپلنگ در صورت مشاهده</strong></li>
-                        <li>• <strong>کمک مالی به پروژه های حفاظتی و حمایت از سازمان های مستقل مردمی</strong></li>
-                        <li>• <strong>آگاهی رسانی و اشتراک گذاری اطلاعات از منابع معتبر در شبکه های اجتماعی</strong></li>
-                        <li>• <strong>اجتناب از خرید محصولات شکار و غیرقانونی</strong></li>
-                        <li>• <strong>اطلاع رسانی شکار غیر قانونی به مسئولین سازمان حفاظت محیط زیست</strong></li>
+                        <li>•  <strong>رانندگی با سرعت مطمئن در محل های عبور یوزپلنگ و گزارش تصادف یوزپلنگ در صورت مشاهده</strong></li>
+                        <li>•  <strong>کمک مالی به پروژه های حفاظتی و حمایت از سازمان های مستقل مردمی</strong></li>
+                        <li>•  <strong>آگاهی رسانی و اشتراک گذاری اطلاعات از منابع معتبر در شبکه های اجتماعی</strong></li>
+                        <li>•  <strong>اجتناب از خرید محصولات شکار و غیرقانونی</strong></li>
+                        <li>•  <strong>اطلاع رسانی شکار غیر قانونی به مسئولین سازمان حفاظت محیط زیست</strong></li>
                       </ul>
                     </div>
 
-                    <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3 text-yellow-700 dark:text-yellow-400">چشم‌انداز آینده</h4>
+                    <div className="bg-yellow-50 dark:bg-yellow-950/10 p-4 rounded-lg">
+                      <h4 className="font-bold text-lg mb-4 text-yellow-700 dark:text-yellow-400 flex items-center gap-2">چشم‌انداز آینده</h4>
                       <p className="text-sm leading-relaxed mb-3">
                         با اقدامات مناسب و حمایت عمومی، می‌توان جمعیت یوزپلنگ آسیایی را از وضعیت بحرانی خارج کرد.
                         هر فرد با اقدامات کوچک خود می‌تواند به نجات این گونه ارزشمند کمک کند.
