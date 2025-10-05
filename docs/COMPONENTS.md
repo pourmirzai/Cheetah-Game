@@ -144,9 +144,9 @@ const [showGuideModal, setShowGuideModal] = useState(true);
 
 ### MainMenu
 
-**مسیر:** `client/src/components/game/MainMenu.tsx`
+**Path:** `client/src/components/game/MainMenu.tsx`
 
-**توضیحات:** صفحه اصلی بازی با انتخاب پس‌زمینه
+**Description:** Main game menu with background selection
 
 **Props:**
 ```typescript
@@ -156,19 +156,19 @@ interface MainMenuProps {
 }
 ```
 
-**ویژگی‌ها:**
-- عنوان و توضیح بازی با انیمیشن
-- تصویر مادر یوز و توله‌ها با انیمیشن شناور
-- دکمه شروع بازی
-- دکمه اطلاعات آموزشی یوزپلنگ (اکordion)
-- دکمه دانلود استوری برای کاربران بازگشته
-- پس‌زمینه پویا با سیستم مدیریت پس‌زمینه
+**Features:**
+- Game title and description with animation
+- Mother cheetah and cubs image with floating animation
+- Start game button
+- Educational information button about cheetahs (accordion)
+- Story download button for returning users
+- Dynamic background with background management system
 
 ### PhaserGame
 
-**مسیر:** `client/src/components/game/PhaserGame.tsx`
+**Path:** `client/src/components/game/PhaserGame.tsx`
 
-**توضیحات:** wrapper برای موتور بازی Phaser.js
+**Description:** Wrapper for Phaser.js game engine
 
 **Props:**
 ```typescript
@@ -181,11 +181,11 @@ interface PhaserGameProps {
 }
 ```
 
-**ویژگی‌ها:**
-- مدیریت canvas بازی
-- کنترل اندازه responsive
-- مدیریت چرخه حیات Phaser
-- اتصال به gameEngine
+**Features:**
+- Game canvas management
+- Responsive size control
+- Phaser lifecycle management
+- Connection to gameEngine
 
 ## 🎨 UI Components
 

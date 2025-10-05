@@ -11,15 +11,16 @@ Complete documentation for the interactive web game project for the conservation
 This documentation is prepared in English and covers all aspects of the project:
 
 ### 🎯 Project Objective
-An interactive and viral game for National Cheetah Day (September 9, 2024) aimed at raising awareness about the conservation of the Asian cheetah.
+An interactive and viral game for National Cheetah Day (August 31, 2025) aimed at raising awareness about the conservation of the Asian cheetah.
 
 ### 📊 Project Statistics
 - **Programming Language**: TypeScript
-- **Frontend**: React 18 + Phaser.js
+- **Frontend**: React 18 + Phaser.js + Tailwind CSS v4
 - **Backend**: Node.js + Express
 - **Database**: PostgreSQL
 - **UI Framework**: Material Design Expressive
-- **Deployment**: Liara Cloud
+- **Deployment**: Liara Cloud, Vercel (serverless)
+- **Version**: 1.8.0
 
 ---
 

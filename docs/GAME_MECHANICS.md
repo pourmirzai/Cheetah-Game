@@ -1,25 +1,25 @@
 # 🎯 Game Mechanics Documentation
 
-مستندات مکانیک‌های بازی نجات یوز ایران
+Game mechanics documentation for Save Cheetah Iran
 
-## 📋 نمای کلی
+## 📋 Overview
 
-بازی نجات یوز ایران یک vertical scroller است که از مکانیک‌های ساده اما جذاب استفاده می‌کند تا پیام حفاظت از یوزپلنگ آسیایی را منتقل کند.
+Save Cheetah Iran is a vertical scroller game that uses simple but engaging mechanics to convey the message of protecting the Asian cheetah.
 
-## 🐾 شخصیت‌ها و موجودیت‌ها
+## 🐾 Characters and Entities
 
-### مادر یوزپلنگ (Player Character)
+### Mother Cheetah (Player Character)
 
-**ویژگی‌ها:**
-- **حرکت**: کنترل با لمس/کلیک چپ و راست
-- **سرعت پایه**: ۲۰۰ پیکسل بر ثانیه
-- **سرعت در سلامتی کم**: ۵۰% کاهش (۱۰۰ پیکسل بر ثانیه)
-- **سلامتی**: ۱۰۰ امتیاز اولیه
-- **اندازه**: ۶۴×۴۸ پیکسل (بهبود یافته برای دید بهتر)
+**Features:**
+- **Movement**: Control with left/right touch/click
+- **Base speed**: 200 pixels per second
+- **Low health speed**: 50% reduction (100 pixels per second)
+- **Health**: 100 initial points
+- **Size**: 64×48 pixels (improved for better visibility)
 
-**مکانیک حرکت:**
+**Movement Mechanics:**
 ```typescript
-// تغییر مسیر
+// Lane change
 function changeLane(scene: GameScene, newLane: number) {
   const targetX = scene.lanes[newLane];
   scene.tweens.add({
@@ -31,17 +31,17 @@ function changeLane(scene: GameScene, newLane: number) {
 }
 ```
 
-### توله‌های یوز (Cubs)
+### Cheetah Cubs
 
-**ویژگی‌ها:**
-- **تعداد**: ۴ توله
-- **حرکت**: دنبال کردن مادر با تأخیر
-- **اندازه**: ۴۰×۲۸ پیکسل (بهبود یافته)
-- **انیمیشن**: حرکت ملایم و pulsing
+**Features:**
+- **Count**: 4 cubs
+- **Movement**: Follow mother with delay
+- **Size**: 40×28 pixels (improved)
+- **Animation**: Smooth movement and pulsing
 
-**مکانیک دنبال کردن:**
+**Following Mechanics:**
 ```typescript
-// توله‌ها مادر را دنبال می‌کنند
+// Cubs follow mother
 scene.cubs.forEach((cub, index) => {
   scene.tweens.add({
     targets: cub,
@@ -52,24 +52,24 @@ scene.cubs.forEach((cub, index) => {
 });
 ```
 
-## 🏞️ محیط بازی
+## 🏞️ Game Environment
 
-### مسیرها (Lanes)
+### Lanes
 
-**ویژگی‌ها:**
-- **تعداد**: ۴ مسیر موازی
-- **فواصل**: ۱۲۰، ۲۴۰، ۳۶۰، ۴۸۰ پیکسل از سمت چپ
-- **عرض**: ۱۲۰ پیکسل هر مسیر
-- **نمایان‌سازی**: خطوط راهنما در UI
+**Features:**
+- **Count**: 4 parallel lanes
+- **Positions**: 120, 240, 360, 480 pixels from left
+- **Width**: 120 pixels per lane
+- **Visualization**: Guide lines in UI
 
-### پس‌زمینه‌ها (Backgrounds)
+### Backgrounds
 
-**سیستم پویا:**
-- **۴ فصل**: بهار، تابستان، پاییز، زمستان
-- **تغییر خودکار**: هر ۶-۸ ثانیه (ماه جدید)
-- **scaling**: responsive برای تمام اندازه صفحه‌ها
+**Dynamic System:**
+- **4 Seasons**: Spring, summer, autumn, winter
+- **Auto-change**: Every 6-8 seconds (new month)
+- **Scaling**: Responsive for all screen sizes
 
-**تغییر فصل:**
+**Season Change:**
 ```typescript
 function updateSeason(scene: GameScene) {
   const month = scene.gameData.currentMonth;

@@ -121,12 +121,25 @@ http://localhost:3000
 ```
 
 ## 🏗️ Technical Architecture
-- **Frontend:** React 18, TypeScript, Phaser.js, Material Design
+- **Frontend:** React 18, TypeScript, Phaser.js, Material Design, Tailwind CSS v4
 - **Backend:** Node.js, Express.js, PostgreSQL
 - **Database:** Neon PostgreSQL
 - **ORM:** Drizzle ORM
 - **Build Tool:** Vite
-- **Deployment:** Liara Cloud
+- **Deployment:** Liara Cloud, Vercel (serverless)
+- **Version:** 1.8.0
+
+## 🆕 Latest Updates (v1.8.0)
+
+### Performance Improvements
+- **WebP Assets:** All sprite images converted from PNG to WebP format for better performance and smaller file sizes
+- **Enhanced UI Components:** Improved GameUI tutorial modal with better styling and layout
+- **MainMenu Enhancements:** Larger cheetah illustrations and smoother animations
+
+### Technical Updates
+- **Tailwind CSS v4:** Upgraded to the latest version for improved styling capabilities
+- **Vercel Deployment:** Added serverless deployment configuration for better scalability
+- **Dependency Updates:** Updated all dependencies to latest stable versions
 
 ## 🔄 Future Improvements
 

@@ -62,87 +62,87 @@ set "DATABASE_URL=postgresql://..." && npx tsx server/index.ts
 http://localhost:3000
 ```
 
-## 📁 ساختار پروژه
+## 📁 Project Structure
 
 ```
 save-cheetah/
 ├── client/                 # Frontend React
 │   ├── src/
-│   │   ├── components/     # کامپوننت‌های React
-│   │   ├── lib/           # Utilities و منطق بازی
-│   │   ├── pages/         # صفحات برنامه
-│   │   ├── styles/        # CSS و استایل‌ها
-│   │   └── types/         # تعریف تایپ‌ها
-│   ├── public/            # فایل‌های static
+│   │   ├── components/     # React components
+│   │   ├── lib/           # Utilities and game logic
+│   │   ├── pages/         # Application pages
+│   │   ├── styles/        # CSS and styles
+│   │   └── types/         # Type definitions
+│   ├── public/            # Static files
 │   └── index.html
 ├── server/                 # Backend Express
-│   ├── index.ts           # سرور اصلی
+│   ├── index.ts           # Main server
 │   ├── routes.ts          # API routes
-│   ├── db.ts             # اتصال پایگاه داده
-│   └── storage.ts        # مدیریت فایل‌ها
-├── shared/                 # کد مشترک
-├── migrations/            # Migrationهای پایگاه داده
-├── docs/                  # مستندات
+│   ├── db.ts             # Database connection
+│   └── storage.ts        # File management
+├── shared/                 # Shared code
+├── migrations/            # Database migrations
+├── docs/                  # Documentation
 └── package.json
 ```
 
-## 🔧 اسکریپت‌های مفید
+## 🔧 Useful Scripts
 
-### توسعه
+### Development
 ```bash
-npm run dev          # اجرای سرور توسعه
-npm run build        # ساخت برای production
-npm run preview      # پیش‌نمایش build
+npm run dev          # Run development server
+npm run build        # Build for production
+npm run preview      # Preview build
 ```
 
-### پایگاه داده
+### Database
 ```bash
-npm run db:push      # اجرای migrationها
+npm run db:push      # Run migrations
 npm run db:studio    # Drizzle Studio
-npm run db:check     # بررسی اتصال
+npm run db:check     # Check connection
 ```
 
-### کیفیت کد
+### Code Quality
 ```bash
-npm run check        # بررسی TypeScript
-npm run lint         # بررسی ESLint
-npm run format       # فرمت‌بندی کد
+npm run check        # Check TypeScript
+npm run lint         # Check ESLint
+npm run format       # Format code
 ```
 
-## 🎨 معماری و طراحی
+## 🎨 Architecture and Design
 
-### الگوی طراحی
+### Design Patterns
 
 **Frontend (React + TypeScript):**
-- کامپوننت‌محور با hooks
-- مدیریت state با Context/Redux
-- TypeScript برای type safety
-- Material Design برای UI
+- Component-based with hooks
+- State management with Context/Redux
+- TypeScript for type safety
+- Material Design for UI
 
 **Backend (Node.js + Express):**
 - RESTful API
 - Session-based authentication
-- Database ORM با Drizzle
-- Error handling متمرکز
+- Database ORM with Drizzle
+- Centralized error handling
 
-### اصول توسعه
+### Development Principles
 
-#### ۱. کامپوننت‌ها
+#### 1. Components
 ```typescript
-// ✅ خوب
+// ✅ Good
 interface GameUIProps {
   gameData: GameData;
   onTutorialComplete?: () => void;
 }
 
 export default function GameUI({ gameData, onTutorialComplete }: GameUIProps) {
-  // منطق کامپوننت
+  // Component logic
 }
 ```
 
-#### ۲. مدیریت state
+#### 2. State Management
 ```typescript
-// استفاده از custom hooks
+// Using custom hooks
 function useGameState() {
   const [gameData, setGameData] = useState<GameData>(initialGameData);
 
@@ -154,18 +154,18 @@ function useGameState() {
 }
 ```
 
-#### ۳. API calls
+#### 3. API Calls
 ```typescript
-// استفاده از React Query
+// Using React Query
 const { data, isLoading, error } = useQuery({
   queryKey: ['leaderboard'],
   queryFn: () => fetch('/api/leaderboard').then(res => res.json())
 });
 ```
 
-## 🧪 تست و کیفیت کد
+## 🧪 Testing and Code Quality
 
-### اجرای تست‌ها
+### Running Tests
 ```bash
 # Unit tests
 npm run test:unit
@@ -180,7 +180,7 @@ npm run test:e2e
 npm run test:coverage
 ```
 
-### ساختار تست
+### Test Structure
 ```
 __tests__/
 ├── components/
@@ -194,7 +194,7 @@ __tests__/
     └── analytics.test.ts
 ```
 
-### مثال تست کامپوننت
+### Component Test Example
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react';
 import GameUI from '../GameUI';
@@ -203,7 +203,7 @@ test('shows tutorial modal initially', () => {
   const mockGameData = { /* ... */ };
   render(<GameUI gameData={mockGameData} />);
 
-  expect(screen.getByText('آموزش بازی')).toBeInTheDocument();
+  expect(screen.getByText('Game Tutorial')).toBeInTheDocument();
 });
 
 test('calls onTutorialComplete when start button clicked', () => {
@@ -217,24 +217,24 @@ test('calls onTutorialComplete when start button clicked', () => {
     />
   );
 
-  fireEvent.click(screen.getByText('شروع بازی!'));
+  fireEvent.click(screen.getByText('Start Game!'));
   expect(mockOnComplete).toHaveBeenCalled();
 });
 ```
 
-## 🔍 دیباگ و عیب‌یابی
+## 🔍 Debugging and Troubleshooting
 
-### ابزارهای دیباگ
+### Debug Tools
 
 #### React DevTools
 ```bash
-# نصب extension در مرورگر
-# یا استفاده از React Developer Tools در VS Code
+# Install browser extension
+# Or use React Developer Tools in VS Code
 ```
 
-#### Redux DevTools (اگر استفاده شود)
+#### Redux DevTools (if used)
 ```typescript
-// اضافه کردن middleware
+// Add middleware
 const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
@@ -251,44 +251,44 @@ if (process.env.NODE_ENV === 'development') {
 }
 ```
 
-### مشکلات رایج
+### Common Problems
 
-#### ۱. خطای اتصال پایگاه داده
+#### 1. Database Connection Error
 ```bash
-# بررسی متغیرهای محیطی
+# Check environment variables
 echo $DATABASE_URL
 
-# تست اتصال
+# Test connection
 npm run db:check
 ```
 
-#### ۲. خطای build
+#### 2. Build Error
 ```bash
-# پاک کردن node_modules
+# Clear node_modules
 rm -rf node_modules
 npm install
 
-# پاک کردن cache
+# Clear cache
 npm run clean
 ```
 
-#### ۳. خطای TypeScript
+#### 3. TypeScript Error
 ```bash
-# بررسی تایپ‌ها
+# Check types
 npm run check
 
-# Auto-fix مشکلات
+# Auto-fix issues
 npm run lint:fix
 ```
 
-## 🚀 استقرار (Deployment)
+## 🚀 Deployment
 
-### محیط‌های مختلف
+### Different Environments
 
 #### Development
 ```bash
 npm run dev
-# دسترسی: http://localhost:3000
+# Access: http://localhost:3000
 ```
 
 #### Production Build
@@ -309,52 +309,52 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-### پلتفرم‌های استقرار
+### Deployment Platforms
 
-#### Liara Cloud (پیشنهادی)
+#### Liara Cloud (Recommended)
 ```bash
-# نصب Liara CLI
+# Install Liara CLI
 npm install -g @liara/cli
 
-# ورود به حساب
+# Login to account
 liara login
 
-# استقرار
+# Deploy
 liara deploy
 ```
 
 #### Vercel
 ```bash
-# نصب Vercel CLI
+# Install Vercel CLI
 npm install -g vercel
 
-# استقرار
+# Deploy
 vercel --prod
 ```
 
 #### Railway
 ```bash
-# اتصال به Railway
+# Connect to Railway
 railway login
 railway link
 railway up
 ```
 
-## 📊 مانیتورینگ و تحلیل
+## 📊 Monitoring and Analytics
 
-### ابزارهای مانیتورینگ
+### Monitoring Tools
 
 #### Application Performance
-- **Response Time**: میانگین زمان پاسخ API
-- **Error Rate**: نرخ خطا
-- **Throughput**: تعداد درخواست‌ها در واحد زمان
+- **Response Time**: Average API response time
+- **Error Rate**: Error rate
+- **Throughput**: Number of requests per unit time
 
 #### User Analytics
-- **Session Duration**: مدت زمان بازی کاربران
-- **Completion Rate**: نرخ تکمیل بازی
-- **User Flow**: مسیر حرکت کاربران
+- **Session Duration**: User game session duration
+- **Completion Rate**: Game completion rate
+- **User Flow**: User movement paths
 
-### لاگ‌گیری
+### Logging
 
 #### Winston Logger
 ```typescript
@@ -379,7 +379,7 @@ import morgan from 'morgan';
 app.use(morgan('combined'));
 ```
 
-## 🔒 امنیت
+## 🔒 Security
 
 ### Best Practices
 
@@ -427,63 +427,63 @@ app.use(cors({
 }));
 ```
 
-## 📚 منابع یادگیری
+## 📚 Learning Resources
 
-### مستندات کلیدی
+### Key Documentation
 - [React Documentation](https://react.dev)
 - [TypeScript Handbook](https://typescriptlang.org/docs)
 - [Phaser 3 Examples](https://phaser.io/phaser3)
 - [Express.js Guide](https://expressjs.com)
 
-### ابزارهای مفید
+### Useful Tools
 - [React DevTools](https://react.dev/learn/react-developer-tools)
 - [VS Code Extensions](https://marketplace.visualstudio.com)
 - [Postman](https://postman.com) - API Testing
 - [Drizzle Studio](https://orm.drizzle.team) - Database Management
 
-## 🤝 Workflow توسعه
+## 🤝 Development Workflow
 
 ### Git Workflow
 ```bash
-# ایجاد branch جدید
+# Create new branch
 git checkout -b feature/new-feature
 
-# کامیت تغییرات
+# Commit changes
 git add .
 git commit -m "feat: add new feature"
 
-# Push و ایجاد PR
+# Push and create PR
 git push origin feature/new-feature
 ```
 
 ### Code Review Checklist
-- [ ] TypeScript errors بررسی شده
-- [ ] ESLint warnings رفع شده
-- [ ] Tests اضافه شده
-- [ ] Documentation بروزرسانی شده
-- [ ] Performance بررسی شده
-- [ ] Security vulnerabilities چک شده
+- [ ] TypeScript errors checked
+- [ ] ESLint warnings fixed
+- [ ] Tests added
+- [ ] Documentation updated
+- [ ] Performance checked
+- [ ] Security vulnerabilities checked
 
 ### Release Process
-1. **Development**: کامیت در branch develop
-2. **Testing**: QA و تست یکپارچه
-3. **Staging**: استقرار در محیط staging
-4. **Production**: merge به main و استقرار
+1. **Development**: Commit in develop branch
+2. **Testing**: QA and integration testing
+3. **Staging**: Deploy to staging environment
+4. **Production**: Merge to main and deploy
 
-## 📞 پشتیبانی
+## 📞 Support
 
-### نحوه دریافت کمک
-1. **Issues**: استفاده از GitHub Issues
-2. **Discussions**: بحث‌های عمومی
-3. **Documentation**: بروزرسانی مستندات
-4. **Code Reviews**: بررسی کد توسط تیم
+### How to Get Help
+1. **Issues**: Use GitHub Issues
+2. **Discussions**: Public discussions
+3. **Documentation**: Documentation updates
+4. **Code Reviews**: Code review by team
 
-### تیم توسعه
-- **Frontend**: تیم React و UI/UX
-- **Backend**: تیم Node.js و Database
-- **Game Design**: تیم مکانیک بازی
-- **DevOps**: تیم استقرار و مانیتورینگ
+### Development Team
+- **Frontend**: React and UI/UX team
+- **Backend**: Node.js and Database team
+- **Game Design**: Game mechanics team
+- **DevOps**: Deployment and monitoring team
 
 ---
 
-**برای سوالات بیشتر با تیم توسعه تماس بگیرید** 🚀
+**For more questions, contact the development team** 🚀
