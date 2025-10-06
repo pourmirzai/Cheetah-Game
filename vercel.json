@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "dist/index.js": {
-      "runtime": "nodejs18.x",
+      "runtime": "nodejs20.x",
       "maxDuration": 30
     }
   },
