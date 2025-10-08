@@ -23,7 +23,7 @@ export function trackEvent(eventType: string, eventData: any) {
   sendToGoogleAnalytics(eventType, eventData);
 
   // Send to backend
-  fetch('/api/game/event', {
+  fetch('/api/event-game', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

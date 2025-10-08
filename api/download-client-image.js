@@ -11,17 +11,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Image data URL and filename are required' });
     }
 
-    // Decode base64 image data
-    const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, 'base64');
-
-    // Force download by setting Content-Type to application/octet-stream
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(buffer);
+    // For serverless environments, just return success
+    // Client-side download is handled by the browser
+    res.json({ success: true, message: 'Image download handled client-side' });
 
   } catch (error) {
-    console.error('Error downloading client image:', error);
-    res.status(500).json({ error: 'Failed to download client image' });
+    console.error('Error with client image:', error);
+    res.status(500).json({ error: 'Failed to process client image' });
   }
 }

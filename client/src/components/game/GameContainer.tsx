@@ -101,7 +101,7 @@ export default function GameContainer() {
       setLoadingProgress(0);
       setLoadingMessage("شروع بارگذاری بازی...");
 
-      const response = await fetch('/api/game/start', {
+      const response = await fetch('/api/start-game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -162,15 +162,26 @@ export default function GameContainer() {
         achievements: results.achievements || []
       };
 
-      const response = await fetch('/api/game/end', {
+      console.log('🎮 Sending game end request:', gameEndData);
+
+      const response = await fetch('/api/end-game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(gameEndData)
       });
 
-      if (!response.ok) throw new Error('Failed to end game');
+      console.log('🎮 Game end response status:', response.status);
 
-      const { achievementTitle } = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎮 Game end failed:', response.status, errorText);
+        throw new Error(`Failed to end game: ${response.status} ${errorText}`);
+      }
+
+      const responseData = await response.json();
+      console.log('🎮 Game end response data:', responseData);
+
+      const { achievementTitle } = responseData;
       
       const finalResults: GameResults = {
         ...gameEndData,
